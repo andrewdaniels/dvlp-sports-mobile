@@ -219,28 +219,6 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
                           const SizedBox(width: AppSpacing.md),
                           Expanded(
                             child: AppSelectTrigger(
-                              label: 'Position',
-                              placeholder: 'Select Position',
-                              value: _position,
-                              onTap: _pickPosition,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: AppSelectTrigger(
-                              label: 'Dominant Side',
-                              placeholder: 'Select side',
-                              value: _dominantSide?.label,
-                              onTap: _pickDominantSide,
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          Expanded(
-                            child: AppSelectTrigger(
                               label: 'Date of Birth',
                               placeholder: 'Select date',
                               value: _dob == null ? null : _formatDob(_dob!),
@@ -248,6 +226,20 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
                             ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      AppSelectTrigger(
+                        label: 'Position',
+                        placeholder: 'Select Position',
+                        value: _position,
+                        onTap: _pickPosition,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      AppSelectTrigger(
+                        label: 'Dominant Side',
+                        placeholder: 'Select side',
+                        value: _dominantSide?.label,
+                        onTap: _pickDominantSide,
                       ),
                       const SizedBox(height: AppSpacing.lg),
                     ],
