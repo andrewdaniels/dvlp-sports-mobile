@@ -1,0 +1,48 @@
+name: mobile
+description: "DVLP Sports team development platform"
+publish_to: 'none'
+
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.12.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_hooks: ^0.20.5
+  hooks_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+
+  # Routing
+  go_router: ^14.6.1
+
+  # Backend
+  supabase_flutter: ^2.8.0
+
+  # Design system
+  google_fonts: ^6.2.1
+  flutter_svg: ^2.0.10+1
+
+  # Config
+  flutter_dotenv: ^5.2.1
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.4.13
+  riverpod_generator: ^2.6.3
+  custom_lint: ^0.7.0
+  riverpod_lint: ^2.6.3
+
+flutter:
+  uses-material-design: true
+  assets:
+    - .env
+    - assets/icons/untitled/
+    - assets/icons/custom/

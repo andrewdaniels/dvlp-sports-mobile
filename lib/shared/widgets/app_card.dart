@@ -1,0 +1,98 @@
+import 'package:flutter/material.dart';
+
+import '../../core/theme/theme.dart';
+
+/// Container-style card used across passport / team / profile headers and
+/// content blocks.
+///
+/// Three variants + a `prominent` bool that controls border weight.
+/// Visual weight comes from border **color** (variant) and **thickness**
+/// (`prominent`).
+///
+/// - `plain` (default) — `alternate` border, `secondaryBackground` fill.
+///    Subtle presence.
+/// - `unread` — `link` (blue) border, `secondaryBackground` fill.
+///    Mid-prominence, used for unread feedback / attention states.
+/// - `featured` — `secondary` (gold) border + mode-adaptive diagonal blue
+///    gradient background. Most prominent styling; use with `prominent: true`
+///    when the card stands alone as a hero/page header.
+///
+/// `prominent`:
+/// - `false` (default) — **1px border**. Right for list items, toggle groups,
+///    inline card usage. Cards don't shift by 1px when toggling variants.
+/// - `true` — **2px border**. Reserve for standalone hero cards where the
+///    thicker outline is the visual anchor of the screen.
+class AppCard extends StatelessWidget {
+  const AppCard({
+    super.key,
+    required this.child,
+    this.variant = AppCardVariant.plain,
+    this.padding = const EdgeInsets.all(AppSpacing.md),
+    this.prominent = false,
+  });
+
+  final Widget child;
+  final AppCardVariant variant;
+  final EdgeInsetsGeometry padding;
+  final bool prominent;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final isFeatured = variant == AppCardVariant.featured;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: isFeatured ? _featuredGradient(isDark, colors) : null,
+        color: isFeatured ? null : colors.secondaryBackground,
+        border: Border.all(color: _borderColor(colors), width: prominent ? 2 : 1),
+        borderRadius: BorderRadius.circular(AppRadius.xxl),
+      ),
+      padding: padding,
+      child: child,
+    );
+  }
+
+  Color _borderColor(AppColors colors) {
+    switch (variant) {
+      case AppCardVariant.plain:
+        return colors.alternate;
+      case AppCardVariant.unread:
+        return colors.link;
+      case AppCardVariant.featured:
+        return colors.secondary;
+    }
+  }
+
+  /// Diagonal (~top-left → bottom-right) tint for the featured card.
+  /// Mode-adaptive stops so it reads as a subtle blue wash in both themes.
+  ///
+  /// - **Dark mode**: hardcoded `#13437E` (lighter variant of `primary`)
+  ///   → `secondaryBackground` dark, both @ 40%. one-off: the light stop
+  ///   isn't a token; if used by any other surface, hoist to AppColors.
+  /// - **Light mode**: `primary` @ 3% → `primary` @ 10% — subtle blue wash.
+  LinearGradient _featuredGradient(bool isDark, AppColors colors) {
+    if (isDark) {
+      return const LinearGradient(
+        begin: Alignment(-0.75, -0.66),
+        end: Alignment(0.75, 0.66),
+        colors: [
+          Color(0x6613437E),
+          Color(0x66061932),
+        ],
+        stops: [0.045, 0.963],
+      );
+    }
+    return LinearGradient(
+      begin: const Alignment(-0.75, -0.66),
+      end: const Alignment(0.75, 0.66),
+      colors: [
+        colors.primary.withValues(alpha: 0.03),
+        colors.primary.withValues(alpha: 0.10),
+      ],
+    );
+  }
+}
+
+enum AppCardVariant { plain, unread, featured }
