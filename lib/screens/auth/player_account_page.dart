@@ -105,6 +105,16 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
     if (result != null && mounted) setState(() => _position = result);
   }
 
+  Future<void> _pickDominantSide() async {
+    final result = await showAppWheelPicker<_DominantSide>(
+      context: context,
+      items: _DominantSide.values,
+      itemLabel: (v) => v.label,
+      initialItem: _dominantSide ?? _DominantSide.right,
+    );
+    if (result != null && mounted) setState(() => _dominantSide = result);
+  }
+
   Future<void> _pickDob() async {
     final now = DateTime.now();
     final result = await showAppDatePicker(
@@ -117,11 +127,6 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
   }
 
   String _formatDob(DateTime d) => '${_monthLabels[d.month - 1]} ${d.day}, ${d.year}';
-
-  void _selectDominantSide(_DominantSide side) {
-    HapticFeedback.selectionClick();
-    setState(() => _dominantSide = side);
-  }
 
   void _uploadPhoto() {
     HapticFeedback.lightImpact();
@@ -201,47 +206,55 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
                         ],
                       ),
                       const SizedBox(height: AppSpacing.md),
-                      AppSelectTrigger(
-                        label: 'Weight',
-                        placeholder: 'Enter weight',
-                        value: _weightLbs == null ? null : '$_weightLbs lbs',
-                        onTap: _pickWeight,
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      AppSelectTrigger(
-                        label: 'Position',
-                        placeholder: 'Select Position',
-                        value: _position,
-                        onTap: _pickPosition,
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      _FieldLabel('Dominant Side'),
-                      const SizedBox(height: AppSpacing.sm),
                       Row(
                         children: [
-                          for (final side in _DominantSide.values) ...[
-                            Expanded(
-                              child: _DominantSideOption(
-                                label: side.label,
-                                selected: _dominantSide == side,
-                                onTap: () => _selectDominantSide(side),
-                              ),
+                          Expanded(
+                            child: AppSelectTrigger(
+                              label: 'Weight',
+                              placeholder: 'Select weight',
+                              value: _weightLbs == null ? null : '$_weightLbs lbs',
+                              onTap: _pickWeight,
                             ),
-                          ],
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          Expanded(
+                            child: AppSelectTrigger(
+                              label: 'Position',
+                              placeholder: 'Select Position',
+                              value: _position,
+                              onTap: _pickPosition,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: AppSpacing.md),
-                      AppSelectTrigger(
-                        label: 'Date of Birth',
-                        placeholder: 'Select date',
-                        value: _dob == null ? null : _formatDob(_dob!),
-                        onTap: _pickDob,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: AppSelectTrigger(
+                              label: 'Dominant Side',
+                              placeholder: 'Select side',
+                              value: _dominantSide?.label,
+                              onTap: _pickDominantSide,
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.md),
+                          Expanded(
+                            child: AppSelectTrigger(
+                              label: 'Date of Birth',
+                              placeholder: 'Select date',
+                              value: _dob == null ? null : _formatDob(_dob!),
+                              onTap: _pickDob,
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: AppSpacing.lg),
                     ],
                   ),
                 ),
               ),
+              const SizedBox(height: AppSpacing.md),
               Row(
                 children: [
                   Expanded(
@@ -263,7 +276,7 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.sm),
             ],
           ),
         ),
@@ -324,62 +337,3 @@ class _PhotoRow extends StatelessWidget {
   }
 }
 
-class _DominantSideOption extends StatelessWidget {
-  const _DominantSideOption({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 22,
-              height: 22,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: selected ? colors.secondary : colors.alternate,
-                  width: 2,
-                ),
-              ),
-              child: selected
-                  ? Center(
-                      child: Container(
-                        width: 12,
-                        height: 12,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: colors.secondary,
-                        ),
-                      ),
-                    )
-                  : null,
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Flexible(
-              child: Text(
-                label,
-                style: AppTypography.bodyMedium.copyWith(color: colors.primaryText),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
