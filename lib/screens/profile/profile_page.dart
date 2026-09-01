@@ -34,6 +34,12 @@ class ProfilePage extends ConsumerWidget {
               subtitle: 'Live reference for shared widgets',
               route: RouteNames.components,
             ),
+            _DevToolTile(
+              icon: Icons.login_outlined,
+              title: 'Preview Onboarding',
+              subtitle: 'Entry / login screens (unauth flow)',
+              route: RouteNames.entry,
+            ),
           ],
         ],
       ),

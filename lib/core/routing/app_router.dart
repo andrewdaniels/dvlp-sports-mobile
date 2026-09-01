@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../screens/auth/entry_page.dart';
+import '../../screens/auth/login_page.dart';
 import '../../screens/dev/components_page.dart';
 import '../../screens/dev/design_system_page.dart';
 import '../../screens/dvlp/dvlp_page.dart';
@@ -44,6 +46,17 @@ final appRouter = GoRouter(
           ),
         ]),
       ],
+    ),
+    // Auth / onboarding — full-screen routes (outside the shell)
+    GoRoute(
+      parentNavigatorKey: _rootNavKey,
+      path: RouteNames.entry,
+      builder: (context, state) => const EntryPage(),
+    ),
+    GoRoute(
+      parentNavigatorKey: _rootNavKey,
+      path: RouteNames.login,
+      builder: (context, state) => const LoginPage(),
     ),
     // Dev tools — full-screen routes (outside the shell)
     GoRoute(
