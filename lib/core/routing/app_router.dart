@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../screens/auth/entry_page.dart';
 import '../../screens/auth/login_page.dart';
+import '../../screens/auth/signup_code_page.dart';
+import '../../screens/auth/signup_type_page.dart';
 import '../../screens/dev/components_page.dart';
 import '../../screens/dev/design_system_page.dart';
 import '../../screens/dvlp/dvlp_page.dart';
@@ -57,6 +59,16 @@ final appRouter = GoRouter(
       parentNavigatorKey: _rootNavKey,
       path: RouteNames.login,
       builder: (context, state) => const LoginPage(),
+    ),
+    GoRoute(
+      parentNavigatorKey: _rootNavKey,
+      path: RouteNames.signupCode,
+      builder: (context, state) => const SignupCodePage(),
+    ),
+    GoRoute(
+      parentNavigatorKey: _rootNavKey,
+      path: RouteNames.signupType,
+      builder: (context, state) => const SignupTypePage(),
     ),
     // Dev tools — full-screen routes (outside the shell)
     GoRoute(

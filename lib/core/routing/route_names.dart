@@ -5,8 +5,8 @@ class RouteNames {
   // Auth / onboarding
   static const entry = '/entry';
   static const login = '/login';
-  static const signup = '/signup';
-  static const invite = '/invite';
+  static const signupCode = '/signup/code';
+  static const signupType = '/signup/type';
 
   // Shell tabs
   static const passport = '/passport';

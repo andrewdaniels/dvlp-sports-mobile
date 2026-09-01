@@ -34,7 +34,7 @@ class EntryPage extends StatelessWidget {
                 label: 'Create Account',
                 variant: AppButtonVariant.primary,
                 expand: true,
-                onPressed: () => _notImplemented(context, 'Create Account'),
+                onPressed: () => context.push(RouteNames.signupCode),
               ),
               const SizedBox(height: AppSpacing.sm),
               AppButton(
@@ -85,8 +85,3 @@ class _EntryWordmark extends StatelessWidget {
   }
 }
 
-void _notImplemented(BuildContext context, String flow) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('$flow flow — coming next')),
-  );
-}

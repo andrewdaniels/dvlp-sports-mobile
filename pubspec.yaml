@@ -26,6 +26,9 @@ dependencies:
   google_fonts: ^6.2.1
   flutter_svg: ^2.0.10+1
 
+  # Onboarding
+  pinput: ^5.0.0
+
   # Config
   flutter_dotenv: ^5.2.1
 
