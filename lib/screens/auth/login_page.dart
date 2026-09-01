@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../core/routing/route_names.dart';
 import '../../core/theme/theme.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_text_field.dart';
 
 /// Email + password login for existing users.
 ///
-/// Submit is stubbed until auth repository lands (task #28).
+/// Submit is unwired: any tap drops the user into the shell so we can
+/// build/browse the authed side of the app. Real credential validation
+/// lands with the auth repository (task #28).
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -18,9 +21,6 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _email = TextEditingController();
   final _password = TextEditingController();
-  bool _submitting = false;
-  String? _emailError;
-  String? _passwordError;
 
   @override
   void dispose() {
@@ -29,25 +29,9 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  bool get _canSubmit =>
-      !_submitting &&
-      _email.text.trim().isNotEmpty &&
-      _password.text.isNotEmpty;
-
-  Future<void> _submit() async {
-    setState(() {
-      _emailError = null;
-      _passwordError = null;
-      _submitting = true;
-    });
-    HapticFeedback.mediumImpact();
-    // TODO(task #28): call auth repository sign-in.
-    await Future.delayed(const Duration(milliseconds: 300));
-    if (!mounted) return;
-    setState(() => _submitting = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Auth repository not wired yet')),
-    );
+  void _submit() {
+    // TODO(task #28): call auth repository sign-in; only navigate on success.
+    context.go(RouteNames.passport);
   }
 
   @override
@@ -73,8 +57,6 @@ class _LoginPageState extends State<LoginPage> {
                 placeholder: 'you@example.com',
                 controller: _email,
                 keyboardType: TextInputType.emailAddress,
-                errorText: _emailError,
-                onChanged: (_) => setState(() {}),
               ),
               const SizedBox(height: AppSpacing.md),
               AppTextField(
@@ -82,8 +64,6 @@ class _LoginPageState extends State<LoginPage> {
                 placeholder: 'Your password',
                 controller: _password,
                 obscureText: true,
-                errorText: _passwordError,
-                onChanged: (_) => setState(() {}),
               ),
               const SizedBox(height: AppSpacing.sm),
               Align(
@@ -91,7 +71,6 @@ class _LoginPageState extends State<LoginPage> {
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
-                    HapticFeedback.lightImpact();
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Forgot password — coming later')),
                     );
@@ -110,7 +89,7 @@ class _LoginPageState extends State<LoginPage> {
                 label: 'Log In',
                 variant: AppButtonVariant.primary,
                 expand: true,
-                onPressed: _canSubmit ? _submit : null,
+                onPressed: _submit,
               ),
               const SizedBox(height: 40),
             ],

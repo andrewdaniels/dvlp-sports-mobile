@@ -52,18 +52,13 @@ class _SignupCodePageState extends State<SignupCodePage> {
 
     return Scaffold(
       backgroundColor: colors.primaryBackground,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-      ),
       body: SafeArea(
-        top: false,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const SizedBox(height: AppSpacing.lg),
               AppOnboardingHeader(
                 title: 'Enter Invite Code',
                 subtitle:

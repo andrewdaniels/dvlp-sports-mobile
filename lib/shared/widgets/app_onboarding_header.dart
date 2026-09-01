@@ -30,7 +30,7 @@ class AppOnboardingHeader extends StatelessWidget {
       children: [
         const AppLogo(size: AppLogoSize.header),
         const SizedBox(height: AppSpacing.xl),
-        Text(title, style: AppTypography.headlineSmall.copyWith(color: colors.primaryText)),
+        Text(title, style: AppTypography.headlineMedium.copyWith(color: colors.primaryText)),
         if (subtitle != null) ...[
           const SizedBox(height: AppSpacing.xs),
           Text(subtitle!, style: AppTypography.bodyMedium.copyWith(color: colors.secondaryText)),
