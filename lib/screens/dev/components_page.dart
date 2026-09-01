@@ -112,7 +112,7 @@ class ComponentsPage extends StatelessWidget {
           ),
           _ComponentSection(
             name: 'AppLogo',
-            description: 'Brand mark. Fixed gradient PNG — sized by height, no color prop (would flatten the gradient).',
+            description: 'Brand mark. Two sizes only via enum — `header` (top-left of onboarding) and `hero` (entry screen). No color prop.',
             child: _AppLogoDemo(),
           ),
         ],
@@ -949,13 +949,12 @@ class _AppLogoDemo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Wrap(
-      spacing: AppSpacing.lg,
+      spacing: AppSpacing.xl,
       runSpacing: AppSpacing.md,
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        AppLogo(height: 32),
-        AppLogo(height: 64),
-        AppLogo(height: 96),
+        AppLogo(size: AppLogoSize.header),
+        AppLogo(size: AppLogoSize.hero),
       ],
     );
   }

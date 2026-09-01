@@ -95,7 +95,7 @@ class _AppTextFieldState extends State<AppTextField> {
           const SizedBox(height: AppSpacing.xxs),
         ],
         Container(
-          height: 48,
+          height: 56,
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           decoration: BoxDecoration(
             color: colors.secondaryBackground,

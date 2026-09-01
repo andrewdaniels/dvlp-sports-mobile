@@ -62,7 +62,7 @@ class AppSelectTrigger extends StatelessWidget {
                 }
               : null,
           child: Container(
-            height: 48,
+            height: 56,
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
             decoration: BoxDecoration(
               color: colors.secondaryBackground,

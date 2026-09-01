@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/routing/route_names.dart';
@@ -9,20 +8,17 @@ import '../../shared/widgets/app_logo.dart';
 
 /// First screen an unauthenticated user sees.
 ///
-/// Three paths:
-/// - **Create Account** — fresh signup, no invite context
-/// - **I have an invite code** — redeem invite → create account with
-///   prefilled/locked fields
+/// Two paths:
+/// - **Create Account** — includes an invite-code step for those who
+///   have one (invite is a sub-step of signup, not a top-level path)
 /// - **Log In** — existing user
 class EntryPage extends StatelessWidget {
   const EntryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
-
     return Scaffold(
-      backgroundColor: colors.primaryBackground,
+      backgroundColor: context.colors.primaryBackground,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
@@ -30,7 +26,9 @@ class EntryPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 80),
-              const Center(child: AppLogo(height: 96)),
+              const Center(child: AppLogo(size: AppLogoSize.hero)),
+              const SizedBox(height: AppSpacing.lg),
+              const _EntryWordmark(),
               const Spacer(),
               AppButton(
                 label: 'Create Account',
@@ -40,13 +38,11 @@ class EntryPage extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.sm),
               AppButton(
-                label: 'I have an invite code',
+                label: 'Log In',
                 variant: AppButtonVariant.outline,
                 expand: true,
-                onPressed: () => _notImplemented(context, 'Invite code'),
+                onPressed: () => context.push(RouteNames.login),
               ),
-              const SizedBox(height: AppSpacing.xl),
-              _LoginRow(),
               const SizedBox(height: 40),
             ],
           ),
@@ -56,39 +52,41 @@ class EntryPage extends StatelessWidget {
   }
 }
 
-void _notImplemented(BuildContext context, String flow) {
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('$flow flow — coming next')),
-  );
-}
+/// One-off wordmark used only on the entry screen — "DVLP" over
+/// spaced-caps "SPORTS". Intentionally not extracted to a shared widget
+/// because this is the only place it renders.
+class _EntryWordmark extends StatelessWidget {
+  const _EntryWordmark();
 
-class _LoginRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'Already have an account?',
-          style: AppTypography.bodyMedium.copyWith(color: colors.secondaryText),
+          'DVLP',
+          style: AppTypography.anybody(
+            fontSize: 64,
+            color: colors.secondaryText,
+          ),
         ),
-        const SizedBox(width: AppSpacing.xs),
-        GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () {
-            HapticFeedback.lightImpact();
-            context.push(RouteNames.login);
-          },
-          child: Text(
-            'Log In',
-            style: AppTypography.bodyMedium.copyWith(
-              color: colors.link,
-              fontWeight: FontWeight.w600,
-            ),
+        const SizedBox(height: AppSpacing.xxs),
+        Text(
+          'SPORTS',
+          style: AppTypography.titleMedium.copyWith(
+            color: colors.secondary,
+            letterSpacing: 4,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ],
     );
   }
+}
+
+void _notImplemented(BuildContext context, String flow) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('$flow flow — coming next')),
+  );
 }
