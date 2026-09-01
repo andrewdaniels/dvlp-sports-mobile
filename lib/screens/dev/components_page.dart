@@ -11,6 +11,7 @@ import '../../shared/widgets/app_game_result_badge.dart';
 import '../../shared/widgets/app_icon_button.dart';
 import '../../shared/widgets/app_icon_indicator.dart';
 import '../../shared/widgets/app_level_badge.dart';
+import '../../shared/widgets/app_logo.dart';
 import '../../shared/widgets/app_radio_card.dart';
 import '../../features/assessments/ui/widgets/app_feedback_list_item.dart';
 import '../../shared/widgets/app_select_trigger.dart';
@@ -108,6 +109,11 @@ class ComponentsPage extends StatelessWidget {
             name: 'AppSelectTrigger',
             description: 'Input-shaped tappable trigger — chevron-down on right. Use for opening a sheet or menu. Same visual formula as AppTextField.',
             child: _AppSelectTriggerDemo(),
+          ),
+          _ComponentSection(
+            name: 'AppLogo',
+            description: 'Brand mark. Fixed gradient PNG — sized by height, no color prop (would flatten the gradient).',
+            child: _AppLogoDemo(),
           ),
         ],
       ),
@@ -932,6 +938,24 @@ class _AppFeedbackListItemDemo extends StatelessWidget {
           body: 'Formal Assessment Completed',
           onTap: () {},
         ),
+      ],
+    );
+  }
+}
+
+class _AppLogoDemo extends StatelessWidget {
+  const _AppLogoDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Wrap(
+      spacing: AppSpacing.lg,
+      runSpacing: AppSpacing.md,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        AppLogo(height: 32),
+        AppLogo(height: 64),
+        AppLogo(height: 96),
       ],
     );
   }

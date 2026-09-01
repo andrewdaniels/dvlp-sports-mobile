@@ -46,3 +46,4 @@ flutter:
     - .env
     - assets/icons/untitled/
     - assets/icons/custom/
+    - assets/brand/logo.png
