@@ -12,6 +12,7 @@ import '../../shared/widgets/app_icon_button.dart';
 import '../../shared/widgets/app_icon_indicator.dart';
 import '../../shared/widgets/app_level_badge.dart';
 import '../../shared/widgets/app_logo.dart';
+import '../../shared/widgets/app_onboarding_header.dart';
 import '../../shared/widgets/app_radio_card.dart';
 import '../../features/assessments/ui/widgets/app_feedback_list_item.dart';
 import '../../shared/widgets/app_select_trigger.dart';
@@ -114,6 +115,11 @@ class ComponentsPage extends StatelessWidget {
             name: 'AppLogo',
             description: 'Brand mark. Two sizes only via enum — `header` (top-left of onboarding) and `hero` (entry screen). No color prop.',
             child: _AppLogoDemo(),
+          ),
+          _ComponentSection(
+            name: 'AppOnboardingHeader',
+            description: 'Logo top-left + title + optional subtitle. Standard for onboarding pages. Pair with a transparent AppBar for the back button.',
+            child: _AppOnboardingHeaderDemo(),
           ),
         ],
       ),
@@ -311,6 +317,17 @@ class _AppButtonDemo extends StatelessWidget {
             _Labeled(label: 'secondary', child: AppButton(label: 'Press', onPressed: null, variant: AppButtonVariant.secondary, size: AppButtonSize.medium)),
             _Labeled(label: 'outline', child: AppButton(label: 'Press', onPressed: null, variant: AppButtonVariant.outline, size: AppButtonSize.medium)),
             _Labeled(label: 'text', child: AppButton(label: 'Press', onPressed: null, variant: AppButtonVariant.text, size: AppButtonSize.medium)),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md),
+        _sectionLabel(context, 'LOADING'),
+        const Wrap(
+          spacing: AppSpacing.md,
+          runSpacing: AppSpacing.md,
+          children: [
+            _Labeled(label: 'primary', child: AppButton(label: 'Press', onPressed: null, size: AppButtonSize.medium, loading: true)),
+            _Labeled(label: 'secondary', child: AppButton(label: 'Press', onPressed: null, variant: AppButtonVariant.secondary, size: AppButtonSize.medium, loading: true)),
+            _Labeled(label: 'outline', child: AppButton(label: 'Press', onPressed: null, variant: AppButtonVariant.outline, size: AppButtonSize.medium, loading: true)),
           ],
         ),
         const SizedBox(height: AppSpacing.md),
@@ -955,6 +972,25 @@ class _AppLogoDemo extends StatelessWidget {
       children: [
         AppLogo(size: AppLogoSize.header),
         AppLogo(size: AppLogoSize.hero),
+      ],
+    );
+  }
+}
+
+class _AppOnboardingHeaderDemo extends StatelessWidget {
+  const _AppOnboardingHeaderDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AppOnboardingHeader(
+          title: 'Welcome',
+          subtitle: 'Select your user type to begin creating your account.',
+        ),
+        SizedBox(height: AppSpacing.xl),
+        AppOnboardingHeader(title: 'No subtitle example'),
       ],
     );
   }

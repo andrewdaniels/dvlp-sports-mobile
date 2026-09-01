@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../core/theme/theme.dart';
 import '../../shared/widgets/app_button.dart';
-import '../../shared/widgets/app_logo.dart';
+import '../../shared/widgets/app_onboarding_header.dart';
 
 enum _SignupType { player, coach }
 
@@ -41,23 +41,21 @@ class _SignupTypePageState extends State<SignupTypePage> {
 
     return Scaffold(
       backgroundColor: colors.primaryBackground,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+      ),
       body: SafeArea(
+        top: false,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: AppSpacing.md),
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: AppLogo(size: AppLogoSize.header),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              Text('Welcome', style: AppTypography.headlineSmall.copyWith(color: colors.primaryText)),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                'Select your user type to begin creating your account.',
-                style: AppTypography.bodyMedium.copyWith(color: colors.secondaryText),
+              const AppOnboardingHeader(
+                title: 'Welcome',
+                subtitle: 'Select your user type to begin creating your account.',
               ),
               const SizedBox(height: AppSpacing.xxl),
               _TypeOption(
@@ -108,7 +106,7 @@ class _TypeOption extends StatelessWidget {
         height: 56,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: colors.secondaryBackground,
+          color: selected ? colors.accent2Tint : colors.secondaryBackground,
           borderRadius: BorderRadius.circular(AppRadius.lg),
           border: Border.all(
             color: selected ? colors.secondary : colors.alternate,

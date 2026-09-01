@@ -18,6 +18,11 @@ import 'app_icon.dart';
 /// Set `onPressed: null` to disable — matches Flutter's `ElevatedButton` idiom.
 /// Icons take asset paths from [AppIcons] (nullable). Fires haptic feedback
 /// on tap per AGENTS.md rules (medium for primary/secondary, light for outline/text).
+///
+/// `loading: true` swaps the label/icons for a spinner and blocks taps. Use it
+/// while an async action tied to this button is in-flight (e.g., verifying an
+/// invite code, submitting a form). Visual stays in the *active* variant — the
+/// button reads as "working," not "disabled."
 class AppButton extends StatelessWidget {
   const AppButton({
     super.key,
@@ -28,6 +33,7 @@ class AppButton extends StatelessWidget {
     this.leadingIcon,
     this.trailingIcon,
     this.expand = false,
+    this.loading = false,
   });
 
   final String label;
@@ -37,10 +43,11 @@ class AppButton extends StatelessWidget {
   final String? leadingIcon;
   final String? trailingIcon;
   final bool expand;
+  final bool loading;
 
   @override
   Widget build(BuildContext context) {
-    final disabled = onPressed == null;
+    final disabled = !loading && onPressed == null;
     final specs = _specs;
     final contentColor = _contentColor(context, disabled);
 
@@ -52,21 +59,30 @@ class AppButton extends StatelessWidget {
       ),
       alignment: Alignment.center,
       decoration: _decoration(context, disabled),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (leadingIcon != null) ...[
-            AppIcon(leadingIcon!, size: specs.iconSize, color: contentColor),
-            SizedBox(width: specs.gap),
-          ],
-          Text(label, style: specs.textStyle.copyWith(color: contentColor)),
-          if (trailingIcon != null) ...[
-            SizedBox(width: specs.gap),
-            AppIcon(trailingIcon!, size: specs.iconSize, color: contentColor),
-          ],
-        ],
-      ),
+      child: loading
+          ? SizedBox(
+              width: specs.iconSize,
+              height: specs.iconSize,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                valueColor: AlwaysStoppedAnimation(contentColor),
+              ),
+            )
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (leadingIcon != null) ...[
+                  AppIcon(leadingIcon!, size: specs.iconSize, color: contentColor),
+                  SizedBox(width: specs.gap),
+                ],
+                Text(label, style: specs.textStyle.copyWith(color: contentColor)),
+                if (trailingIcon != null) ...[
+                  SizedBox(width: specs.gap),
+                  AppIcon(trailingIcon!, size: specs.iconSize, color: contentColor),
+                ],
+              ],
+            ),
     );
 
     if (expand) {
@@ -75,7 +91,7 @@ class AppButton extends StatelessWidget {
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: disabled
+      onTap: (disabled || loading)
           ? null
           : () {
               _fireHaptic();

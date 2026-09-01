@@ -6,7 +6,7 @@ import 'package:pinput/pinput.dart';
 import '../../core/routing/route_names.dart';
 import '../../core/theme/theme.dart';
 import '../../shared/widgets/app_button.dart';
-import '../../shared/widgets/app_logo.dart';
+import '../../shared/widgets/app_onboarding_header.dart';
 
 /// First step after tapping "Create Account" on the entry screen.
 ///
@@ -52,23 +52,22 @@ class _SignupCodePageState extends State<SignupCodePage> {
 
     return Scaffold(
       backgroundColor: colors.primaryBackground,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+      ),
       body: SafeArea(
+        top: false,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: AppSpacing.md),
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: AppLogo(size: AppLogoSize.header),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              Text('Enter Invite Code', style: AppTypography.headlineSmall.copyWith(color: colors.primaryText)),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                'Enter the $_codeLength-character code from your invite email to get started.',
-                style: AppTypography.bodyMedium.copyWith(color: colors.secondaryText),
+              AppOnboardingHeader(
+                title: 'Enter Invite Code',
+                subtitle:
+                    'Enter the $_codeLength-character code from your invite email to get started.',
               ),
               const SizedBox(height: AppSpacing.xxl),
               _CodeInput(
