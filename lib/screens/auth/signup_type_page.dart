@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:go_router/go_router.dart';
+
+import '../../core/routing/route_names.dart';
 import '../../core/theme/theme.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_onboarding_header.dart';
@@ -29,10 +32,15 @@ class _SignupTypePageState extends State<SignupTypePage> {
 
   void _next() {
     HapticFeedback.mediumImpact();
-    // TODO(task #31): push /signup/details with selected type.
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Continuing as ${_selected!.name} — form not wired yet')),
-    );
+    switch (_selected!) {
+      case _SignupType.player:
+        context.push(RouteNames.signupPlayerDetails);
+      case _SignupType.coach:
+        // TODO(task #31 coach): push RouteNames.signupCoachDetails once built.
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Coach form — coming next')),
+        );
+    }
   }
 
   @override

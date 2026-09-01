@@ -73,6 +73,7 @@ class AppIcons {
 
   // Media / audio
   static const String microphone = '$_base/microphone-01.svg';
+  static const String image = '$_base/image-01.svg';
   // Filled variants live under assets/icons/custom/ because Untitled UI's
   // free set is stroke-only. See lib/shared/widgets/app_icon.dart comments
   // for the pattern.

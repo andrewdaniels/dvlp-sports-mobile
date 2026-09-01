@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../screens/auth/entry_page.dart';
 import '../../screens/auth/login_page.dart';
+import '../../screens/auth/player_account_page.dart';
 import '../../screens/auth/signup_code_page.dart';
 import '../../screens/auth/signup_type_page.dart';
 import '../../screens/dev/components_page.dart';
@@ -69,6 +70,11 @@ final appRouter = GoRouter(
       parentNavigatorKey: _rootNavKey,
       path: RouteNames.signupType,
       builder: (context, state) => const SignupTypePage(),
+    ),
+    GoRoute(
+      parentNavigatorKey: _rootNavKey,
+      path: RouteNames.signupPlayerDetails,
+      builder: (context, state) => const PlayerAccountPage(),
     ),
     // Dev tools — full-screen routes (outside the shell)
     GoRoute(
