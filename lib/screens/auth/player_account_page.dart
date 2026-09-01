@@ -50,9 +50,7 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
   int? _weightLbs;
   String? _position;
   _DominantSide? _dominantSide;
-  int? _dobMonth;
-  int? _dobDay;
-  int? _dobYear;
+  DateTime? _dob;
 
   static const _positions = ['Goalie', 'Forward', 'Defense'];
   static const _monthLabels = [
@@ -72,7 +70,7 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
       context: context,
       items: List.generate(6, (i) => i + 3), // 3–8
       itemLabel: (v) => '$v ft',
-      initialItem: _heightFt,
+      initialItem: _heightFt ?? 5,
     );
     if (result != null && mounted) setState(() => _heightFt = result);
   }
@@ -82,7 +80,7 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
       context: context,
       items: List.generate(12, (i) => i), // 0–11
       itemLabel: (v) => '$v in',
-      initialItem: _heightIn,
+      initialItem: _heightIn ?? 6,
     );
     if (result != null && mounted) setState(() => _heightIn = result);
   }
@@ -92,7 +90,7 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
       context: context,
       items: List.generate(311, (i) => i + 40), // 40–350
       itemLabel: (v) => '$v lbs',
-      initialItem: _weightLbs,
+      initialItem: _weightLbs ?? 140,
     );
     if (result != null && mounted) setState(() => _weightLbs = result);
   }
@@ -102,43 +100,23 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
       context: context,
       items: _positions,
       itemLabel: (v) => v,
-      initialItem: _position,
+      initialItem: _position ?? 'Forward',
     );
     if (result != null && mounted) setState(() => _position = result);
   }
 
-  Future<void> _pickMonth() async {
-    final result = await showAppWheelPicker<int>(
+  Future<void> _pickDob() async {
+    final now = DateTime.now();
+    final result = await showAppDatePicker(
       context: context,
-      items: List.generate(12, (i) => i + 1),
-      itemLabel: (v) => _monthLabels[v - 1],
-      initialItem: _dobMonth,
+      initialDate: _dob ?? DateTime(now.year - 15, 6, 15),
+      minimumDate: DateTime(now.year - 60),
+      maximumDate: DateTime(now.year - 3),
     );
-    if (result != null && mounted) setState(() => _dobMonth = result);
+    if (result != null && mounted) setState(() => _dob = result);
   }
 
-  Future<void> _pickDay() async {
-    final result = await showAppWheelPicker<int>(
-      context: context,
-      items: List.generate(31, (i) => i + 1),
-      itemLabel: (v) => '$v',
-      initialItem: _dobDay,
-    );
-    if (result != null && mounted) setState(() => _dobDay = result);
-  }
-
-  Future<void> _pickYear() async {
-    // 1970 → current year. Wheel starts at the most recent year selected.
-    final now = DateTime.now().year;
-    final years = List.generate(now - 1969, (i) => now - i);
-    final result = await showAppWheelPicker<int>(
-      context: context,
-      items: years,
-      itemLabel: (v) => '$v',
-      initialItem: _dobYear,
-    );
-    if (result != null && mounted) setState(() => _dobYear = result);
-  }
+  String _formatDob(DateTime d) => '${_monthLabels[d.month - 1]} ${d.day}, ${d.year}';
 
   void _selectDominantSide(_DominantSide side) {
     HapticFeedback.selectionClick();
@@ -253,34 +231,11 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
                         ],
                       ),
                       const SizedBox(height: AppSpacing.md),
-                      _FieldLabel('Date of Birth'),
-                      const SizedBox(height: AppSpacing.xxs),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: AppSelectTrigger(
-                              placeholder: 'Month',
-                              value: _dobMonth == null ? null : _monthLabels[_dobMonth! - 1],
-                              onTap: _pickMonth,
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: AppSelectTrigger(
-                              placeholder: 'Day',
-                              value: _dobDay == null ? null : '$_dobDay',
-                              onTap: _pickDay,
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: AppSelectTrigger(
-                              placeholder: 'Year',
-                              value: _dobYear == null ? null : '$_dobYear',
-                              onTap: _pickYear,
-                            ),
-                          ),
-                        ],
+                      AppSelectTrigger(
+                        label: 'Date of Birth',
+                        placeholder: 'Select date',
+                        value: _dob == null ? null : _formatDob(_dob!),
+                        onTap: _pickDob,
                       ),
                       const SizedBox(height: AppSpacing.lg),
                     ],
