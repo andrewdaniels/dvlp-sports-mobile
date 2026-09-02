@@ -7,6 +7,7 @@ import '../../core/routing/route_names.dart';
 import '../../core/theme/theme.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_onboarding_header.dart';
+import '../../shared/widgets/app_screen_footer.dart';
 
 enum _SignupType { player, coach }
 
@@ -73,13 +74,13 @@ class _SignupTypePageState extends State<SignupTypePage> {
                 onTap: () => _select(_SignupType.coach),
               ),
               const Spacer(),
-              AppButton(
-                label: 'Next',
-                variant: AppButtonVariant.primary,
-                expand: true,
-                onPressed: _selected == null ? null : _next,
+              AppScreenFooter.single(
+                primary: AppButton(
+                  label: 'Next',
+                  variant: AppButtonVariant.primary,
+                  onPressed: _selected == null ? null : _next,
+                ),
               ),
-              const SizedBox(height: 40),
             ],
           ),
         ),

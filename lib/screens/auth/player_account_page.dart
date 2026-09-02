@@ -7,6 +7,7 @@ import '../../core/theme/theme.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_icon.dart';
 import '../../shared/widgets/app_onboarding_header.dart';
+import '../../shared/widgets/app_screen_footer.dart';
 import '../../shared/widgets/app_select_trigger.dart';
 import '../../shared/widgets/app_text_field.dart';
 import '../../shared/widgets/app_wheel_picker.dart';
@@ -246,29 +247,18 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
                   ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.md),
-              Row(
-                children: [
-                  Expanded(
-                    child: AppButton(
-                      label: secondaryLabel,
-                      variant: AppButtonVariant.outline,
-                      expand: true,
-                      onPressed: _back,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: AppButton(
-                      label: primaryLabel,
-                      variant: AppButtonVariant.primary,
-                      expand: true,
-                      onPressed: _next,
-                    ),
-                  ),
-                ],
+              AppScreenFooter.row(
+                secondary: AppButton(
+                  label: secondaryLabel,
+                  variant: AppButtonVariant.outline,
+                  onPressed: _back,
+                ),
+                primary: AppButton(
+                  label: primaryLabel,
+                  variant: AppButtonVariant.primary,
+                  onPressed: _next,
+                ),
               ),
-              const SizedBox(height: AppSpacing.sm),
             ],
           ),
         ),

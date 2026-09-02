@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/routing/route_names.dart';
 import '../../core/theme/theme.dart';
 import '../../shared/widgets/app_button.dart';
+import '../../shared/widgets/app_screen_footer.dart';
 import '../../shared/widgets/app_text_field.dart';
 
 /// Email + password login for existing users.
@@ -85,13 +86,13 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               const Spacer(),
-              AppButton(
-                label: 'Log In',
-                variant: AppButtonVariant.primary,
-                expand: true,
-                onPressed: _submit,
+              AppScreenFooter.single(
+                primary: AppButton(
+                  label: 'Log In',
+                  variant: AppButtonVariant.primary,
+                  onPressed: _submit,
+                ),
               ),
-              const SizedBox(height: 40),
             ],
           ),
         ),

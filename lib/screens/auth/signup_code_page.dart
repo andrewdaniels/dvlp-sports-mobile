@@ -7,6 +7,7 @@ import '../../core/routing/route_names.dart';
 import '../../core/theme/theme.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_onboarding_header.dart';
+import '../../shared/widgets/app_screen_footer.dart';
 
 /// First step after tapping "Create Account" on the entry screen.
 ///
@@ -85,14 +86,13 @@ class _SignupCodePageState extends State<SignupCodePage> {
                   ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.lg),
-              AppButton(
-                label: 'Continue',
-                variant: AppButtonVariant.primary,
-                expand: true,
-                onPressed: _complete ? _submit : null,
+              AppScreenFooter.single(
+                primary: AppButton(
+                  label: 'Continue',
+                  variant: AppButtonVariant.primary,
+                  onPressed: _complete ? _submit : null,
+                ),
               ),
-              const SizedBox(height: 40),
             ],
           ),
         ),

@@ -5,6 +5,7 @@ import '../../core/routing/route_names.dart';
 import '../../core/theme/theme.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_logo.dart';
+import '../../shared/widgets/app_screen_footer.dart';
 
 /// First screen an unauthenticated user sees.
 ///
@@ -30,20 +31,18 @@ class EntryPage extends StatelessWidget {
               const SizedBox(height: AppSpacing.lg),
               const _EntryWordmark(),
               const Spacer(),
-              AppButton(
-                label: 'Create Account',
-                variant: AppButtonVariant.primary,
-                expand: true,
-                onPressed: () => context.push(RouteNames.signupCode),
+              AppScreenFooter.stacked(
+                primary: AppButton(
+                  label: 'Create Account',
+                  variant: AppButtonVariant.primary,
+                  onPressed: () => context.push(RouteNames.signupCode),
+                ),
+                secondary: AppButton(
+                  label: 'Log In',
+                  variant: AppButtonVariant.outline,
+                  onPressed: () => context.push(RouteNames.login),
+                ),
               ),
-              const SizedBox(height: AppSpacing.sm),
-              AppButton(
-                label: 'Log In',
-                variant: AppButtonVariant.outline,
-                expand: true,
-                onPressed: () => context.push(RouteNames.login),
-              ),
-              const SizedBox(height: 40),
             ],
           ),
         ),
