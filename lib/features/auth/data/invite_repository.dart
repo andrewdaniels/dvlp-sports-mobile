@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:developer' as developer;
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../generated/api/validate_invite.dart';
@@ -19,8 +22,19 @@ class InviteRepository {
       );
       return _parseOk(response.data);
     } on FunctionException catch (e) {
+      developer.log(
+        'validate_invite FunctionException (status=${e.status})',
+        name: 'InviteRepository',
+        error: e.details,
+      );
       return _parseError(e.details);
-    } catch (_) {
+    } catch (e, st) {
+      developer.log(
+        'validate_invite unexpected error',
+        name: 'InviteRepository',
+        error: e,
+        stackTrace: st,
+      );
       return const Failure('network_error', 'Something went wrong. Try again.');
     }
   }
@@ -29,7 +43,10 @@ class InviteRepository {
     final map = _asMap(body);
     if (map == null) return const Failure('bad_response', 'Unexpected server response.');
     if (map['ok'] == true) {
-      final data = map['data'] as Map<String, dynamic>;
+      final data = _asMap(map['data']);
+      if (data == null) {
+        return const Failure('bad_response', 'Unexpected server response.');
+      }
       return Success(ValidateInviteData.fromJson(data));
     }
     return _parseError(map);
@@ -37,18 +54,33 @@ class InviteRepository {
 
   ApiResult<ValidateInviteData> _parseError(dynamic body) {
     final map = _asMap(body);
-    final errorMap = map?['error'];
-    if (errorMap is Map<String, dynamic>) {
+    final errorMap = _asMap(map?['error']);
+    if (errorMap != null) {
       return Failure(
-        errorMap['code'] as String? ?? 'unknown',
-        errorMap['message'] as String? ?? 'Something went wrong.',
+        errorMap['code']?.toString() ?? 'unknown',
+        errorMap['message']?.toString() ?? 'Something went wrong.',
       );
     }
     return const Failure('unknown', 'Something went wrong. Try again.');
   }
 
+  /// Coerce anything JSON-map-shaped into `Map<String, dynamic>`. Handles:
+  ///  - already-typed `Map<String, dynamic>` (dart:convert default)
+  ///  - `Map<dynamic, dynamic>` (some transports/versions)
+  ///  - raw JSON strings (fall back to decode)
   Map<String, dynamic>? _asMap(dynamic value) {
     if (value is Map<String, dynamic>) return value;
+    if (value is Map) {
+      return value.map((k, v) => MapEntry(k.toString(), v));
+    }
+    if (value is String) {
+      try {
+        final decoded = jsonDecode(value);
+        if (decoded is Map) return _asMap(decoded);
+      } catch (_) {
+        // Fall through
+      }
+    }
     return null;
   }
 }
