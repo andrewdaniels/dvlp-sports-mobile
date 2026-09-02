@@ -65,6 +65,8 @@ class AppIcons {
   static const String close = '$_base/x-close.svg';
   static const String bell = '$_base/bell-03.svg';
   static const String settings = '$_base/settings-01.svg';
+  static const String eye = '$_base/eye.svg';
+  static const String eyeOff = '$_base/eye-off.svg';
 
   // Selection controls
   static const String check = '$_base/check.svg';

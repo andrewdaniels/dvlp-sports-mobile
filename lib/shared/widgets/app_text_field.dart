@@ -8,8 +8,9 @@ import 'app_icon.dart';
 ///
 /// - Optional [label] above the field (color adapts per state)
 /// - Optional [leadingIcon] on the left (from `AppIcons`)
-/// - Trailing `x-close` clear button appears automatically when text is
-///   present and field is enabled
+/// - Trailing affordance (when text is present + enabled):
+///   * `obscureText: true`  → eye toggle to reveal/hide the password
+///   * `obscureText: false` → `x-close` clear button
 /// - Border color reflects state: default → focused → disabled → error
 /// - [errorText], if non-null, triggers error styling and renders below
 class AppTextField extends StatefulWidget {
@@ -44,6 +45,7 @@ class _AppTextFieldState extends State<AppTextField> {
   late final TextEditingController _controller;
   late final FocusNode _focusNode;
   bool _isFocused = false;
+  late bool _obscured;
   bool get _ownsController => widget.controller == null;
 
   @override
@@ -52,6 +54,16 @@ class _AppTextFieldState extends State<AppTextField> {
     _controller = widget.controller ?? TextEditingController();
     _focusNode = FocusNode()..addListener(_handleFocusChange);
     _controller.addListener(_handleTextChange);
+    _obscured = widget.obscureText;
+  }
+
+  @override
+  void didUpdateWidget(covariant AppTextField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // If the caller flips obscureText, reset visibility to obscured.
+    if (oldWidget.obscureText != widget.obscureText) {
+      _obscured = widget.obscureText;
+    }
   }
 
   @override
@@ -76,6 +88,11 @@ class _AppTextFieldState extends State<AppTextField> {
     HapticFeedback.lightImpact();
     _controller.clear();
     widget.onChanged?.call('');
+  }
+
+  void _toggleObscure() {
+    HapticFeedback.lightImpact();
+    setState(() => _obscured = !_obscured);
   }
 
   @override
@@ -114,7 +131,7 @@ class _AppTextFieldState extends State<AppTextField> {
                   focusNode: _focusNode,
                   enabled: widget.enabled,
                   keyboardType: widget.keyboardType,
-                  obscureText: widget.obscureText,
+                  obscureText: _obscured,
                   onChanged: widget.onChanged,
                   style: AppTypography.bodyMedium.copyWith(color: colors.primaryText),
                   cursorColor: colors.link,
@@ -126,11 +143,22 @@ class _AppTextFieldState extends State<AppTextField> {
               ),
               if (widget.enabled && hasText) ...[
                 const SizedBox(width: AppSpacing.sm),
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: _clear,
-                  child: AppIcon(AppIcons.close, size: 18, color: colors.secondaryText),
-                ),
+                if (widget.obscureText)
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _toggleObscure,
+                    child: AppIcon(
+                      _obscured ? AppIcons.eye : AppIcons.eyeOff,
+                      size: 20,
+                      color: colors.secondaryText,
+                    ),
+                  )
+                else
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: _clear,
+                    child: AppIcon(AppIcons.close, size: 18, color: colors.secondaryText),
+                  ),
               ],
             ],
           ),

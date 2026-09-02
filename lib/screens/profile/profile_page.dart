@@ -15,8 +15,6 @@ class ProfilePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final session = ref.watch(currentSessionProvider);
-
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
       body: ListView(
@@ -37,43 +35,20 @@ class ProfilePage extends ConsumerWidget {
               subtitle: 'Live reference for shared widgets',
               route: RouteNames.components,
             ),
-            _DevToolTile(
-              icon: Icons.login_outlined,
-              title: 'Preview Onboarding',
-              subtitle: 'Entry / login screens (unauth flow)',
-              route: RouteNames.entry,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            const _SectionHeader(title: 'Session'),
-            ListTile(
-              leading: Icon(
-                session == null ? Icons.person_off_outlined : Icons.person_outline,
-                color: context.colors.link,
-              ),
-              title: Text(
-                session == null ? 'Signed out' : (session.user.email ?? 'Signed in'),
-                style: AppTypography.bodyLarge.copyWith(color: context.colors.primaryText),
-              ),
-              subtitle: Text(
-                session == null ? 'Not authenticated' : 'user_id: ${session.user.id}',
-                style: AppTypography.captionMedium.copyWith(color: context.colors.secondaryText),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.md),
+              child: AppButton(
+                label: 'Sign Out',
+                variant: AppButtonVariant.outline,
+                size: AppButtonSize.medium,
+                expand: true,
+                onPressed: () async {
+                  HapticFeedback.mediumImpact();
+                  await ref.read(authRepositoryProvider).signOut();
+                  if (context.mounted) context.go(RouteNames.entry);
+                },
               ),
             ),
-            if (session != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
-                child: AppButton(
-                  label: 'Sign Out',
-                  variant: AppButtonVariant.outline,
-                  size: AppButtonSize.medium,
-                  expand: true,
-                  onPressed: () async {
-                    HapticFeedback.mediumImpact();
-                    await ref.read(authRepositoryProvider).signOut();
-                    if (context.mounted) context.go(RouteNames.entry);
-                  },
-                ),
-              ),
           ],
         ],
       ),
