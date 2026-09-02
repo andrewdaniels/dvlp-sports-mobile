@@ -17,20 +17,20 @@ class InviteRepository {
   Future<ApiResult<ValidateInviteData>> validateCode(String code) async {
     try {
       final response = await _client.functions.invoke(
-        'validate_invite',
+        'validate-invite',
         body: {'code': code},
       );
       return _parseOk(response.data);
     } on FunctionException catch (e) {
       developer.log(
-        'validate_invite FunctionException (status=${e.status})',
+        'validate-invite FunctionException (status=${e.status})',
         name: 'InviteRepository',
         error: e.details,
       );
       return _parseError(e.details);
     } catch (e, st) {
       developer.log(
-        'validate_invite unexpected error',
+        'validate-invite unexpected error',
         name: 'InviteRepository',
         error: e,
         stackTrace: st,
