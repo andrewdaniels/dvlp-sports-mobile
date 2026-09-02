@@ -1,27 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../core/routing/route_names.dart';
 import '../../core/theme/theme.dart';
+import '../../features/auth/controllers/auth_providers.dart';
+import '../../features/auth/data/auth_repository.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_screen_footer.dart';
 import '../../shared/widgets/app_text_field.dart';
 
-/// Email + password login for existing users.
-///
-/// Submit is unwired: any tap drops the user into the shell so we can
-/// build/browse the authed side of the app. Real credential validation
-/// lands with the auth repository (task #28).
-class LoginPage extends StatefulWidget {
+class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends ConsumerState<LoginPage> {
   final _email = TextEditingController();
   final _password = TextEditingController();
+  bool _submitting = false;
+  String? _errorText;
 
   @override
   void dispose() {
@@ -30,9 +30,32 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void _submit() {
-    // TODO(task #28): call auth repository sign-in; only navigate on success.
-    context.go(RouteNames.passport);
+  bool get _canSubmit =>
+      !_submitting &&
+      _email.text.trim().isNotEmpty &&
+      _password.text.isNotEmpty;
+
+  Future<void> _submit() async {
+    if (!_canSubmit) return;
+    setState(() {
+      _submitting = true;
+      _errorText = null;
+    });
+
+    try {
+      await ref.read(authRepositoryProvider).signInWithPassword(
+            email: _email.text.trim(),
+            password: _password.text,
+          );
+      if (!mounted) return;
+      context.go(RouteNames.passport);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorText = authErrorMessage(e);
+        _submitting = false;
+      });
+    }
   }
 
   @override
@@ -58,6 +81,7 @@ class _LoginPageState extends State<LoginPage> {
                 placeholder: 'you@example.com',
                 controller: _email,
                 keyboardType: TextInputType.emailAddress,
+                onChanged: (_) => setState(() {}),
               ),
               const SizedBox(height: AppSpacing.md),
               AppTextField(
@@ -65,6 +89,10 @@ class _LoginPageState extends State<LoginPage> {
                 placeholder: 'Your password',
                 controller: _password,
                 obscureText: true,
+                errorText: _errorText,
+                onChanged: (_) => setState(() {
+                  if (_errorText != null) _errorText = null;
+                }),
               ),
               const SizedBox(height: AppSpacing.sm),
               Align(
@@ -90,7 +118,8 @@ class _LoginPageState extends State<LoginPage> {
                 primary: AppButton(
                   label: 'Log In',
                   variant: AppButtonVariant.primary,
-                  onPressed: _submit,
+                  loading: _submitting,
+                  onPressed: _canSubmit ? _submit : null,
                 ),
               ),
             ],

@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../core/providers/theme_provider.dart';
 import '../../core/routing/route_names.dart';
 import '../../core/theme/theme.dart';
+import '../../features/auth/controllers/auth_providers.dart';
 import '../../shared/widgets/app_button.dart';
 
 class ProfilePage extends ConsumerWidget {
@@ -14,6 +15,8 @@ class ProfilePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final session = ref.watch(currentSessionProvider);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
       body: ListView(
@@ -40,6 +43,37 @@ class ProfilePage extends ConsumerWidget {
               subtitle: 'Entry / login screens (unauth flow)',
               route: RouteNames.entry,
             ),
+            const SizedBox(height: AppSpacing.sm),
+            const _SectionHeader(title: 'Session'),
+            ListTile(
+              leading: Icon(
+                session == null ? Icons.person_off_outlined : Icons.person_outline,
+                color: context.colors.link,
+              ),
+              title: Text(
+                session == null ? 'Signed out' : (session.user.email ?? 'Signed in'),
+                style: AppTypography.bodyLarge.copyWith(color: context.colors.primaryText),
+              ),
+              subtitle: Text(
+                session == null ? 'Not authenticated' : 'user_id: ${session.user.id}',
+                style: AppTypography.captionMedium.copyWith(color: context.colors.secondaryText),
+              ),
+            ),
+            if (session != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+                child: AppButton(
+                  label: 'Sign Out',
+                  variant: AppButtonVariant.outline,
+                  size: AppButtonSize.medium,
+                  expand: true,
+                  onPressed: () async {
+                    HapticFeedback.mediumImpact();
+                    await ref.read(authRepositoryProvider).signOut();
+                    if (context.mounted) context.go(RouteNames.entry);
+                  },
+                ),
+              ),
           ],
         ],
       ),
