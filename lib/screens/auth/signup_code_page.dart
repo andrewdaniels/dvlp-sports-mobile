@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:pinput/pinput.dart';
 
 import '../../core/routing/route_names.dart';
 import '../../core/theme/theme.dart';
+import '../../features/auth/controllers/invite_providers.dart';
+import '../../features/auth/data/api_result.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_onboarding_header.dart';
 import '../../shared/widgets/app_screen_footer.dart';
@@ -14,16 +17,18 @@ import '../../shared/widgets/app_screen_footer.dart';
 /// Leads with invite code entry (the expected path for most signups
 /// since the platform is invite-driven), with an escape hatch for
 /// users without a code that routes to the type-selection screen.
-class SignupCodePage extends StatefulWidget {
+class SignupCodePage extends ConsumerStatefulWidget {
   const SignupCodePage({super.key});
 
   @override
-  State<SignupCodePage> createState() => _SignupCodePageState();
+  ConsumerState<SignupCodePage> createState() => _SignupCodePageState();
 }
 
-class _SignupCodePageState extends State<SignupCodePage> {
+class _SignupCodePageState extends ConsumerState<SignupCodePage> {
   static const _codeLength = 6;
   final _controller = TextEditingController();
+  bool _submitting = false;
+  String? _errorText;
 
   @override
   void dispose() {
@@ -34,12 +39,38 @@ class _SignupCodePageState extends State<SignupCodePage> {
   bool get _complete => _controller.text.length == _codeLength;
 
   Future<void> _submit() async {
+    if (!_complete || _submitting) return;
     HapticFeedback.mediumImpact();
-    // TODO(task #32): validate code via edge function, then push
-    // /signup/details with prefill payload.
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Code ${_controller.text} — validation not wired')),
-    );
+    setState(() {
+      _submitting = true;
+      _errorText = null;
+    });
+
+    final result = await ref
+        .read(inviteRepositoryProvider)
+        .validateCode(_controller.text);
+
+    if (!mounted) return;
+
+    switch (result) {
+      case Success(:final data):
+        setState(() => _submitting = false);
+        // TODO: route to /signup/details/player (or coach) with prefill
+        // once the create_profile flow lands. For now, prove the trip
+        // with a success snackbar.
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Invite validated for ${data.email} — ${data.targetRole.name}',
+            ),
+          ),
+        );
+      case Failure(:final message):
+        setState(() {
+          _submitting = false;
+          _errorText = message;
+        });
+    }
   }
 
   void _continueWithoutCode() {
@@ -50,6 +81,7 @@ class _SignupCodePageState extends State<SignupCodePage> {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final hasError = _errorText != null;
 
     return Scaffold(
       backgroundColor: colors.primaryBackground,
@@ -69,9 +101,21 @@ class _SignupCodePageState extends State<SignupCodePage> {
               _CodeInput(
                 controller: _controller,
                 length: _codeLength,
-                onChanged: (_) => setState(() {}),
+                onChanged: (_) => setState(() {
+                  if (_errorText != null) _errorText = null;
+                }),
                 onCompleted: (_) => _submit(),
               ),
+              if (hasError) ...[
+                const SizedBox(height: AppSpacing.md),
+                Center(
+                  child: Text(
+                    _errorText!,
+                    textAlign: TextAlign.center,
+                    style: AppTypography.bodyMedium.copyWith(color: colors.error),
+                  ),
+                ),
+              ],
               const Spacer(),
               Center(
                 child: GestureDetector(
@@ -90,6 +134,7 @@ class _SignupCodePageState extends State<SignupCodePage> {
                 primary: AppButton(
                   label: 'Continue',
                   variant: AppButtonVariant.primary,
+                  loading: _submitting,
                   onPressed: _complete ? _submit : null,
                 ),
               ),
