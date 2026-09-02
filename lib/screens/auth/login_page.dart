@@ -68,6 +68,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: const Text('Log In'),
+        leading: BackButton(
+          onPressed: () => context.canPop() ? context.pop() : context.go(RouteNames.entry),
+        ),
       ),
       body: SafeArea(
         child: Padding(
