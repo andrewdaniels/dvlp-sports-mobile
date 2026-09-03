@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../core/theme/theme.dart';
 import '../../features/auth/controllers/profile_providers.dart';
+import '../../features/auth/util/profile_format.dart';
 import '../../generated/api/get_profile.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_icon.dart';
@@ -53,10 +54,10 @@ class _PassportBody extends StatelessWidget {
     const band = LevelBand.silver;
 
     final teamLine = _teamLine(profile);
-    final age = _formatAge(profile.dateOfBirth);
-    final height = _formatHeight(athlete?.heightCm);
-    final weight = _formatWeight(athlete?.weightKg);
-    final hand = _formatHand(athlete?.dominantSide);
+    final age = formatAge(profile.dateOfBirth);
+    final height = formatHeight(athlete?.heightCm);
+    final weight = formatWeight(athlete?.weightKg);
+    final hand = formatDominantSide(athlete?.dominantSide);
 
     // Position the hero PNG so the visible COIN's center — not the PNG
     // center — aligns with the card's top edge. Measured from the coin
@@ -121,36 +122,4 @@ class _PassportBody extends StatelessWidget {
     return '$teamText | $positionName';
   }
 
-  static String _formatAge(String? dobIso) {
-    if (dobIso == null || dobIso.isEmpty) return '-';
-    final dob = DateTime.tryParse(dobIso);
-    if (dob == null) return '-';
-    final now = DateTime.now();
-    var age = now.year - dob.year;
-    if (now.month < dob.month || (now.month == dob.month && now.day < dob.day)) {
-      age--;
-    }
-    return '$age yo';
-  }
-
-  static String _formatHeight(double? cm) {
-    if (cm == null || cm <= 0) return '-';
-    final totalInches = (cm / 2.54).round();
-    final ft = totalInches ~/ 12;
-    final inches = totalInches % 12;
-    return "$ft'$inches\"";
-  }
-
-  static String _formatWeight(double? kg) {
-    if (kg == null || kg <= 0) return '-';
-    final lbs = (kg * 2.20462).round();
-    return '${lbs}lbs';
-  }
-
-  static String _formatHand(DominantSide? side) => switch (side) {
-        DominantSide.LEFT => 'Left',
-        DominantSide.RIGHT => 'Right',
-        DominantSide.AMBIDEXTROUS => 'Both',
-        null => '-',
-      };
 }

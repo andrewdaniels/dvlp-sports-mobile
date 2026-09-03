@@ -38,10 +38,10 @@ class AppBottomNav extends StatelessWidget {
 
     return ClipRect(
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
         child: Container(
           decoration: BoxDecoration(
-            color: colors.primaryBackground.withValues(alpha: 0.6),
+            color: colors.primaryBackground.withValues(alpha: 0.4),
             border: Border(
               top: BorderSide(color: colors.primaryText30, width: 0.5),
             ),
