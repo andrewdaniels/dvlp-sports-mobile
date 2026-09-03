@@ -7,6 +7,7 @@ class RouteNames {
   static const login = '/login';
   static const signupCode = '/signup/code';
   static const signupType = '/signup/type';
+  static const signupCredentials = '/signup/credentials';
   static const signupPlayerDetails = '/signup/details/player';
   static const signupCoachDetails = '/signup/details/coach';
 

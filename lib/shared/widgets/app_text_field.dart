@@ -184,7 +184,7 @@ class _AppTextFieldState extends State<AppTextField> {
   Color _resolveLabelColor(AppColors colors, {required bool hasError}) {
     if (hasError) return colors.error;
     if (!widget.enabled) return colors.secondaryText.withValues(alpha: 0.6);
-    if (_isFocused) return colors.link;
+    // Label stays neutral on focus — only the border reflects state.
     return colors.secondaryText;
   }
 }

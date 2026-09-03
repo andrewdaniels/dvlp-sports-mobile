@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../core/routing/route_names.dart';
 import '../../core/theme/theme.dart';
+import '../../features/auth/controllers/signup_flow_provider.dart';
+import '../../features/auth/data/signup_context.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_onboarding_header.dart';
 import '../../shared/widgets/app_screen_footer.dart';
@@ -16,14 +19,14 @@ enum _SignupType { player, coach }
 /// account creation form that follows.
 ///
 /// GM signup is web-only (per product decision), so no GM option here.
-class SignupTypePage extends StatefulWidget {
+class SignupTypePage extends ConsumerStatefulWidget {
   const SignupTypePage({super.key});
 
   @override
-  State<SignupTypePage> createState() => _SignupTypePageState();
+  ConsumerState<SignupTypePage> createState() => _SignupTypePageState();
 }
 
-class _SignupTypePageState extends State<SignupTypePage> {
+class _SignupTypePageState extends ConsumerState<SignupTypePage> {
   _SignupType? _selected;
 
   void _select(_SignupType type) {
@@ -33,15 +36,9 @@ class _SignupTypePageState extends State<SignupTypePage> {
 
   void _next() {
     HapticFeedback.mediumImpact();
-    switch (_selected!) {
-      case _SignupType.player:
-        context.push(RouteNames.signupPlayerDetails);
-      case _SignupType.coach:
-        // TODO(task #31 coach): push RouteNames.signupCoachDetails once built.
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Coach form — coming next')),
-        );
-    }
+    final role = _selected! == _SignupType.player ? 'athlete' : 'coach';
+    ref.read(signupFlowProvider.notifier).state = SignupContext(role: role);
+    context.push(RouteNames.signupCredentials);
   }
 
   @override

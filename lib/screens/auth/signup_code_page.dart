@@ -7,7 +7,10 @@ import 'package:pinput/pinput.dart';
 import '../../core/routing/route_names.dart';
 import '../../core/theme/theme.dart';
 import '../../features/auth/controllers/invite_providers.dart';
+import '../../features/auth/controllers/signup_flow_provider.dart';
 import '../../features/auth/data/api_result.dart';
+import '../../features/auth/data/signup_context.dart';
+import '../../generated/api/validate_invite.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_onboarding_header.dart';
 import '../../shared/widgets/app_screen_footer.dart';
@@ -55,21 +58,36 @@ class _SignupCodePageState extends ConsumerState<SignupCodePage> {
     switch (result) {
       case Success(:final data):
         setState(() => _submitting = false);
-        // TODO: route to /signup/details/player (or coach) with prefill
-        // once the create_profile flow lands. For now, prove the trip
-        // with a success snackbar.
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Invite validated for ${data.email} — ${data.targetRole.name}',
-            ),
-          ),
+        ref.read(signupFlowProvider.notifier).state = SignupContext(
+          role: _roleFromInvite(data.targetRole),
+          email: data.email,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          inviteId: data.inviteId,
+          invite: data,
         );
+        context.push(RouteNames.signupCredentials);
       case Failure(:final message):
         setState(() {
           _submitting = false;
           _errorText = message;
         });
+    }
+  }
+
+  /// Map the invite's TargetRole enum onto our string role ('athlete' /
+  /// 'coach') for downstream screens. Non-athlete/coach roles (admin,
+  /// managers) don't sign up via mobile — treat as athlete for now and
+  /// let the server reject if needed.
+  String _roleFromInvite(TargetRole target) {
+    switch (target) {
+      case TargetRole.COACH:
+        return 'coach';
+      case TargetRole.ATHLETE:
+      case TargetRole.ADMIN:
+      case TargetRole.ORGANIZATION_MANAGER:
+      case TargetRole.TEAM_MANAGER:
+        return 'athlete';
     }
   }
 
@@ -179,6 +197,7 @@ class _CodeInput extends StatelessWidget {
       length: length,
       onChanged: onChanged,
       onCompleted: onCompleted,
+      autofocus: false,
       keyboardType: TextInputType.text,
       inputFormatters: [
         FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),

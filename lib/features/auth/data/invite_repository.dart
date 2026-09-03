@@ -18,7 +18,12 @@ class InviteRepository {
     try {
       final response = await _client.functions.invoke(
         'validate-invite',
-        body: {'code': code},
+        body: {
+          'code': code,
+          // Mobile only completes coach/athlete signups; other roles
+          // route to the web platform.
+          'allowed_roles': ['coach', 'athlete'],
+        },
       );
       return _parseOk(response.data);
     } on FunctionException catch (e) {

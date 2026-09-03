@@ -6,6 +6,7 @@ import '../../shared/widgets/app_avatar.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/app_checkbox.dart';
+import '../../shared/widgets/app_divider.dart';
 import '../../shared/widgets/app_icon.dart';
 import '../../shared/widgets/app_game_result_badge.dart';
 import '../../shared/widgets/app_icon_button.dart';
@@ -13,12 +14,15 @@ import '../../shared/widgets/app_icon_indicator.dart';
 import '../../shared/widgets/app_level_badge.dart';
 import '../../shared/widgets/app_logo.dart';
 import '../../shared/widgets/app_onboarding_header.dart';
+import '../../shared/widgets/app_player_passport_card.dart';
+import '../../shared/widgets/app_profile_header.dart';
 import '../../shared/widgets/app_radio_card.dart';
 import '../../features/assessments/ui/widgets/app_feedback_list_item.dart';
 import '../../shared/widgets/app_select_trigger.dart';
 import '../../shared/widgets/app_sheet_header.dart';
 import '../../shared/widgets/app_sheet_shell.dart';
 import '../../shared/widgets/app_star_rating.dart';
+import '../../shared/widgets/app_text_badge.dart';
 import '../../shared/widgets/app_text_field.dart';
 
 /// Dev-mode reference page for shared components.
@@ -67,9 +71,24 @@ class ComponentsPage extends StatelessWidget {
             child: _AppGameResultBadgeDemo(),
           ),
           _ComponentSection(
-            name: 'AppLevelBadge',
-            description: 'Circular level badge — score + band + gradient-filled label. All rendered in code, no image assets.',
-            child: _AppLevelBadgeDemo(),
+            name: 'AppTextBadge',
+            description: 'Small pill with a color + uppercase label. Same visual formula as AppGameResultBadge but primitive props — use for WIN/LOSS/TIE, NEW, LIVE, VERIFIED, etc. Two sizes: small (list rows) and medium (card contexts).',
+            child: _AppTextBadgeDemo(),
+          ),
+          _ComponentSection(
+            name: 'AppDivider',
+            description: 'Standard 1px horizontal rule in colors.alternate. Use everywhere you need a divider so color + thickness stay consistent.',
+            child: _AppDividerDemo(),
+          ),
+          _ComponentSection(
+            name: 'AppLevelHeroBadge',
+            description: 'Large presentational badge — hero coin PNG + gradient-masked band name below. Fixed 160×160 coin.',
+            child: _AppLevelHeroBadgeDemo(),
+          ),
+          _ComponentSection(
+            name: 'AppLevelCoin',
+            description: 'Small coin PNG with sub-level (I/II/III) baked in. Fixed 72×72. Beginner has only sub-level 1; others accept 1–3.',
+            child: _AppLevelCoinDemo(),
           ),
           _ComponentSection(
             name: 'AppCheckbox',
@@ -120,6 +139,16 @@ class ComponentsPage extends StatelessWidget {
             name: 'AppOnboardingHeader',
             description: 'Logo top-left + title + optional subtitle. Standard for onboarding pages. Pair with a transparent AppBar for the back button.',
             child: _AppOnboardingHeaderDemo(),
+          ),
+          _ComponentSection(
+            name: 'AppProfileHeader',
+            description: 'Featured + prominent AppCard with avatar, uppercase Anybody 24 title, and optional subtitle. Initials fall back from title. Primitive props — map from Profile at the call site.',
+            child: _AppProfileHeaderDemo(),
+          ),
+          _ComponentSection(
+            name: 'AppPlayerPassportCard',
+            description: 'Featured+prominent passport identity card — avatar row on top, 5-column stats grid (Age / Height / Weight / Hand / Verified). Primitive strings only; verified is stubbed as "-" until the verification feature lands.',
+            child: _AppPlayerPassportCardDemo(),
           ),
         ],
       ),
@@ -533,24 +562,112 @@ class _AppGameResultBadgeDemo extends StatelessWidget {
   }
 }
 
+class _AppTextBadgeDemo extends StatelessWidget {
+  const _AppTextBadgeDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _sectionLabel(context, 'SMALL (default, list rows)'),
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            AppTextBadge(label: 'Win', color: colors.success),
+            AppTextBadge(label: 'Loss', color: colors.error),
+            AppTextBadge(label: 'Tie', color: colors.link),
+            AppTextBadge(label: 'New', color: colors.secondary),
+            AppTextBadge(label: 'Live', color: colors.error),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md),
+        _sectionLabel(context, 'MEDIUM (hero on cards)'),
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.sm,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            AppTextBadge(label: 'Win', color: colors.success, size: AppTextBadgeSize.medium),
+            AppTextBadge(label: 'Loss', color: colors.error, size: AppTextBadgeSize.medium),
+            AppTextBadge(label: 'Tie', color: colors.link, size: AppTextBadgeSize.medium),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _AppDividerDemo extends StatelessWidget {
+  const _AppDividerDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text('Above', style: AppTypography.bodyMedium.copyWith(color: colors.primaryText)),
+        const SizedBox(height: AppSpacing.md),
+        const AppDivider(),
+        const SizedBox(height: AppSpacing.md),
+        Text('Below', style: AppTypography.bodyMedium.copyWith(color: colors.primaryText)),
+      ],
+    );
+  }
+}
+
 // ============================================================================
-// AppLevelBadge demo
+// AppLevelHeroBadge demo — one hero per band
 // ============================================================================
 
-class _AppLevelBadgeDemo extends StatelessWidget {
-  const _AppLevelBadgeDemo();
+class _AppLevelHeroBadgeDemo extends StatelessWidget {
+  const _AppLevelHeroBadgeDemo();
 
   @override
   Widget build(BuildContext context) {
     return const Wrap(
-      spacing: AppSpacing.md,
-      runSpacing: AppSpacing.md,
+      spacing: AppSpacing.lg,
+      runSpacing: AppSpacing.lg,
+      alignment: WrapAlignment.center,
       children: [
-        AppLevelBadge(score: 39, band: LevelBand.beginner),
-        AppLevelBadge(score: 50, band: LevelBand.bronze),
-        AppLevelBadge(score: 65, band: LevelBand.silver),
-        AppLevelBadge(score: 80, band: LevelBand.gold),
-        AppLevelBadge(score: 92, band: LevelBand.elite),
+        AppLevelHeroBadge(band: LevelBand.beginner),
+        AppLevelHeroBadge(band: LevelBand.bronze),
+        AppLevelHeroBadge(band: LevelBand.silver),
+        AppLevelHeroBadge(band: LevelBand.gold),
+        AppLevelHeroBadge(band: LevelBand.elite),
+      ],
+    );
+  }
+}
+
+// ============================================================================
+// AppLevelCoin demo — full grid: 5 bands × sub-levels (beginner=1, others=1..3)
+// ============================================================================
+
+class _AppLevelCoinDemo extends StatelessWidget {
+  const _AppLevelCoinDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final band in LevelBand.values) ...[
+          _sectionLabel(context, band.name.toUpperCase()),
+          Wrap(
+            spacing: AppSpacing.md,
+            runSpacing: AppSpacing.md,
+            children: [
+              for (final n in band == LevelBand.beginner ? const [1] : const [1, 2, 3])
+                _Labeled(label: 'sub $n', child: AppLevelCoin(band: band, subLevel: n)),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+        ],
       ],
     );
   }
@@ -991,6 +1108,71 @@ class _AppOnboardingHeaderDemo extends StatelessWidget {
         ),
         SizedBox(height: AppSpacing.xl),
         AppOnboardingHeader(title: 'No subtitle example'),
+      ],
+    );
+  }
+}
+
+class _AppProfileHeaderDemo extends StatelessWidget {
+  const _AppProfileHeaderDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _sectionLabel(context, 'WITH SUBTITLE (initials fallback)'),
+        const AppProfileHeader(
+          title: 'Test Athlete',
+          subtitle: 'Rampage U13',
+        ),
+        const SizedBox(height: AppSpacing.md),
+        _sectionLabel(context, 'TITLE ONLY'),
+        const AppProfileHeader(title: 'Test Athlete'),
+        const SizedBox(height: AppSpacing.md),
+        _sectionLabel(context, 'WITH AVATAR URL'),
+        const AppProfileHeader(
+          title: 'John Doe',
+          subtitle: 'Head Coach · Rampage',
+          avatarUrl: 'https://i.pravatar.cc/300?img=12',
+        ),
+      ],
+    );
+  }
+}
+
+class _AppPlayerPassportCardDemo extends StatelessWidget {
+  const _AppPlayerPassportCardDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    // Match how the passport page composes it — coin visual center
+    // sits on the card top edge; PNG label baked inside the card's
+    // reserved topInset.
+    const heroDim = AppLevelHeroBadge.dim;
+    const coinVisualCenterFraction = 0.5;
+    const cardOffset = heroDim * coinVisualCenterFraction;
+    const cardTopInset = heroDim - cardOffset;
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.topCenter,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(top: cardOffset),
+          child: AppPlayerPassportCard(
+            firstName: 'Marcus',
+            lastName: 'Thompson',
+            teamLine: 'Rampage U13 AAA | Forward',
+            age: '14 yo',
+            height: "5'9\"",
+            weight: '145lbs',
+            hand: 'Right',
+            verified: '-',
+            avatarUrl: 'https://i.pravatar.cc/300?img=12',
+            topInset: cardTopInset,
+          ),
+        ),
+        const AppLevelHeroBadge(band: LevelBand.silver),
       ],
     );
   }

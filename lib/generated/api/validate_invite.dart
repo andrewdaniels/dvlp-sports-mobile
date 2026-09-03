@@ -169,24 +169,30 @@ class Team {
 }
 
 class ValidateInviteRequest {
+    final List<TargetRole>? allowedRoles;
     final String code;
 
     ValidateInviteRequest({
+        this.allowedRoles,
         required this.code,
     });
 
     ValidateInviteRequest copyWith({
+        List<TargetRole>? allowedRoles,
         String? code,
     }) => 
         ValidateInviteRequest(
+            allowedRoles: allowedRoles ?? this.allowedRoles,
             code: code ?? this.code,
         );
 
     factory ValidateInviteRequest.fromJson(Map<String, dynamic> json) => ValidateInviteRequest(
+        allowedRoles: json["allowed_roles"] == null ? [] : List<TargetRole>.from(json["allowed_roles"]!.map((x) => targetRoleValues.map[x]!)),
         code: json["code"],
     );
 
     Map<String, dynamic> toJson() => {
+        "allowed_roles": allowedRoles == null ? [] : List<dynamic>.from(allowedRoles!.map((x) => targetRoleValues.reverse[x])),
         "code": code,
     };
 }

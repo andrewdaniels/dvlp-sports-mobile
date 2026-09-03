@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../core/routing/route_names.dart';
 import '../../core/theme/theme.dart';
+import '../../features/auth/controllers/auth_providers.dart';
+import '../../features/auth/controllers/profile_providers.dart';
+import '../../features/auth/controllers/signup_flow_provider.dart';
+import '../../features/auth/data/api_result.dart';
+import '../../features/reference/controllers/reference_providers.dart';
+import '../../generated/api/get_positions.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_icon.dart';
 import '../../shared/widgets/app_onboarding_header.dart';
@@ -33,31 +40,43 @@ extension on _DominantSide {
 /// [isEdit] flips the footer button labels (Back/Next → Cancel/Save) so
 /// the same page can be reused in-app once we wire up profile editing.
 /// Data loading + submission is left unwired for now.
-class PlayerAccountPage extends StatefulWidget {
+class PlayerAccountPage extends ConsumerStatefulWidget {
   const PlayerAccountPage({super.key, this.isEdit = false});
 
   final bool isEdit;
 
   @override
-  State<PlayerAccountPage> createState() => _PlayerAccountPageState();
+  ConsumerState<PlayerAccountPage> createState() => _PlayerAccountPageState();
 }
 
-class _PlayerAccountPageState extends State<PlayerAccountPage> {
+class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
   final _first = TextEditingController();
   final _last = TextEditingController();
 
   int? _heightFt;
   int? _heightIn;
   int? _weightLbs;
-  String? _position;
+  PositionElement? _position;
   _DominantSide? _dominantSide;
   DateTime? _dob;
-
-  static const _positions = ['Goalie', 'Forward', 'Defense'];
+  bool _submitting = false;
+  String? _errorText;
   static const _monthLabels = [
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    // Seed name fields from invite/signup context if we have them.
+    // initState runs once per widget lifecycle, so no guard needed.
+    final ctx = ref.read(signupFlowProvider);
+    if (ctx != null) {
+      if (ctx.firstName != null) _first.text = ctx.firstName!;
+      if (ctx.lastName != null) _last.text = ctx.lastName!;
+    }
+  }
 
   @override
   void dispose() {
@@ -69,7 +88,8 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
   Future<void> _pickHeightFt() async {
     final result = await showAppWheelPicker<int>(
       context: context,
-      items: List.generate(6, (i) => i + 3), // 3–8
+      title: 'Height (ft)',
+      items: List.generate(6, (i) => i + 3),
       itemLabel: (v) => '$v ft',
       initialItem: _heightFt ?? 5,
     );
@@ -79,7 +99,8 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
   Future<void> _pickHeightIn() async {
     final result = await showAppWheelPicker<int>(
       context: context,
-      items: List.generate(12, (i) => i), // 0–11
+      title: 'Height (in)',
+      items: List.generate(12, (i) => i),
       itemLabel: (v) => '$v in',
       initialItem: _heightIn ?? 6,
     );
@@ -89,7 +110,8 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
   Future<void> _pickWeight() async {
     final result = await showAppWheelPicker<int>(
       context: context,
-      items: List.generate(311, (i) => i + 40), // 40–350
+      title: 'Weight',
+      items: List.generate(311, (i) => i + 40),
       itemLabel: (v) => '$v lbs',
       initialItem: _weightLbs ?? 140,
     );
@@ -97,11 +119,20 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
   }
 
   Future<void> _pickPosition() async {
-    final result = await showAppWheelPicker<String>(
+    final async = ref.read(positionsProvider);
+    final positionsData = async.valueOrNull;
+    if (positionsData == null || positionsData.positions.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Positions still loading — try again in a moment.')),
+      );
+      return;
+    }
+    final result = await showAppWheelPicker<PositionElement>(
       context: context,
-      items: _positions,
-      itemLabel: (v) => v,
-      initialItem: _position ?? 'Forward',
+      title: 'Position',
+      items: positionsData.positions,
+      itemLabel: (p) => p.name,
+      initialItem: _position ?? positionsData.positions.first,
     );
     if (result != null && mounted) setState(() => _position = result);
   }
@@ -109,6 +140,7 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
   Future<void> _pickDominantSide() async {
     final result = await showAppWheelPicker<_DominantSide>(
       context: context,
+      title: 'Dominant Side',
       items: _DominantSide.values,
       itemLabel: (v) => v.label,
       initialItem: _dominantSide ?? _DominantSide.right,
@@ -120,6 +152,7 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
     final now = DateTime.now();
     final result = await showAppDatePicker(
       context: context,
+      title: 'Date of Birth',
       initialDate: _dob ?? DateTime(now.year - 15, 6, 15),
       minimumDate: DateTime(now.year - 60),
       maximumDate: DateTime(now.year - 3),
@@ -141,10 +174,100 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
     context.pop();
   }
 
-  void _next() {
-    // TODO(task #28): submit profile via auth repository, then navigate
-    // based on auth state.
-    context.go(RouteNames.passport);
+  /// Convert form data → create-profile payload → sign in → passport.
+  Future<void> _submit() async {
+    if (_submitting) return;
+
+    final ctx = ref.read(signupFlowProvider);
+    if (ctx == null) {
+      // Landed here without going through the flow — bounce home.
+      context.go(RouteNames.entry);
+      return;
+    }
+
+    // Local validation: required fields not covered by input widgets.
+    final firstName = _first.text.trim();
+    final lastName = _last.text.trim();
+    if (firstName.isEmpty || lastName.isEmpty) {
+      setState(() => _errorText = 'Please enter your first and last name.');
+      return;
+    }
+    if (_dob == null) {
+      setState(() => _errorText = 'Please select your date of birth.');
+      return;
+    }
+    if (ctx.email == null || ctx.password == null) {
+      setState(() => _errorText = 'Credentials missing — please go back and try again.');
+      return;
+    }
+
+    HapticFeedback.mediumImpact();
+    setState(() {
+      _submitting = true;
+      _errorText = null;
+    });
+
+    // ft/in → cm, lbs → kg. Nulls preserved so backend stores as null.
+    final heightCm = (_heightFt == null && _heightIn == null)
+        ? null
+        : (((_heightFt ?? 0) * 12 + (_heightIn ?? 0)) * 2.54).round();
+    final weightKg = _weightLbs == null ? null : (_weightLbs! * 0.453592).round();
+
+    final result = await ref.read(profileRepositoryProvider).createAthlete(
+          email: ctx.email!,
+          password: ctx.password!,
+          firstName: firstName,
+          lastName: lastName,
+          dateOfBirth: _formatIsoDate(_dob!),
+          inviteId: ctx.inviteId,
+          heightCm: heightCm,
+          weightKg: weightKg,
+          dominantSide: _dominantSide?.name, // 'left' | 'right' | 'ambidextrous'
+          positionId: _position?.id,
+        );
+
+    if (!mounted) return;
+
+    switch (result) {
+      case Success(:final data):
+        // Store the freshly-created profile so downstream screens skip a fetch.
+        ref.read(currentProfileProvider.notifier).optimisticSetFromCreate(data);
+
+        // create-profile ran under service_role (admin) — mobile has no
+        // session yet. Sign in with the credentials we just collected.
+        try {
+          await ref.read(authRepositoryProvider).signInWithPassword(
+                email: ctx.email!,
+                password: ctx.password!,
+              );
+        } catch (_) {
+          // Profile exists but sign-in failed. Rare — user can log in manually.
+          if (!mounted) return;
+          setState(() {
+            _submitting = false;
+            _errorText = 'Account created. Please sign in.';
+          });
+          return;
+        }
+
+        // Clear the signup context now that we're done with it.
+        ref.read(signupFlowProvider.notifier).state = null;
+
+        if (!mounted) return;
+        context.go(RouteNames.passport);
+
+      case Failure(:final message):
+        setState(() {
+          _submitting = false;
+          _errorText = message;
+        });
+    }
+  }
+
+  static String _formatIsoDate(DateTime d) {
+    final mm = d.month.toString().padLeft(2, '0');
+    final dd = d.day.toString().padLeft(2, '0');
+    return '${d.year}-$mm-$dd';
   }
 
   @override
@@ -152,6 +275,18 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
     final colors = context.colors;
     final primaryLabel = widget.isEdit ? 'Save' : 'Next';
     final secondaryLabel = widget.isEdit ? 'Cancel' : 'Back';
+
+    // Fields coming from an invite are locked — the invite is the source
+    // of truth for the invited person's name; user shouldn't retype it.
+    final ctx = ref.watch(signupFlowProvider);
+    final lockedFromInvite = ctx?.fromInvite ?? false;
+    final lockFirst = lockedFromInvite && (ctx?.firstName?.isNotEmpty ?? false);
+    final lockLast = lockedFromInvite && (ctx?.lastName?.isNotEmpty ?? false);
+
+    // Trigger positions fetch on mount + track loading state. Riverpod
+    // caches the result for the session; navigating away and back is free.
+    final positionsAsync = ref.watch(positionsProvider);
+    final positionsLoading = positionsAsync.isLoading;
 
     return Scaffold(
       backgroundColor: colors.primaryBackground,
@@ -177,12 +312,14 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
                         label: 'First Name',
                         placeholder: 'Enter first name',
                         controller: _first,
+                        enabled: !lockFirst,
                       ),
                       const SizedBox(height: AppSpacing.md),
                       AppTextField(
                         label: 'Last Name',
                         placeholder: 'Enter last name',
                         controller: _last,
+                        enabled: !lockLast,
                       ),
                       const SizedBox(height: AppSpacing.md),
                       _FieldLabel('Height'),
@@ -231,9 +368,9 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
                       const SizedBox(height: AppSpacing.md),
                       AppSelectTrigger(
                         label: 'Position',
-                        placeholder: 'Select Position',
-                        value: _position,
-                        onTap: _pickPosition,
+                        placeholder: positionsLoading ? 'Loading positions…' : 'Select Position',
+                        value: _position?.name,
+                        onTap: positionsLoading ? null : _pickPosition,
                       ),
                       const SizedBox(height: AppSpacing.md),
                       AppSelectTrigger(
@@ -242,6 +379,13 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
                         value: _dominantSide?.label,
                         onTap: _pickDominantSide,
                       ),
+                      if (_errorText != null) ...[
+                        const SizedBox(height: AppSpacing.md),
+                        Text(
+                          _errorText!,
+                          style: AppTypography.bodyMedium.copyWith(color: colors.error),
+                        ),
+                      ],
                       const SizedBox(height: AppSpacing.lg),
                     ],
                   ),
@@ -251,12 +395,13 @@ class _PlayerAccountPageState extends State<PlayerAccountPage> {
                 secondary: AppButton(
                   label: secondaryLabel,
                   variant: AppButtonVariant.outline,
-                  onPressed: _back,
+                  onPressed: _submitting ? null : _back,
                 ),
                 primary: AppButton(
                   label: primaryLabel,
                   variant: AppButtonVariant.primary,
-                  onPressed: _next,
+                  loading: _submitting,
+                  onPressed: _submit,
                 ),
               ),
             ],

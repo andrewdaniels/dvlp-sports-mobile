@@ -94,14 +94,17 @@ class AppAvatar extends StatelessWidget {
     }
   }
 
+  /// Initials should read as ~35–40% of the avatar diameter to feel
+  /// balanced inside the circle; these tokens are chosen to land in
+  /// that range for each size.
   TextStyle get _textStyle {
     switch (size) {
       case AppAvatarSize.small:
-        return AppTypography.captionSemibold;
+        return AppTypography.boldSmall;      // 12 / 32 = 37%
       case AppAvatarSize.medium:
-        return AppTypography.boldSmall;
+        return AppTypography.titleMedium;    // 18 / 48 = 38%
       case AppAvatarSize.large:
-        return AppTypography.titleMedium;
+        return AppTypography.titleXLarge;    // 24 / 72 = 33%
     }
   }
 }

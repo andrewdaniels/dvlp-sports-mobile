@@ -22,6 +22,10 @@ Future<T?> showAppSheet<T>({
   final colors = context.colors;
   return showModalBottomSheet<T>(
     context: context,
+    // Use root navigator so the sheet covers the shell's bottom nav —
+    // otherwise a sheet opened inside a StatefulShellBranch lands above
+    // the nav bar and looks cut off.
+    useRootNavigator: true,
     isScrollControlled: true,
     isDismissible: barrierDismissible,
     enableDrag: true,

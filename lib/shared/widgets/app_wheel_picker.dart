@@ -24,6 +24,7 @@ Future<T?> showAppWheelPicker<T>({
   required List<T> items,
   required String Function(T item) itemLabel,
   T? initialItem,
+  String? title,
 }) {
   final initialIndex = initialItem == null ? 0 : items.indexOf(initialItem);
   final startIndex = initialIndex >= 0 ? initialIndex : 0;
@@ -38,6 +39,7 @@ Future<T?> showAppWheelPicker<T>({
         mainAxisSize: MainAxisSize.min,
         children: [
           _PickerBar(
+            title: title,
             onCancel: () => Navigator.of(sheetContext).pop(),
             onDone: () => Navigator.of(sheetContext).pop(items[selectedIndex]),
           ),
@@ -84,6 +86,7 @@ Future<DateTime?> showAppDatePicker({
   DateTime? initialDate,
   DateTime? minimumDate,
   DateTime? maximumDate,
+  String? title,
 }) {
   return showAppSheet<DateTime>(
     context: context,
@@ -95,6 +98,7 @@ Future<DateTime?> showAppDatePicker({
         mainAxisSize: MainAxisSize.min,
         children: [
           _PickerBar(
+            title: title,
             onCancel: () => Navigator.of(sheetContext).pop(),
             onDone: () => Navigator.of(sheetContext).pop(selected),
           ),
@@ -126,10 +130,11 @@ Future<DateTime?> showAppDatePicker({
 }
 
 class _PickerBar extends StatelessWidget {
-  const _PickerBar({required this.onCancel, required this.onDone});
+  const _PickerBar({required this.onCancel, required this.onDone, this.title});
 
   final VoidCallback onCancel;
   final VoidCallback onDone;
+  final String? title;
 
   @override
   Widget build(BuildContext context) {
@@ -140,39 +145,49 @@ class _PickerBar extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: colors.alternate, width: 1)),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () {
-              HapticFeedback.lightImpact();
-              onCancel();
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-              child: Text(
-                'Cancel',
-                style: AppTypography.bodyLarge.copyWith(color: colors.secondaryText),
-              ),
+          if (title != null)
+            Text(
+              title!,
+              style: AppTypography.titleSmall.copyWith(color: colors.primaryText),
             ),
-          ),
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () {
-              HapticFeedback.mediumImpact();
-              onDone();
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-              child: Text(
-                'Done',
-                style: AppTypography.bodyLarge.copyWith(
-                  color: colors.link,
-                  fontWeight: FontWeight.w600,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  onCancel();
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                  child: Text(
+                    'Cancel',
+                    style: AppTypography.bodyLarge.copyWith(color: colors.secondaryText),
+                  ),
                 ),
               ),
-            ),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
+                  HapticFeedback.mediumImpact();
+                  onDone();
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                  child: Text(
+                    'Done',
+                    style: AppTypography.bodyLarge.copyWith(
+                      color: colors.link,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

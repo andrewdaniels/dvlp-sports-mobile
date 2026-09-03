@@ -46,7 +46,9 @@ class AppTheme {
         backgroundColor: colors.primaryBackground,
         foregroundColor: colors.primaryText,
         elevation: 0,
-        titleTextStyle: AppTypography.titleLarge.copyWith(color: colors.primaryText),
+        // Main-nav pages get a large left-aligned title.
+        centerTitle: false,
+        titleTextStyle: AppTypography.headlineMedium.copyWith(color: colors.primaryText),
         systemOverlayStyle: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(

@@ -8,21 +8,43 @@ import '../../core/providers/theme_provider.dart';
 import '../../core/routing/route_names.dart';
 import '../../core/theme/theme.dart';
 import '../../features/auth/controllers/auth_providers.dart';
+import '../../features/auth/controllers/profile_providers.dart';
 import '../../shared/widgets/app_button.dart';
+import '../../shared/widgets/app_profile_header.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final profileAsync = ref.watch(currentProfileProvider);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+            child: profileAsync.when(
+              data: (profile) {
+                if (profile == null) return const SizedBox.shrink();
+                final teamName = profile.teamMemberships.isNotEmpty
+                    ? profile.teamMemberships.first.team.name
+                    : profile.roleTier.name;
+                return AppProfileHeader(
+                  title: '${profile.firstName} ${profile.lastName}',
+                  subtitle: teamName,
+                  avatarUrl: profile.avatarUrl,
+                );
+              },
+              loading: () => const SizedBox(height: 96),
+              error: (_, _) => const SizedBox.shrink(),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
           if (kDebugMode) ...[
-            const _SectionHeader(title: 'Developer Tools'),
-            const _ThemeSelector(),
+            _ThemeDevTile(),
             _DevToolTile(
               icon: Icons.palette_outlined,
               title: 'Design System',
@@ -45,7 +67,8 @@ class ProfilePage extends ConsumerWidget {
                 onPressed: () async {
                   HapticFeedback.mediumImpact();
                   await ref.read(authRepositoryProvider).signOut();
-                  if (context.mounted) context.go(RouteNames.entry);
+                  // Router redirect will land us on /entry when the auth
+                  // state change fires; no manual navigation needed.
                 },
               ),
             ),
@@ -56,72 +79,42 @@ class ProfilePage extends ConsumerWidget {
   }
 }
 
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title});
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.md, AppSpacing.md, AppSpacing.xs),
-      child: Text(
-        title.toUpperCase(),
-        style: AppTypography.captionSemibold.copyWith(
-          color: colors.secondaryText,
-          letterSpacing: 0.8,
-        ),
-      ),
-    );
-  }
-}
-
-class _ThemeSelector extends ConsumerWidget {
-  const _ThemeSelector();
-
+class _ThemeDevTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
     final current = ref.watch(themeModeProvider);
-
-    const options = <(ThemeMode, String)>[
-      (ThemeMode.system, 'System'),
-      (ThemeMode.light, 'Light'),
-      (ThemeMode.dark, 'Dark'),
-    ];
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(AppSpacing.md, AppSpacing.xs, AppSpacing.md, AppSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-            child: Text(
-              'Theme',
-              style: AppTypography.bodyMedium.copyWith(color: colors.secondaryText),
-            ),
-          ),
-          Row(
-            children: [
-              for (var i = 0; i < options.length; i++) ...[
-                if (i > 0) const SizedBox(width: AppSpacing.xs),
-                Expanded(
-                  child: AppButton(
-                    label: options[i].$2,
-                    size: AppButtonSize.xs,
-                    variant: current == options[i].$1 ? AppButtonVariant.primary : AppButtonVariant.outline,
-                    expand: true,
-                    onPressed: () => ref.read(themeModeProvider.notifier).state = options[i].$1,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ],
+    void cycle() {
+      HapticFeedback.selectionClick();
+      ref.read(themeModeProvider.notifier).state = _next(current);
+    }
+    return ListTile(
+      leading: Icon(_iconFor(current), color: colors.link),
+      title: Text(
+        'Theme: ${_labelFor(current)}',
+        style: AppTypography.bodyLarge.copyWith(color: colors.primaryText),
       ),
+      onTap: cycle,
     );
   }
+
+  static ThemeMode _next(ThemeMode mode) => switch (mode) {
+        ThemeMode.system => ThemeMode.light,
+        ThemeMode.light => ThemeMode.dark,
+        ThemeMode.dark => ThemeMode.system,
+      };
+
+  static String _labelFor(ThemeMode mode) => switch (mode) {
+        ThemeMode.system => 'System',
+        ThemeMode.light => 'Light',
+        ThemeMode.dark => 'Dark',
+      };
+
+  static IconData _iconFor(ThemeMode mode) => switch (mode) {
+        ThemeMode.system => Icons.brightness_auto_outlined,
+        ThemeMode.light => Icons.light_mode_outlined,
+        ThemeMode.dark => Icons.dark_mode_outlined,
+      };
 }
 
 class _DevToolTile extends StatelessWidget {

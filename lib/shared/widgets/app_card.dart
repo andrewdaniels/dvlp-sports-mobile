@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../core/theme/theme.dart';
 
-/// Container-style card used across passport / team / profile headers and
-/// content blocks.
+/// Container-style card used across passport / team / profile headers
+/// and content blocks.
 ///
 /// Three variants + a `prominent` bool that controls border weight.
 /// Visual weight comes from border **color** (variant) and **thickness**
@@ -13,15 +13,20 @@ import '../../core/theme/theme.dart';
 ///    Subtle presence.
 /// - `unread` — `link` (blue) border, `secondaryBackground` fill.
 ///    Mid-prominence, used for unread feedback / attention states.
-/// - `featured` — `secondary` (gold) border + mode-adaptive diagonal blue
-///    gradient background. Most prominent styling; use with `prominent: true`
-///    when the card stands alone as a hero/page header.
+/// - `featured` — `secondary` (gold) border + mode-adaptive diagonal
+///    blue-tinted background. Most prominent styling; pair with
+///    `prominent: true` when the card is the visual anchor of the screen.
 ///
 /// `prominent`:
-/// - `false` (default) — **1px border**. Right for list items, toggle groups,
-///    inline card usage. Cards don't shift by 1px when toggling variants.
-/// - `true` — **2px border**. Reserve for standalone hero cards where the
-///    thicker outline is the visual anchor of the screen.
+/// - `false` (default) — **1px border**. Right for list items, toggle
+///    groups, inline card usage. Cards don't shift by 1px when toggling
+///    variants.
+/// - `true` — **2px border**. Reserve for standalone hero cards.
+///
+/// Corner radius is auto-picked from variant/prominent:
+/// - `featured + prominent` → `AppRadius.xxl` (20) — hero cards
+/// - everything else → `AppRadius.lg` (12) — standard cards
+/// Pass [radiusOverride] to opt out of the auto pick.
 class AppCard extends StatelessWidget {
   const AppCard({
     super.key,
@@ -29,6 +34,7 @@ class AppCard extends StatelessWidget {
     this.variant = AppCardVariant.plain,
     this.padding = const EdgeInsets.all(AppSpacing.md),
     this.prominent = false,
+    this.radiusOverride,
   });
 
   final Widget child;
@@ -36,22 +42,34 @@ class AppCard extends StatelessWidget {
   final EdgeInsetsGeometry padding;
   final bool prominent;
 
+  /// Force a specific corner radius. Leave `null` to accept the auto
+  /// pick (see class doc).
+  final double? radiusOverride;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final isFeatured = variant == AppCardVariant.featured;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final radius = _effectiveRadius;
+    final borderWidth = prominent ? 2.0 : 1.0;
 
     return Container(
       decoration: BoxDecoration(
         gradient: isFeatured ? _featuredGradient(isDark, colors) : null,
         color: isFeatured ? null : colors.secondaryBackground,
-        border: Border.all(color: _borderColor(colors), width: prominent ? 2 : 1),
-        borderRadius: BorderRadius.circular(AppRadius.xxl),
+        border: Border.all(color: _borderColor(colors), width: borderWidth),
+        borderRadius: BorderRadius.circular(radius),
       ),
       padding: padding,
       child: child,
     );
+  }
+
+  double get _effectiveRadius {
+    if (radiusOverride != null) return radiusOverride!;
+    if (variant == AppCardVariant.featured && prominent) return AppRadius.xxl;
+    return AppRadius.lg;
   }
 
   Color _borderColor(AppColors colors) {
