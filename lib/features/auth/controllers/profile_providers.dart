@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/services/supabase_service.dart';
 import '../../../generated/api/create_profile.dart';
 import '../../../generated/api/get_profile.dart';
+import '../../assessments/controllers/assessments_providers.dart';
 import '../../team/controllers/games_providers.dart';
 import '../data/api_result.dart';
 import '../data/profile_repository.dart';
@@ -90,9 +91,10 @@ final profileAuthSyncProvider = Provider<void>((ref) {
           notifier.refresh();
         case AuthChangeEvent.signedOut:
           notifier.clear();
-          // Nuke all keyed game caches — new session may belong to a
-          // different user with different teams.
+          // Nuke all keyed caches — new session may belong to a
+          // different user with different data.
           ref.invalidate(gamesProvider);
+          ref.invalidate(assessmentsProvider);
         default:
           break;
       }

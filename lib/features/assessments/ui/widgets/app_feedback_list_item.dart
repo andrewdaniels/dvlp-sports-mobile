@@ -2,50 +2,52 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/theme/theme.dart';
+import '../../../../generated/api/get_assessments.dart';
 import '../../../../shared/widgets/app_avatar.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_chevron_right.dart';
+import '../../../../shared/widgets/app_icon.dart';
 import '../../../../shared/widgets/app_icon_indicator.dart';
 
-/// List row for a feedback / assessment item.
+/// List row for an assessment / feedback item.
 ///
 /// Layout (top to bottom):
-/// - Row 1: avatar · coach name + role stack · time-ago
+/// - Row 1: coach avatar · coach name + role stack · time-ago
 /// - Row 2: small icon indicator · optional "NEW" tag · body text · chevron
 ///
-/// Primitive props (no domain model). The feature layer that owns the data
-/// passes the right values in. When `unread: true`, the surrounding card
-/// gets the `unread` (blue link border) variant AND a "NEW" tag prefixes
-/// the body.
+/// Accepts the full [Assessment] model — this widget lives inside the
+/// assessments feature so coupling to the model is expected. The
+/// display mappings (coach role label, body copy, indicator icon, etc.)
+/// live here so the passport / feedback-list screens don't repeat them.
+///
+/// [unread] is passed in because the source-of-truth isn't in the
+/// [Assessment] shape yet (see the `athlete_read` column that's coming
+/// with `get-assessment-detail`). Once that lands, callers stop passing
+/// it and the widget reads `assessment.athleteRead`.
 ///
 /// Fires light haptic on tap.
 class AppFeedbackListItem extends StatelessWidget {
   const AppFeedbackListItem({
     super.key,
-    required this.coachName,
-    required this.coachRole,
-    required this.timeAgo,
-    required this.indicatorIcon,
-    required this.indicatorColor,
-    required this.body,
-    this.coachAvatarUrl,
+    required this.assessment,
     this.unread = false,
     this.onTap,
   });
 
-  final String coachName;
-  final String coachRole;
-  final String timeAgo;
-  final String indicatorIcon;
-  final Color indicatorColor;
-  final String body;
-  final String? coachAvatarUrl;
+  final Assessment assessment;
   final bool unread;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final coachName = 'Coach ${assessment.coach.firstName}';
+    final coachRole = _coachRoleLine(assessment);
+    final timeAgo = _timeAgo(assessment.submittedAt);
+    final isQuick = assessment.assessmentType == AssessmentType.QUICK;
+    final indicatorIcon = isQuick ? AppIcons.star : AppIcons.award;
+    final indicatorColor = isQuick ? colors.secondary : colors.success;
+    final body = isQuick ? 'Quick Feedback Submitted' : 'Formal Assessment Completed';
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -67,9 +69,9 @@ class AppFeedbackListItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 AppAvatar(
-                  imageUrl: coachAvatarUrl,
-                  firstName: _firstWord(coachName),
-                  lastName: _lastWord(coachName),
+                  imageUrl: assessment.coach.avatarUrl,
+                  firstName: assessment.coach.firstName,
+                  lastName: assessment.coach.lastName,
                   size: AppAvatarSize.small,
                 ),
                 const SizedBox(width: AppSpacing.sm),
@@ -120,11 +122,14 @@ class AppFeedbackListItem extends StatelessWidget {
                   child: RichText(
                     text: TextSpan(
                       children: [
-                        if (unread)
+                        if (unread) ...[
                           TextSpan(
-                            text: 'NEW ',
+                            text: 'NEW',
                             style: AppTypography.boldMedium.copyWith(color: colors.link),
                           ),
+                          // Explicit gap so "NEW" doesn't crowd the body copy.
+                          const WidgetSpan(child: SizedBox(width: AppSpacing.xxs)),
+                        ],
                         TextSpan(
                           text: body,
                           style: AppTypography.bodyMedium.copyWith(color: colors.primaryText),
@@ -143,13 +148,32 @@ class AppFeedbackListItem extends StatelessWidget {
     );
   }
 
-  String? _firstWord(String s) {
-    final parts = s.trim().split(RegExp(r'\s+'));
-    return parts.isNotEmpty ? parts.first : null;
+  static String _coachRoleLine(Assessment a) {
+    final role = switch (a.weightedRole) {
+      WeightedRole.HEAD_COACH => 'Head Coach',
+      WeightedRole.ASSISTANT_COACH => 'Assistant Coach',
+      WeightedRole.SKILLS_COACH => 'Skills Coach',
+      WeightedRole.OFFSEASON_COACH => 'Offseason Coach',
+    };
+    final teamParts = [
+      a.team.name.trim(),
+      (a.team.level ?? '').trim(),
+    ].where((s) => s.isNotEmpty).join(' ');
+    return teamParts.isEmpty ? role : '$role · $teamParts';
   }
 
-  String? _lastWord(String s) {
-    final parts = s.trim().split(RegExp(r'\s+'));
-    return parts.length > 1 ? parts.last : null;
+  /// Coarse relative time ("just now" / "5m ago" / "3d ago" / ...) —
+  /// good enough for a feed row.
+  static String _timeAgo(String iso) {
+    final dt = DateTime.tryParse(iso);
+    if (dt == null) return '';
+    final diff = DateTime.now().difference(dt.toLocal());
+    if (diff.inMinutes < 1) return 'just now';
+    if (diff.inHours < 1) return '${diff.inMinutes}m ago';
+    if (diff.inDays < 1) return '${diff.inHours}h ago';
+    if (diff.inDays < 7) return '${diff.inDays}d ago';
+    if (diff.inDays < 30) return '${diff.inDays ~/ 7}w ago';
+    if (diff.inDays < 365) return '${diff.inDays ~/ 30}mo ago';
+    return '${diff.inDays ~/ 365}y ago';
   }
 }

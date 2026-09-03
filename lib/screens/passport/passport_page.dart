@@ -2,9 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import 'package:go_router/go_router.dart';
+
+import '../../core/routing/route_names.dart';
 import '../../core/theme/theme.dart';
+import '../../features/assessments/controllers/assessments_providers.dart';
+import '../../features/assessments/ui/widgets/app_feedback_list_item.dart';
 import '../../features/auth/controllers/profile_providers.dart';
 import '../../features/auth/util/profile_format.dart';
+import '../../generated/api/get_assessments.dart' as assessments_api;
 import '../../generated/api/get_profile.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_icon.dart';
@@ -42,13 +48,13 @@ class PassportPage extends ConsumerWidget {
   }
 }
 
-class _PassportBody extends StatelessWidget {
+class _PassportBody extends ConsumerWidget {
   const _PassportBody({required this.profile});
 
   final GetProfileData profile;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final athlete = profile.athleteDetails;
     // TODO: derive from athlete's overall score once scoring is wired.
     const band = LevelBand.silver;
@@ -103,6 +109,8 @@ class _PassportBody extends StatelessWidget {
             // TODO: open request-feedback flow
           },
         ),
+        const SizedBox(height: AppSpacing.xl),
+        _RecentFeedbackSection(athleteId: profile.id),
       ],
     );
   }
@@ -121,5 +129,68 @@ class _PassportBody extends StatelessWidget {
     if (positionName == null || positionName.isEmpty) return teamText;
     return '$teamText | $positionName';
   }
+}
 
+/// "Recent Feedback" header + See All action + list of submitted
+/// assessments as [AppFeedbackListItem]s. Falls back to hidden when
+/// the athlete has no submitted rows.
+class _RecentFeedbackSection extends ConsumerWidget {
+  const _RecentFeedbackSection({required this.athleteId});
+  final String athleteId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = context.colors;
+    final async = ref.watch(assessmentsProvider(athleteId));
+    final items = async.value?.assessments ?? const <assessments_api.Assessment>[];
+
+    // Hide the whole section when the athlete has no submitted feedback.
+    if (async.isLoading && items.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    if (items.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Recent Feedback',
+              style: AppTypography.titleMedium.copyWith(color: colors.primaryText),
+            ),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                // TODO: navigate to full feedback list.
+              },
+              child: Text(
+                'See All',
+                style: AppTypography.boldSmall.copyWith(color: colors.link),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        for (var i = 0; i < items.length; i++) ...[
+          AppFeedbackListItem(
+            assessment: items[i],
+            unread: !items[i].athleteRead,
+            onTap: () {
+              final a = items[i];
+              final path = a.assessmentType == assessments_api.AssessmentType.QUICK
+                  ? RouteNames.feedbackQuickFor(a.id)
+                  : RouteNames.feedbackFormalFor(a.id);
+              context.push(path);
+            },
+          ),
+          if (i < items.length - 1) const SizedBox(height: AppSpacing.sm),
+        ],
+      ],
+    );
+  }
 }

@@ -59,11 +59,14 @@ class AppIcons {
 
   // Common utility
   static const String chevronRight = '$_base/chevron-right.svg';
+  static const String chevronLeft = '$_base/chevron-left.svg';
   static const String chevronDown = '$_base/chevron-down.svg';
   static const String plus = '$_base/plus.svg';
   static const String arrowRight = '$_base/arrow-right.svg';
+  static const String arrowLeft = '$_base/arrow-left.svg';
   static const String close = '$_base/x-close.svg';
   static const String bell = '$_base/bell-03.svg';
+  static const String messageQuestionSquare = '$_base/message-question-square.svg';
   static const String settings = '$_base/settings-01.svg';
   static const String eye = '$_base/eye.svg';
   static const String eyeOff = '$_base/eye-off.svg';
@@ -72,6 +75,10 @@ class AppIcons {
   static const String check = '$_base/check.svg';
   static const String circle = '$_base/circle.svg';
   static const String checkCircle = '$_base/check-circle.svg';
+
+  // Feedback / recognition
+  static const String star = '$_base/star-01.svg';
+  static const String award = '$_base/award-01.svg';
 
   // Media / audio
   static const String microphone = '$_base/microphone-01.svg';

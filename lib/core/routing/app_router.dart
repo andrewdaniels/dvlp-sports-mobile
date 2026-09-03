@@ -10,6 +10,8 @@ import '../../screens/auth/signup_type_page.dart';
 import '../../screens/dev/components_page.dart';
 import '../../screens/dev/design_system_page.dart';
 import '../../screens/dvlp/dvlp_page.dart';
+import '../../screens/feedback/formal_assessment_page.dart';
+import '../../screens/feedback/quick_feedback_page.dart';
 import '../../screens/passport/passport_page.dart';
 import '../../screens/profile/profile_page.dart';
 import '../../screens/shell/app_shell.dart';
@@ -109,6 +111,22 @@ final appRouter = GoRouter(
       parentNavigatorKey: _rootNavKey,
       path: RouteNames.signupPlayerDetails,
       builder: (context, state) => const PlayerAccountPage(),
+    ),
+    // Feedback detail — pushed on root nav so it covers the shell.
+    // Split by assessment type so each page renders on the right scale.
+    GoRoute(
+      parentNavigatorKey: _rootNavKey,
+      path: '${RouteNames.feedbackQuick}/:id',
+      builder: (context, state) => QuickFeedbackPage(
+        assessmentId: state.pathParameters['id']!,
+      ),
+    ),
+    GoRoute(
+      parentNavigatorKey: _rootNavKey,
+      path: '${RouteNames.feedbackFormal}/:id',
+      builder: (context, state) => FormalAssessmentPage(
+        assessmentId: state.pathParameters['id']!,
+      ),
     ),
     // Dev tools — full-screen routes (outside the shell)
     GoRoute(

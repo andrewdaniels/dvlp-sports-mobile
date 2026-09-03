@@ -18,6 +18,8 @@ import '../../shared/widgets/app_player_passport_card.dart';
 import '../../shared/widgets/app_profile_header.dart';
 import '../../shared/widgets/app_radio_card.dart';
 import '../../features/assessments/ui/widgets/app_feedback_list_item.dart';
+import '../../features/assessments/ui/widgets/score_gauge.dart';
+import '../../generated/api/get_assessments.dart';
 import '../../shared/widgets/app_select_trigger.dart';
 import '../../shared/widgets/app_sheet_header.dart';
 import '../../shared/widgets/app_sheet_shell.dart';
@@ -119,6 +121,11 @@ class ComponentsPage extends StatelessWidget {
             name: 'AppFeedbackListItem (features/assessments)',
             description: 'Feedback / assessment row. Primitive props for now — feature wrapper (later) will map from Assessment model.',
             child: _AppFeedbackListItemDemo(),
+          ),
+          _ComponentSection(
+            name: 'ScoreGauge (features/assessments)',
+            description: 'Formal-assessment score visual — colored badge + gradient band bar with pointer at score/max. Score bands (beginner→elite) drive the badge color; the bar gradient is fixed regardless of score so the pointer reads as position on the ladder.',
+            child: _ScoreGaugeDemo(),
           ),
           _ComponentSection(
             name: 'AppTextField',
@@ -1038,39 +1045,94 @@ class _AppFeedbackListItemDemo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
+    final quickRecent = _mockAssessment(
+      type: AssessmentType.QUICK,
+      hoursAgo: 18,
+    );
+    final quickOlder = _mockAssessment(
+      type: AssessmentType.QUICK,
+      hoursAgo: 24 * 3,
+    );
+    final formalOlder = _mockAssessment(
+      type: AssessmentType.FORMAL,
+      hoursAgo: 24 * 5,
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        AppFeedbackListItem(
-          coachName: 'Coach John',
-          coachRole: 'Head Coach · Rampage U13 AAA',
-          timeAgo: '1d ago',
-          indicatorIcon: AppIcons.check,
-          indicatorColor: colors.secondary,
-          body: 'Quick Feedback Submitted',
-          unread: true,
-          onTap: () {},
-        ),
+        AppFeedbackListItem(assessment: quickRecent, unread: true, onTap: () {}),
         const SizedBox(height: AppSpacing.sm),
-        AppFeedbackListItem(
-          coachName: 'Coach John',
-          coachRole: 'Head Coach · Rampage U13 AAA',
-          timeAgo: '1d ago',
-          indicatorIcon: AppIcons.check,
-          indicatorColor: colors.secondary,
-          body: 'Quick Feedback Submitted',
-          onTap: () {},
-        ),
+        AppFeedbackListItem(assessment: quickOlder, onTap: () {}),
         const SizedBox(height: AppSpacing.sm),
-        AppFeedbackListItem(
-          coachName: 'Coach John',
-          coachRole: 'Head Coach · Rampage U13 AAA',
-          timeAgo: '1d ago',
-          indicatorIcon: AppIcons.checkCircle,
-          indicatorColor: colors.success,
-          body: 'Formal Assessment Completed',
-          onTap: () {},
+        AppFeedbackListItem(assessment: formalOlder, onTap: () {}),
+      ],
+    );
+  }
+
+  static Assessment _mockAssessment({
+    required AssessmentType type,
+    required int hoursAgo,
+    bool athleteRead = false,
+  }) {
+    return Assessment(
+      id: '00000000-0000-0000-0000-000000000000',
+      assessmentType: type,
+      weightedRole: WeightedRole.HEAD_COACH,
+      submittedAt: DateTime.now().subtract(Duration(hours: hoursAgo)).toIso8601String(),
+      athleteRead: athleteRead,
+      coach: Coach(
+        id: '00000000-0000-0000-0000-000000000001',
+        firstName: 'Jesse',
+        lastName: 'Coach',
+        avatarUrl: null,
+      ),
+      team: Team(
+        name: 'Rampage U13',
+        ageGroup: 'U13',
+        level: 'AAA',
+      ),
+    );
+  }
+}
+
+class _ScoreGaugeDemo extends StatelessWidget {
+  const _ScoreGaugeDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ScoreGauge(
+          title: 'Speed',
+          description: 'Straight-line acceleration and top speed',
+          score: 7.5,
+          maxScore: 10,
+          previousScore: 4,
+        ),
+        SizedBox(height: AppSpacing.xl),
+        ScoreGauge(
+          title: 'Edges',
+          description: 'Turns, pivots, transitions, balance',
+          score: 9,
+          maxScore: 10,
+          previousScore: 4,
+        ),
+        SizedBox(height: AppSpacing.xl),
+        ScoreGauge(
+          title: 'Stick Handling',
+          description: 'Puck control in motion and in traffic',
+          score: 8,
+          maxScore: 10,
+          previousScore: 4,
+        ),
+        SizedBox(height: AppSpacing.xl),
+        ScoreGauge(
+          title: 'Defense',
+          description: 'Gap control, positioning, stick work',
+          score: 5.5,
+          maxScore: 10,
+          previousScore: 4,
         ),
       ],
     );
