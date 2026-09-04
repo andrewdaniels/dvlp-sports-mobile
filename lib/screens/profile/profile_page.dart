@@ -1,10 +1,8 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../core/providers/theme_provider.dart';
 import '../../core/routing/route_names.dart';
 import '../../core/theme/theme.dart';
 import '../../features/auth/controllers/auth_providers.dart';
@@ -14,6 +12,8 @@ import '../../generated/api/get_profile.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/app_divider.dart';
+import '../../shared/widgets/app_icon.dart';
+import '../../shared/widgets/app_icon_button.dart';
 import '../../shared/widgets/app_profile_header.dart';
 
 class ProfilePage extends ConsumerWidget {
@@ -24,7 +24,33 @@ class ProfilePage extends ConsumerWidget {
     final profileAsync = ref.watch(currentProfileProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(
+        title: const Text('Profile'),
+        // Edit + Settings trailing actions. Neither is wired yet —
+        // both open TODO surfaces (edit profile flow / settings page).
+        // Wrapped in a Padding so they don't hug the right edge.
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.sm),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AppIconButton(
+                  icon: AppIcons.edit,
+                  onPressed: () {
+                    // TODO: open edit-profile flow.
+                  },
+                ),
+                const SizedBox(width: AppSpacing.xxs),
+                AppIconButton(
+                  icon: AppIcons.settings,
+                  onPressed: () => context.push(RouteNames.accountSettings),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
       body: ListView(
         padding: AppPageInsets.padding,
         children: [
@@ -35,22 +61,6 @@ class ProfilePage extends ConsumerWidget {
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (_, _) => const SizedBox.shrink(),
           ),
-          if (kDebugMode) ...[
-            const SizedBox(height: AppSpacing.lg),
-            _ThemeDevTile(),
-            _DevToolTile(
-              icon: Icons.palette_outlined,
-              title: 'Design System',
-              subtitle: 'Colors, typography, spacing reference',
-              route: RouteNames.designSystem,
-            ),
-            _DevToolTile(
-              icon: Icons.widgets_outlined,
-              title: 'Components',
-              subtitle: 'Live reference for shared widgets',
-              route: RouteNames.components,
-            ),
-          ],
         ],
       ),
     );
@@ -188,72 +198,3 @@ class _ProfileRow extends StatelessWidget {
   }
 }
 
-class _ThemeDevTile extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final colors = context.colors;
-    final current = ref.watch(themeModeProvider);
-    void cycle() {
-      HapticFeedback.selectionClick();
-      ref.read(themeModeProvider.notifier).state = _next(current);
-    }
-    return ListTile(
-      leading: Icon(_iconFor(current), color: colors.link),
-      title: Text(
-        'Theme: ${_labelFor(current)}',
-        style: AppTypography.bodyLarge.copyWith(color: colors.primaryText),
-      ),
-      onTap: cycle,
-    );
-  }
-
-  static ThemeMode _next(ThemeMode mode) => switch (mode) {
-        ThemeMode.system => ThemeMode.light,
-        ThemeMode.light => ThemeMode.dark,
-        ThemeMode.dark => ThemeMode.system,
-      };
-
-  static String _labelFor(ThemeMode mode) => switch (mode) {
-        ThemeMode.system => 'System',
-        ThemeMode.light => 'Light',
-        ThemeMode.dark => 'Dark',
-      };
-
-  static IconData _iconFor(ThemeMode mode) => switch (mode) {
-        ThemeMode.system => Icons.brightness_auto_outlined,
-        ThemeMode.light => Icons.light_mode_outlined,
-        ThemeMode.dark => Icons.dark_mode_outlined,
-      };
-}
-
-class _DevToolTile extends StatelessWidget {
-  const _DevToolTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.route,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final String route;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    return ListTile(
-      leading: Icon(icon, color: colors.link),
-      title: Text(title, style: AppTypography.bodyLarge.copyWith(color: colors.primaryText)),
-      subtitle: Text(
-        subtitle,
-        style: AppTypography.captionMedium.copyWith(color: colors.secondaryText),
-      ),
-      trailing: Icon(Icons.chevron_right, color: colors.secondaryText),
-      onTap: () {
-        HapticFeedback.lightImpact();
-        context.push(route);
-      },
-    );
-  }
-}

@@ -68,6 +68,10 @@ class AppIcons {
   static const String bell = '$_base/bell-03.svg';
   static const String messageQuestionSquare = '$_base/message-question-square.svg';
   static const String settings = '$_base/settings-01.svg';
+  static const String edit = '$_base/edit-02.svg';
+  static const String edit05 = '$_base/edit-05.svg';
+  static const String brush = '$_base/brush-01.svg';
+  static const String grid = '$_base/grid-01.svg';
   static const String eye = '$_base/eye.svg';
   static const String eyeOff = '$_base/eye-off.svg';
 

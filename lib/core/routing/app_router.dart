@@ -6,8 +6,10 @@ import '../../screens/auth/entry_page.dart';
 import '../../screens/auth/login_page.dart';
 import '../../screens/auth/player_account_page.dart';
 import '../../screens/auth/signup_code_page.dart';
+import '../../screens/account_settings/account_settings_page.dart';
 import '../../screens/auth/signup_type_page.dart';
 import '../../screens/dev/components_page.dart';
+import '../../screens/journal/journal_page.dart';
 import '../../screens/dev/design_system_page.dart';
 import '../../screens/dvlp/dvlp_page.dart';
 import '../../screens/feedback/formal_assessment_page.dart';
@@ -127,6 +129,18 @@ final appRouter = GoRouter(
       builder: (context, state) => FormalAssessmentPage(
         assessmentId: state.pathParameters['id']!,
       ),
+    ),
+    // Profile → Settings
+    GoRoute(
+      parentNavigatorKey: _rootNavKey,
+      path: RouteNames.accountSettings,
+      builder: (context, state) => const AccountSettingsPage(),
+    ),
+    // DVLP → Journal
+    GoRoute(
+      parentNavigatorKey: _rootNavKey,
+      path: RouteNames.journal,
+      builder: (context, state) => const JournalPage(),
     ),
     // Dev tools — full-screen routes (outside the shell)
     GoRoute(

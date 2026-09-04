@@ -5,6 +5,7 @@ import '../../../core/services/supabase_service.dart';
 import '../../../generated/api/create_profile.dart';
 import '../../../generated/api/get_profile.dart';
 import '../../assessments/controllers/assessments_providers.dart';
+import '../../journal/controllers/journal_providers.dart';
 import '../../skills/controllers/skills_providers.dart';
 import '../../team/controllers/games_providers.dart';
 import '../data/api_result.dart';
@@ -98,6 +99,7 @@ final profileAuthSyncProvider = Provider<void>((ref) {
           ref.invalidate(assessmentsProvider);
           ref.invalidate(skillProgressProvider);
           ref.invalidate(skillHistoryProvider);
+          ref.invalidate(journalEntriesProvider);
         default:
           break;
       }

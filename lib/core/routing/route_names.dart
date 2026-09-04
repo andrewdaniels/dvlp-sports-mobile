@@ -25,6 +25,12 @@ class RouteNames {
   static String feedbackQuickFor(String assessmentId) => '$feedbackQuick/$assessmentId';
   static String feedbackFormalFor(String assessmentId) => '$feedbackFormal/$assessmentId';
 
+  // Profile → Settings
+  static const accountSettings = '/account-settings';
+
+  // DVLP → Journal
+  static const journal = '/journal';
+
   // Dev tools (debug mode only)
   static const designSystem = '/dev/design-system';
   static const components = '/dev/components';

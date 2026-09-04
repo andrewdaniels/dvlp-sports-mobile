@@ -3,18 +3,26 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../core/theme/theme.dart';
 import '../../features/auth/controllers/profile_providers.dart';
+import '../../features/help/ui/how_it_works_sheet.dart';
+import '../../features/journal/ui/widgets/journal_summary_card.dart';
 import '../../features/skills/controllers/skills_providers.dart';
 import '../../features/skills/ui/sheets/skill_detail_sheet.dart';
 import '../../features/skills/ui/widgets/skill_row.dart';
+import '../../shared/widgets/app_icon.dart';
+import '../../shared/widgets/app_icon_button.dart';
 
-/// Development ("DVLP") tab. Two sections planned:
-///   - My Journal — not built yet (no backend). Placeholder deferred.
+/// Development ("DVLP") tab. Two sections:
+///   - My Journal — entry-point card at the top. Backend not built
+///     yet; entry count stubbed at 0 until journal endpoints ship.
 ///   - My Skills — per-skill weighted-average progress from
 ///     `get-skill-progress`. Endpoint derives the athlete's active
 ///     team's level_classification server-side (single-active is
 ///     enforced by a DB partial unique index).
 ///
-/// Journal + tap-to-open-progress-sheet are follow-ups.
+/// App bar has a trailing "How it works" icon opening the shared
+/// scoring explainer — same sheet accessed from the skill detail
+/// drill-in, wired here so the explanation is discoverable from the
+/// top of the tab too.
 class DvlpPage extends ConsumerWidget {
   const DvlpPage({super.key});
 
@@ -24,11 +32,22 @@ class DvlpPage extends ConsumerWidget {
     final profileAsync = ref.watch(currentProfileProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Development')),
+      appBar: AppBar(
+        title: const Text('Development'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: AppSpacing.sm),
+            child: AppIconButton(
+              icon: AppIcons.messageQuestionSquare,
+              onPressed: () => showHowItWorksSheet(context),
+            ),
+          ),
+        ],
+      ),
       body: profileAsync.when(
         data: (profile) {
           if (profile == null) return const SizedBox.shrink();
-          return _SkillsSection(athleteId: profile.id);
+          return _DvlpBody(athleteId: profile.id);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, _) => Center(
@@ -42,8 +61,8 @@ class DvlpPage extends ConsumerWidget {
   }
 }
 
-class _SkillsSection extends ConsumerWidget {
-  const _SkillsSection({required this.athleteId});
+class _DvlpBody extends ConsumerWidget {
+  const _DvlpBody({required this.athleteId});
   final String athleteId;
 
   @override
@@ -56,6 +75,13 @@ class _SkillsSection extends ConsumerWidget {
       child: ListView(
         padding: AppPageInsets.padding,
         children: [
+          // ── My Journal ─────────────────────────────────────
+          // Entry count + navigation live inside the card via the
+          // shared journalEntriesProvider.
+          JournalSummaryCard(athleteId: athleteId),
+          const SizedBox(height: AppSpacing.lg),
+
+          // ── My Skills ──────────────────────────────────────
           Text(
             'My Skills',
             style: AppTypography.titleMedium.copyWith(color: colors.primaryText),
