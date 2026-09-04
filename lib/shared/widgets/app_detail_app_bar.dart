@@ -45,6 +45,7 @@ class AppDetailAppBar extends StatelessWidget implements PreferredSizeWidget {
           alignment: Alignment.centerLeft,
           child: AppIconButton(
             icon: AppIcons.chevronLeft,
+            size: AppIconButtonSize.large,
             onPressed: () {
               HapticFeedback.lightImpact();
               if (context.canPop()) {

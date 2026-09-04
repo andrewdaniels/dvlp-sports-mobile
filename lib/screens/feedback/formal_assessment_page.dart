@@ -34,6 +34,7 @@ class FormalAssessmentPage extends ConsumerWidget {
         actions: [
           AppIconButton(
             icon: AppIcons.messageQuestionSquare,
+            size: AppIconButtonSize.large,
             onPressed: () {
               HapticFeedback.lightImpact();
               // TODO: open help sheet explaining formal-assessment scoring.

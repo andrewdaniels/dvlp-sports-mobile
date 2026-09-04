@@ -17,6 +17,9 @@ class RouteNames {
   static const team = '/team';
   static const profile = '/profile';
 
+  // Passport → See All
+  static const myFeedback = '/feedback/all';
+
   // Detail routes — pushed on the root navigator (over the shell).
   // Split by assessment_type so each page can render on the correct
   // score scale (quick=1..5 stars, formal=0.5..20 gauge).

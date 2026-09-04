@@ -1074,9 +1074,14 @@ class _AppFeedbackListItemDemo extends StatelessWidget {
         avatarUrl: null,
       ),
       team: Team(
+        id: '00000000-0000-0000-0000-000000000002',
         name: 'Rampage U13',
         ageGroup: 'U13',
-        level: 'AAA',
+        levelClassification: LevelClassification(
+          id: '00000000-0000-0000-0000-000000000003',
+          name: 'AAA',
+          tierOrder: 3,
+        ),
       ),
     );
   }

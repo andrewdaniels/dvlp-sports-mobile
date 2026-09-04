@@ -61,6 +61,7 @@ class AppIcons {
   static const String chevronRight = '$_base/chevron-right.svg';
   static const String chevronLeft = '$_base/chevron-left.svg';
   static const String chevronDown = '$_base/chevron-down.svg';
+  static const String chevronUp = '$_base/chevron-up.svg';
   static const String plus = '$_base/plus.svg';
   static const String arrowRight = '$_base/arrow-right.svg';
   static const String arrowLeft = '$_base/arrow-left.svg';

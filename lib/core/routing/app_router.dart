@@ -9,6 +9,7 @@ import '../../screens/auth/signup_code_page.dart';
 import '../../screens/account_settings/account_settings_page.dart';
 import '../../screens/auth/signup_type_page.dart';
 import '../../screens/dev/components_page.dart';
+import '../../screens/feedback/my_feedback_page.dart';
 import '../../screens/journal/journal_page.dart';
 import '../../screens/dev/design_system_page.dart';
 import '../../screens/dvlp/dvlp_page.dart';
@@ -141,6 +142,12 @@ final appRouter = GoRouter(
       parentNavigatorKey: _rootNavKey,
       path: RouteNames.journal,
       builder: (context, state) => const JournalPage(),
+    ),
+    // Passport → My Feedback
+    GoRoute(
+      parentNavigatorKey: _rootNavKey,
+      path: RouteNames.myFeedback,
+      builder: (context, state) => const MyFeedbackPage(),
     ),
     // Dev tools — full-screen routes (outside the shell)
     GoRoute(

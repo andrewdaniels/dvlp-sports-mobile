@@ -152,36 +152,77 @@ class Coach {
 
 class Team {
     final String? ageGroup;
-    final String? level;
+    final String id;
+    final LevelClassification? levelClassification;
     final String name;
 
     Team({
         required this.ageGroup,
-        required this.level,
+        required this.id,
+        required this.levelClassification,
         required this.name,
     });
 
     Team copyWith({
         String? ageGroup,
-        String? level,
+        String? id,
+        LevelClassification? levelClassification,
         String? name,
     }) => 
         Team(
             ageGroup: ageGroup ?? this.ageGroup,
-            level: level ?? this.level,
+            id: id ?? this.id,
+            levelClassification: levelClassification ?? this.levelClassification,
             name: name ?? this.name,
         );
 
     factory Team.fromJson(Map<String, dynamic> json) => Team(
         ageGroup: json["age_group"],
-        level: json["level"],
+        id: json["id"],
+        levelClassification: json["level_classification"] == null ? null : LevelClassification.fromJson(json["level_classification"]),
         name: json["name"],
     );
 
     Map<String, dynamic> toJson() => {
         "age_group": ageGroup,
-        "level": level,
+        "id": id,
+        "level_classification": levelClassification?.toJson(),
         "name": name,
+    };
+}
+
+class LevelClassification {
+    final String id;
+    final String name;
+    final int tierOrder;
+
+    LevelClassification({
+        required this.id,
+        required this.name,
+        required this.tierOrder,
+    });
+
+    LevelClassification copyWith({
+        String? id,
+        String? name,
+        int? tierOrder,
+    }) => 
+        LevelClassification(
+            id: id ?? this.id,
+            name: name ?? this.name,
+            tierOrder: tierOrder ?? this.tierOrder,
+        );
+
+    factory LevelClassification.fromJson(Map<String, dynamic> json) => LevelClassification(
+        id: json["id"],
+        name: json["name"],
+        tierOrder: json["tier_order"],
+    );
+
+    Map<String, dynamic> toJson() => {
+        "id": id,
+        "name": name,
+        "tier_order": tierOrder,
     };
 }
 

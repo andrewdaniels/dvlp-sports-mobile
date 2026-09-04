@@ -31,6 +31,7 @@ class PassportPage extends ConsumerWidget {
         actions: [
           AppIconButton(
             icon: AppIcons.bell,
+            size: AppIconButtonSize.large,
             onPressed: () {
               HapticFeedback.lightImpact();
               // TODO: notifications screen
@@ -166,7 +167,7 @@ class _RecentFeedbackSection extends ConsumerWidget {
               behavior: HitTestBehavior.opaque,
               onTap: () {
                 HapticFeedback.lightImpact();
-                // TODO: navigate to full feedback list.
+                context.push(RouteNames.myFeedback);
               },
               child: Text(
                 'See All',

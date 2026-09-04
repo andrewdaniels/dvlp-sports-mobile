@@ -39,6 +39,7 @@ class DvlpPage extends ConsumerWidget {
             padding: const EdgeInsets.only(right: AppSpacing.sm),
             child: AppIconButton(
               icon: AppIcons.messageQuestionSquare,
+              size: AppIconButtonSize.large,
               onPressed: () => showHowItWorksSheet(context),
             ),
           ),

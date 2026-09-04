@@ -157,7 +157,7 @@ class AppFeedbackListItem extends StatelessWidget {
     };
     final teamParts = [
       a.team.name.trim(),
-      (a.team.level ?? '').trim(),
+      (a.team.levelClassification?.name ?? '').trim(),
     ].where((s) => s.isNotEmpty).join(' ');
     return teamParts.isEmpty ? role : '$role · $teamParts';
   }
