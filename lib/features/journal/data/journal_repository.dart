@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../generated/api/create_journal_entry.dart';
 import '../../../generated/api/get_journal_entries.dart';
 import '../../auth/data/api_result.dart';
 
@@ -24,6 +25,31 @@ class JournalRepository {
         if (athleteId != null) 'athlete_id': athleteId,
       },
       fromJson: GetJournalEntriesData.fromJson,
+    );
+  }
+
+  /// Creates a new journal entry for the current athlete. Server
+  /// requires at least one non-empty field — validation errors are
+  /// surfaced as a Failure result with `bad_request` code.
+  Future<ApiResult<CreateJournalEntryData>> createEntry({
+    String? skillsWorkedOn,
+    String? performanceReflection,
+    String? nextFocus,
+    String? additionalNotes,
+  }) {
+    return _invoke<CreateJournalEntryData>(
+      name: 'create-journal-entry',
+      body: {
+        // ignore: use_null_aware_elements
+        if (skillsWorkedOn != null) 'skills_worked_on': skillsWorkedOn,
+        // ignore: use_null_aware_elements
+        if (performanceReflection != null) 'performance_reflection': performanceReflection,
+        // ignore: use_null_aware_elements
+        if (nextFocus != null) 'next_focus': nextFocus,
+        // ignore: use_null_aware_elements
+        if (additionalNotes != null) 'additional_notes': additionalNotes,
+      },
+      fromJson: CreateJournalEntryData.fromJson,
     );
   }
 

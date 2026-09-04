@@ -53,7 +53,11 @@ class _AppSheetSurface extends StatelessWidget {
           filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
           child: Container(
             decoration: BoxDecoration(
-              color: colors.primaryBackground.withValues(alpha: 0.75),
+              // Alpha kept lower (0.4) so the frosted-glass effect
+              // reads — you should see the blurred page content behind
+              // the sheet, not a solid surface. Tune here to change
+              // the strength app-wide.
+              color: colors.primaryBackground.withValues(alpha: 0.4),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
               border: Border.all(color: colors.primaryText30, width: 0.5),
             ),

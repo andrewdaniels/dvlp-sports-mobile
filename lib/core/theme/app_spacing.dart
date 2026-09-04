@@ -46,3 +46,26 @@ class AppPageInsets {
     horizontal, top, horizontal, bottom,
   );
 }
+
+/// Standard padding for the scrollable body of any sheet opened via
+/// `showAppSheet`. Consumed by `AppSheetLayout` as its default
+/// `bodyPadding`. Sheets have no bottom nav to clear, so the bottom
+/// inset is left at 0 here — the sheet layout adds the correct
+/// bottom pad dynamically (footer vs. safe-area) at render time.
+class AppSheetInsets {
+  AppSheetInsets._();
+
+  /// Horizontal gutter (left/right).
+  static const double horizontal = AppSpacing.md; // 16
+
+  /// Top inset — breathing room between the sheet header and the
+  /// first item of the scrollable body.
+  static const double top = AppSpacing.md;        // 16
+
+  /// Composed inset. Bottom stays 0; `AppSheetLayout` overrides it
+  /// per state (footer visible → tight; footer hidden → safe-area
+  /// + xl of scroll clearance).
+  static const EdgeInsets padding = EdgeInsets.fromLTRB(
+    horizontal, top, horizontal, 0,
+  );
+}

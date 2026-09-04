@@ -4,6 +4,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../core/theme/theme.dart';
 import '../../features/auth/controllers/profile_providers.dart';
 import '../../features/journal/controllers/journal_providers.dart';
+import '../../features/journal/ui/sheets/journal_entry_detail_sheet.dart';
+import '../../features/journal/ui/sheets/journal_entry_form_sheet.dart';
 import '../../features/journal/ui/widgets/journal_entry_row.dart';
 import '../../generated/api/get_journal_entries.dart';
 import '../../shared/widgets/app_button.dart';
@@ -62,9 +64,7 @@ class _JournalBody extends ConsumerWidget {
             label: 'New Entry',
             leadingIcon: AppIcons.plus,
             expand: true,
-            onPressed: () {
-              // TODO: open New Entry form sheet.
-            },
+            onPressed: () => showJournalEntryFormSheet(context, athleteId: athleteId),
           ),
           const SizedBox(height: AppSpacing.md),
           ...async.when(
@@ -90,9 +90,7 @@ class _JournalBody extends ConsumerWidget {
                 for (var i = 0; i < entries.length; i++) ...[
                   JournalEntryRow(
                     entry: entries[i],
-                    onTap: () {
-                      // TODO: open the entry detail sheet.
-                    },
+                    onTap: () => showJournalEntryDetailSheet(context, entry: entries[i]),
                   ),
                   if (i < entries.length - 1) const SizedBox(height: AppSpacing.sm),
                 ],
