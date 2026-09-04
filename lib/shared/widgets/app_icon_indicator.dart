@@ -12,6 +12,7 @@ import 'app_icon.dart';
 /// Sizes:
 /// - `small`  — 32×32 container, 16px icon (list-row use)
 /// - `medium` — 48×48 container, 20px icon (default; feature-row use)
+/// - `large`  — 64×64 container, 28px icon (empty-state / hero use)
 ///
 /// Background: `color @ 15%`. Icon: `color`.
 class AppIconIndicator extends StatelessWidget {
@@ -31,6 +32,7 @@ class AppIconIndicator extends StatelessWidget {
     final (dim, iconSize) = switch (size) {
       AppIconIndicatorSize.small => (32.0, 16.0),
       AppIconIndicatorSize.medium => (48.0, 20.0),
+      AppIconIndicatorSize.large => (64.0, 28.0),
     };
 
     return Container(
@@ -46,4 +48,4 @@ class AppIconIndicator extends StatelessWidget {
   }
 }
 
-enum AppIconIndicatorSize { small, medium }
+enum AppIconIndicatorSize { small, medium, large }

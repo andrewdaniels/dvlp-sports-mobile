@@ -9,6 +9,7 @@ import '../../core/theme/theme.dart';
 import '../../features/assessments/controllers/assessments_providers.dart';
 import '../../features/assessments/ui/widgets/app_feedback_list_item.dart';
 import '../../features/auth/controllers/profile_providers.dart';
+import '../../features/feedback_requests/ui/sheets/request_feedback_sheet.dart';
 import '../../features/auth/util/profile_format.dart';
 import '../../generated/api/get_assessments.dart' as assessments_api;
 import '../../generated/api/get_profile.dart';
@@ -105,10 +106,7 @@ class _PassportBody extends ConsumerWidget {
           label: 'Request Quick Feedback',
           variant: AppButtonVariant.outline,
           expand: true,
-          onPressed: () {
-            HapticFeedback.mediumImpact();
-            // TODO: open request-feedback flow
-          },
+          onPressed: () => showRequestFeedbackSheet(context, athleteId: profile.id),
         ),
         const SizedBox(height: AppSpacing.xl),
         _RecentFeedbackSection(athleteId: profile.id),

@@ -45,42 +45,49 @@ class _AppSheetSurface extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Frosted-glass (blur + transparent surface) only reads well
+    // in dark mode. In light mode it feels washed out — fall back
+    // to a solid surface with no blur.
+    final surface = Container(
+      decoration: BoxDecoration(
+        color: isDark
+            ? colors.primaryBackground.withValues(alpha: 0.4)
+            : colors.primaryBackground,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
+        border: Border.all(color: colors.primaryText30, width: 0.5),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Drag handle — 4px pill, tight to the header
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.sm, bottom: AppSpacing.xxs),
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: colors.primaryText30,
+                borderRadius: BorderRadius.circular(AppRadius.full),
+              ),
+            ),
+          ),
+          Flexible(child: builder(context)),
+        ],
+      ),
+    );
+
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-          child: Container(
-            decoration: BoxDecoration(
-              // Alpha kept lower (0.4) so the frosted-glass effect
-              // reads — you should see the blurred page content behind
-              // the sheet, not a solid surface. Tune here to change
-              // the strength app-wide.
-              color: colors.primaryBackground.withValues(alpha: 0.4),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xxl)),
-              border: Border.all(color: colors.primaryText30, width: 0.5),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Drag handle — 4px pill, tight to the header
-                Padding(
-                  padding: const EdgeInsets.only(top: AppSpacing.sm, bottom: AppSpacing.xxs),
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: colors.primaryText30,
-                      borderRadius: BorderRadius.circular(AppRadius.full),
-                    ),
-                  ),
-                ),
-                Flexible(child: builder(context)),
-              ],
-            ),
-          ),
-        ),
+        child: isDark
+            ? BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+                child: surface,
+              )
+            : surface,
       ),
     );
   }

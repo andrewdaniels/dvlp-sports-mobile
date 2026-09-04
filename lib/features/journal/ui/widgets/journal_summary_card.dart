@@ -47,7 +47,7 @@ class JournalSummaryCard extends ConsumerWidget {
             AppIcon(
               AppIcons.edit05,
               size: 28,
-              color: colors.secondary,
+              color: colors.primaryText,
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(

@@ -54,10 +54,16 @@ class AppCard extends StatelessWidget {
     final radius = _effectiveRadius;
     final borderWidth = prominent ? 2.0 : 1.0;
 
+    // Gradient is dark-mode only — in light mode it reads as a
+    // muddy wash. Featured cards in light mode use the plain
+    // secondaryBackground fill and rely on the gold border alone
+    // to signal prominence.
+    final useGradient = isFeatured && isDark;
+
     return Container(
       decoration: BoxDecoration(
-        gradient: isFeatured ? _featuredGradient(isDark, colors) : null,
-        color: isFeatured ? null : colors.secondaryBackground,
+        gradient: useGradient ? _featuredGradientDark() : null,
+        color: useGradient ? null : colors.secondaryBackground,
         border: Border.all(color: _borderColor(colors), width: borderWidth),
         borderRadius: BorderRadius.circular(radius),
       ),
@@ -83,32 +89,22 @@ class AppCard extends StatelessWidget {
     }
   }
 
-  /// Diagonal (~top-left → bottom-right) tint for the featured card.
-  /// Mode-adaptive stops so it reads as a subtle blue wash in both themes.
+  /// Diagonal (~top-left → bottom-right) blue tint for featured
+  /// cards in dark mode only. Light mode falls back to the plain
+  /// card fill — see [build].
   ///
-  /// - **Dark mode**: hardcoded `#13437E` (lighter variant of `primary`)
-  ///   → `secondaryBackground` dark, both @ 40%. one-off: the light stop
-  ///   isn't a token; if used by any other surface, hoist to AppColors.
-  /// - **Light mode**: `primary` @ 3% → `primary` @ 10% — subtle blue wash.
-  LinearGradient _featuredGradient(bool isDark, AppColors colors) {
-    if (isDark) {
-      return const LinearGradient(
-        begin: Alignment(-0.75, -0.66),
-        end: Alignment(0.75, 0.66),
-        colors: [
-          Color(0x6613437E),
-          Color(0x66061932),
-        ],
-        stops: [0.045, 0.963],
-      );
-    }
-    return LinearGradient(
-      begin: const Alignment(-0.75, -0.66),
-      end: const Alignment(0.75, 0.66),
+  /// Hardcoded `#13437E` (lighter variant of `primary`) →
+  /// `secondaryBackground` dark, both @ 40%. One-off; hoist to
+  /// AppColors if any other surface needs it.
+  LinearGradient _featuredGradientDark() {
+    return const LinearGradient(
+      begin: Alignment(-0.75, -0.66),
+      end: Alignment(0.75, 0.66),
       colors: [
-        colors.primary.withValues(alpha: 0.03),
-        colors.primary.withValues(alpha: 0.10),
+        Color(0x6613437E),
+        Color(0x66061932),
       ],
+      stops: [0.045, 0.963],
     );
   }
 }
