@@ -155,8 +155,11 @@ class AppButton extends StatelessWidget {
         // Dark text on gold — always dark regardless of mode.
         return colors.persistDark;
       case AppButtonVariant.outline:
-      case AppButtonVariant.text:
         return colors.primaryText;
+      case AppButtonVariant.text:
+        // Text buttons act as inline links (See All / Learn more /
+        // How it works) — colored to match the app's link token.
+        return colors.link;
     }
   }
 

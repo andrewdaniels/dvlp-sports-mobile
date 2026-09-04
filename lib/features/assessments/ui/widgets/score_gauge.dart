@@ -42,7 +42,7 @@ class ScoreGauge extends StatelessWidget {
     final colors = context.colors;
     final pct = (score / maxScore).clamp(0.0, 1.0);
     final band = _bandForPct(pct);
-    final badgeColor = _bandColor(band);
+    final badgeColor = band.color;
     final hasDescription = (description ?? '').trim().isNotEmpty;
 
     return Column(
@@ -110,14 +110,6 @@ class ScoreGauge extends StatelessWidget {
     if (pct < 0.90) return LevelBand.gold;
     return LevelBand.elite;
   }
-
-  static Color _bandColor(LevelBand band) => switch (band) {
-        LevelBand.beginner => const Color(0xFF3B89FF),
-        LevelBand.bronze => const Color(0xFFB0754F),
-        LevelBand.silver => const Color(0xFFB5BFCF),
-        LevelBand.gold => const Color(0xFFCFA437),
-        LevelBand.elite => const Color(0xFF3ECF8E),
-      };
 
   static String _formatScore(double v) {
     if (v == v.roundToDouble()) return v.toStringAsFixed(0);

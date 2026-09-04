@@ -21,7 +21,7 @@ import '../../features/assessments/ui/widgets/app_feedback_list_item.dart';
 import '../../features/assessments/ui/widgets/score_gauge.dart';
 import '../../generated/api/get_assessments.dart';
 import '../../shared/widgets/app_select_trigger.dart';
-import '../../shared/widgets/app_sheet_header.dart';
+import '../../shared/widgets/app_sheet_layout.dart';
 import '../../shared/widgets/app_sheet_shell.dart';
 import '../../shared/widgets/app_star_rating.dart';
 import '../../shared/widgets/app_text_badge.dart';
@@ -868,18 +868,12 @@ class _AppSheetDemo extends StatelessWidget {
   void _showTitleOnlySheet(BuildContext context) {
     showAppSheet(
       context: context,
-      builder: (context) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const AppSheetHeader(title: 'Filter Feedback'),
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Text(
-              'Sheet body content goes here.',
-              style: AppTypography.bodyMedium.copyWith(color: context.colors.secondaryText),
-            ),
-          ),
-        ],
+      builder: (context) => AppSheetLayout(
+        title: 'Filter Feedback',
+        child: Text(
+          'Sheet body content goes here.',
+          style: AppTypography.bodyMedium.copyWith(color: context.colors.secondaryText),
+        ),
       ),
     );
   }
@@ -887,21 +881,13 @@ class _AppSheetDemo extends StatelessWidget {
   void _showTitleSubtitleSheet(BuildContext context) {
     showAppSheet(
       context: context,
-      builder: (context) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const AppSheetHeader(
-            title: 'How It Works',
-            subtitle: 'A quick walkthrough of scoring and feedback',
-          ),
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Text(
-              'Sheet body content goes here.',
-              style: AppTypography.bodyMedium.copyWith(color: context.colors.secondaryText),
-            ),
-          ),
-        ],
+      builder: (context) => AppSheetLayout(
+        title: 'How It Works',
+        subtitle: 'A quick walkthrough of scoring and feedback',
+        child: Text(
+          'Sheet body content goes here.',
+          style: AppTypography.bodyMedium.copyWith(color: context.colors.secondaryText),
+        ),
       ),
     );
   }
@@ -1016,21 +1002,22 @@ class _AppSelectTriggerDemoState extends State<_AppSelectTriggerDemo> {
   void _showRolePicker(BuildContext ctx) {
     showAppSheet(
       context: ctx,
-      builder: (sheetCtx) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const AppSheetHeader(title: 'Choose a role'),
-          for (final r in ['Athlete', 'Coach', 'General Manager']) ...[
-            ListTile(
-              title: Text(r, style: AppTypography.bodyLarge.copyWith(color: sheetCtx.colors.primaryText)),
-              onTap: () {
-                Navigator.of(sheetCtx).pop();
-                setState(() => _pickedRole = r);
-              },
-            ),
+      builder: (sheetCtx) => AppSheetLayout(
+        title: 'Choose a role',
+        bodyPadding: EdgeInsets.zero,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final r in ['Athlete', 'Coach', 'General Manager'])
+              ListTile(
+                title: Text(r, style: AppTypography.bodyLarge.copyWith(color: sheetCtx.colors.primaryText)),
+                onTap: () {
+                  Navigator.of(sheetCtx).pop();
+                  setState(() => _pickedRole = r);
+                },
+              ),
           ],
-          const SizedBox(height: AppSpacing.md),
-        ],
+        ),
       ),
     );
   }
