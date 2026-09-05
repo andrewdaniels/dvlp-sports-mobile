@@ -11,6 +11,8 @@ import '../../shared/widgets/app_avatar.dart';
 import '../../shared/widgets/app_detail_app_bar.dart';
 import '../../shared/widgets/app_icon.dart';
 import '../../shared/widgets/app_icon_button.dart';
+import '../../shared/widgets/app_loading_indicator.dart';
+import '../../shared/widgets/app_refresh_indicator.dart';
 
 /// Detail view for a submitted formal assessment.
 ///
@@ -42,7 +44,7 @@ class FormalAssessmentPage extends ConsumerWidget {
           ),
         ],
       ),
-      body: RefreshIndicator(
+      body: AppRefreshIndicator(
         onRefresh: () =>
             ref.read(assessmentDetailProvider(assessmentId).notifier).refresh(),
         child: async.when(
@@ -54,7 +56,7 @@ class FormalAssessmentPage extends ConsumerWidget {
                   ),
                 )
               : _DetailBody(detail: detail),
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const Center(child: AppLoadingIndicator()),
           error: (_, _) => Center(
             child: Text(
               'Something went wrong.',

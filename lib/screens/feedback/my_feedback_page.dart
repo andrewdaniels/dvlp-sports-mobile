@@ -8,6 +8,7 @@ import '../../features/auth/controllers/profile_providers.dart';
 import '../../generated/api/get_assessments.dart';
 import '../../shared/widgets/app_chip.dart';
 import '../../shared/widgets/app_detail_app_bar.dart';
+import '../../shared/widgets/app_loading_indicator.dart';
 
 /// Full-screen destination pushed from Passport's "See All" link.
 /// Shows the athlete's entire submitted-feedback history across
@@ -49,7 +50,7 @@ class _MyFeedbackPageState extends ConsumerState<MyFeedbackPage> {
             onSelectLevel: (id) => setState(() => _selectedLevelId = id),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: AppLoadingIndicator()),
         error: (_, _) => Center(
           child: Text(
             'Something went wrong.',
@@ -97,7 +98,7 @@ class _Body extends ConsumerWidget {
           onSelectLevel: onSelectLevel,
         );
       },
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const Center(child: AppLoadingIndicator()),
       error: (_, _) => Center(
         child: Padding(
           padding: AppPageInsets.padding,

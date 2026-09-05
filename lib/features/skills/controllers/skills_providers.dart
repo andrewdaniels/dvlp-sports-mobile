@@ -77,4 +77,17 @@ class SkillHistoryNotifier
       Failure() => null,
     };
   }
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final result = await ref
+          .read(skillsRepositoryProvider)
+          .getSkillHistory(skillId: arg);
+      return switch (result) {
+        Success(:final data) => data,
+        Failure(:final message) => throw Exception(message),
+      };
+    });
+  }
 }

@@ -17,6 +17,7 @@ import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_icon.dart';
 import '../../shared/widgets/app_icon_button.dart';
 import '../../shared/widgets/app_level_badge.dart';
+import '../../shared/widgets/app_loading_indicator.dart';
 import '../../shared/widgets/app_player_passport_card.dart';
 
 class PassportPage extends ConsumerWidget {
@@ -43,7 +44,7 @@ class PassportPage extends ConsumerWidget {
       ),
       body: profileAsync.when(
         data: (profile) => profile == null ? const SizedBox.shrink() : _PassportBody(profile: profile),
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: AppLoadingIndicator()),
         error: (_, _) => const SizedBox.shrink(),
       ),
     );

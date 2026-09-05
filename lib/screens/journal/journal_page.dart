@@ -11,6 +11,8 @@ import '../../generated/api/get_journal_entries.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_detail_app_bar.dart';
 import '../../shared/widgets/app_icon.dart';
+import '../../shared/widgets/app_loading_indicator.dart';
+import '../../shared/widgets/app_refresh_indicator.dart';
 
 /// Full-screen destination pushed from the DVLP → My Journal card.
 ///
@@ -32,7 +34,7 @@ class JournalPage extends ConsumerWidget {
           if (profile == null) return const SizedBox.shrink();
           return _JournalBody(athleteId: profile.id);
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: AppLoadingIndicator()),
         error: (_, _) => Center(
           child: Text(
             'Something went wrong.',
@@ -53,7 +55,7 @@ class _JournalBody extends ConsumerWidget {
     final colors = context.colors;
     final async = ref.watch(journalEntriesProvider(athleteId));
 
-    return RefreshIndicator(
+    return AppRefreshIndicator(
       onRefresh: () => ref.read(journalEntriesProvider(athleteId).notifier).refresh(),
       child: ListView(
         padding: AppPageInsets.padding,
@@ -99,7 +101,7 @@ class _JournalBody extends ConsumerWidget {
             loading: () => [
               const Padding(
                 padding: EdgeInsets.only(top: AppSpacing.xl),
-                child: Center(child: CircularProgressIndicator()),
+                child: Center(child: AppLoadingIndicator()),
               ),
             ],
             error: (_, _) => [

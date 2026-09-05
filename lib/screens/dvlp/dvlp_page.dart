@@ -10,6 +10,8 @@ import '../../features/skills/ui/sheets/skill_detail_sheet.dart';
 import '../../features/skills/ui/widgets/skill_row.dart';
 import '../../shared/widgets/app_icon.dart';
 import '../../shared/widgets/app_icon_button.dart';
+import '../../shared/widgets/app_loading_indicator.dart';
+import '../../shared/widgets/app_refresh_indicator.dart';
 
 /// Development ("DVLP") tab. Two sections:
 ///   - My Journal — entry-point card at the top. Backend not built
@@ -50,7 +52,7 @@ class DvlpPage extends ConsumerWidget {
           if (profile == null) return const SizedBox.shrink();
           return _DvlpBody(athleteId: profile.id);
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: AppLoadingIndicator()),
         error: (_, _) => Center(
           child: Text(
             'Something went wrong.',
@@ -71,7 +73,7 @@ class _DvlpBody extends ConsumerWidget {
     final colors = context.colors;
     final async = ref.watch(skillProgressProvider(athleteId));
 
-    return RefreshIndicator(
+    return AppRefreshIndicator(
       onRefresh: () => ref.read(skillProgressProvider(athleteId).notifier).refresh(),
       child: ListView(
         padding: AppPageInsets.padding,
@@ -119,7 +121,7 @@ class _DvlpBody extends ConsumerWidget {
             loading: () => [
               const Padding(
                 padding: EdgeInsets.only(top: AppSpacing.xl),
-                child: Center(child: CircularProgressIndicator()),
+                child: Center(child: AppLoadingIndicator()),
               ),
             ],
             error: (_, _) => [

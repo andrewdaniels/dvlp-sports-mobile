@@ -7,6 +7,7 @@ import '../../../../generated/api/get_coaches.dart';
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_empty_state.dart';
 import '../../../../shared/widgets/app_icon.dart';
+import '../../../../shared/widgets/app_loading_indicator.dart';
 import '../../../../shared/widgets/app_radio_card.dart';
 import '../../../../shared/widgets/app_screen_footer.dart';
 import '../../../../shared/widgets/app_sheet_layout.dart';
@@ -136,7 +137,7 @@ class _RequestFeedbackSheetState extends ConsumerState<RequestFeedbackSheet> {
       },
       loading: () => const Padding(
         padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
-        child: Center(child: CircularProgressIndicator()),
+        child: Center(child: AppLoadingIndicator()),
       ),
       error: (_, _) => Padding(
         padding: const EdgeInsets.only(top: AppSpacing.xl),

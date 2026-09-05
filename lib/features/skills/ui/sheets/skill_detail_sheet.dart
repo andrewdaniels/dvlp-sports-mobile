@@ -8,6 +8,7 @@ import '../../../../generated/api/get_assessments.dart' as assessments_api;
 import '../../../../generated/api/get_skill_progress.dart' as progress_api;
 import '../../../../shared/widgets/app_button.dart';
 import '../../../../shared/widgets/app_icon.dart';
+import '../../../../shared/widgets/app_loading_indicator.dart';
 import '../../../../shared/widgets/app_sheet_layout.dart';
 import '../../../../shared/widgets/app_sheet_shell.dart';
 import '../../../assessments/controllers/assessments_providers.dart';
@@ -72,7 +73,7 @@ class SkillDetailSheet extends ConsumerWidget {
             },
             loading: () => const SizedBox(
               height: 200,
-              child: Center(child: CircularProgressIndicator()),
+              child: Center(child: AppLoadingIndicator()),
             ),
             error: (_, _) => _ChartFallback(
               text: 'Could not load trend.',

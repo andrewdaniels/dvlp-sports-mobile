@@ -14,6 +14,7 @@ import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/app_divider.dart';
 import '../../shared/widgets/app_icon.dart';
 import '../../shared/widgets/app_icon_button.dart';
+import '../../shared/widgets/app_loading_indicator.dart';
 import '../../shared/widgets/app_profile_header.dart';
 
 class ProfilePage extends ConsumerWidget {
@@ -60,7 +61,7 @@ class ProfilePage extends ConsumerWidget {
             data: (profile) => profile == null
                 ? const SizedBox.shrink()
                 : _ProfileBody(profile: profile),
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const Center(child: AppLoadingIndicator()),
             error: (_, _) => const SizedBox.shrink(),
           ),
         ],

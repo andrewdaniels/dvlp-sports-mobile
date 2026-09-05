@@ -69,12 +69,11 @@ class AppTheme {
         thickness: 0.5,
       ),
       // Unified pull-to-refresh treatment for every RefreshIndicator
-      // in the app. Chip surface = secondaryBackground (subtle tint
-      // that reads as an app element, not a system alert); spinner +
-      // arrow = primaryText (high-contrast against the chip in both
-      // themes).
+      // in the app. Chip surface = accent1Tint (blue @ 20% — a brand-
+      // colored tint that reads distinct from cards + surfaces);
+      // spinner + arrow = primaryText (high-contrast in both themes).
       progressIndicatorTheme: ProgressIndicatorThemeData(
-        refreshBackgroundColor: colors.secondaryBackground,
+        refreshBackgroundColor: colors.accent1Tint,
         color: colors.primaryText,
       ),
     );

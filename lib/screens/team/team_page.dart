@@ -9,6 +9,8 @@ import '../../generated/api/get_profile.dart' as profile_api;
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/app_divider.dart';
 import '../../shared/widgets/app_profile_header.dart';
+import '../../shared/widgets/app_loading_indicator.dart';
+import '../../shared/widgets/app_refresh_indicator.dart';
 import '../../shared/widgets/app_text_badge.dart';
 
 class TeamPage extends ConsumerWidget {
@@ -27,7 +29,7 @@ class TeamPage extends ConsumerWidget {
           }
           return _TeamBody(team: profile.teamMemberships.first.team);
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: AppLoadingIndicator()),
         error: (_, _) => const SizedBox.shrink(),
       ),
     );
@@ -46,7 +48,7 @@ class _TeamBody extends ConsumerWidget {
 
     final recap = _RecapCard.lastPlayed(games);
 
-    return RefreshIndicator(
+    return AppRefreshIndicator(
       onRefresh: () => ref.read(gamesProvider(team.id).notifier).refresh(),
       child: ListView(
         padding: AppPageInsets.padding,
