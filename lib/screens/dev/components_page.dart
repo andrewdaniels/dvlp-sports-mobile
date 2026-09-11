@@ -17,6 +17,7 @@ import '../../shared/widgets/app_onboarding_header.dart';
 import '../../shared/widgets/app_player_passport_card.dart';
 import '../../shared/widgets/app_profile_header.dart';
 import '../../shared/widgets/app_radio_card.dart';
+import '../../shared/widgets/app_score_bar.dart';
 import '../../features/assessments/ui/widgets/app_feedback_list_item.dart';
 import '../../features/assessments/ui/widgets/score_gauge.dart';
 import '../../generated/api/get_assessments.dart';
@@ -126,6 +127,11 @@ class ComponentsPage extends StatelessWidget {
             name: 'ScoreGauge (features/assessments)',
             description: 'Formal-assessment score visual — colored badge + gradient band bar with pointer at score/max. Score bands (beginner→elite) drive the badge color; the bar gradient is fixed regardless of score so the pointer reads as position on the ladder.',
             child: _ScoreGaugeDemo(),
+          ),
+          _ComponentSection(
+            name: 'AppScoreBar',
+            description: 'Shared score-visualization bar used by the DVLP skills list (band, no pointer) and the ScoreGauge (band, with pointer). Two fills: `band` shows the full beginner→elite gradient (position conveyed by pointer or adjacent readout); `flat` shows a single-tone fill that fills to `fraction × width`. Ticks at each interior whole-number step regardless of fill.',
+            child: _AppScoreBarDemo(),
           ),
           _ComponentSection(
             name: 'AppTextField',
@@ -1067,6 +1073,7 @@ class _AppFeedbackListItemDemo extends StatelessWidget {
       weightedRole: WeightedRole.HEAD_COACH,
       submittedAt: DateTime.now().subtract(Duration(hours: hoursAgo)).toIso8601String(),
       athleteRead: athleteRead,
+      accessScope: AccessScope.TEAM,
       coach: Coach(
         id: '00000000-0000-0000-0000-000000000001',
         firstName: 'Jesse',
@@ -1125,6 +1132,57 @@ class _ScoreGaugeDemo extends StatelessWidget {
           score: 5.5,
           maxScore: 10,
           previousScore: 4,
+        ),
+      ],
+    );
+  }
+}
+
+class _AppScoreBarDemo extends StatelessWidget {
+  const _AppScoreBarDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Band, no pointer (DVLP skill row)',
+          style: AppTypography.labelSmall.copyWith(color: colors.secondaryText),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        const AppScoreBar(fraction: 0.75, tickCount: 9, fill: AppScoreBarFill.band),
+        const SizedBox(height: AppSpacing.lg),
+        Text(
+          'Band, with pointer, taller (ScoreGauge)',
+          style: AppTypography.labelSmall.copyWith(color: colors.secondaryText),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        const AppScoreBar(
+          fraction: 0.55,
+          tickCount: 9,
+          fill: AppScoreBarFill.band,
+          showPointer: true,
+          height: 8,
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        Text(
+          'Flat, secondary fill (default)',
+          style: AppTypography.labelSmall.copyWith(color: colors.secondaryText),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        const AppScoreBar(fraction: 0.40, tickCount: 9),
+        const SizedBox(height: AppSpacing.lg),
+        Text(
+          'Flat, custom fill color',
+          style: AppTypography.labelSmall.copyWith(color: colors.secondaryText),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        AppScoreBar(
+          fraction: 0.85,
+          tickCount: 9,
+          flatFillColor: colors.success,
         ),
       ],
     );

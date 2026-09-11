@@ -155,11 +155,18 @@ class AppFeedbackListItem extends StatelessWidget {
       WeightedRole.SKILLS_COACH => 'Skills Coach',
       WeightedRole.OFFSEASON_COACH => 'Offseason Coach',
     };
-    final teamParts = [
-      a.team.name.trim(),
-      (a.team.levelClassification?.name ?? '').trim(),
-    ].where((s) => s.isNotEmpty).join(' ');
-    return teamParts.isEmpty ? role : '$role · $teamParts';
+    // External assessments were slotted under the athlete's active team
+    // for season context, but the coach isn't actually on that team's
+    // staff. Mirror the Request Feedback picker: show "External" as the
+    // suffix instead of the team name so the athlete isn't misled into
+    // thinking the coach coaches their team.
+    final suffix = a.accessScope == AccessScope.EXTERNAL
+        ? 'External'
+        : [
+            a.team.name.trim(),
+            (a.team.levelClassification?.name ?? '').trim(),
+          ].where((s) => s.isNotEmpty).join(' ');
+    return suffix.isEmpty ? role : '$role · $suffix';
   }
 
   /// Coarse relative time ("just now" / "5m ago" / "3d ago" / ...) —

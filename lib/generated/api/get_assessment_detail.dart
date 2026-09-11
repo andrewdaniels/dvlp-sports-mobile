@@ -41,6 +41,7 @@ class GetAssessmentDetailData {
 }
 
 class Assessment {
+    final AccessScope accessScope;
     final AssessmentType assessmentType;
     final bool athleteRead;
     final Coach coach;
@@ -55,6 +56,7 @@ class Assessment {
     final WeightedRole weightedRole;
 
     Assessment({
+        required this.accessScope,
         required this.assessmentType,
         required this.athleteRead,
         required this.coach,
@@ -70,6 +72,7 @@ class Assessment {
     });
 
     Assessment copyWith({
+        AccessScope? accessScope,
         AssessmentType? assessmentType,
         bool? athleteRead,
         Coach? coach,
@@ -84,6 +87,7 @@ class Assessment {
         WeightedRole? weightedRole,
     }) => 
         Assessment(
+            accessScope: accessScope ?? this.accessScope,
             assessmentType: assessmentType ?? this.assessmentType,
             athleteRead: athleteRead ?? this.athleteRead,
             coach: coach ?? this.coach,
@@ -99,6 +103,7 @@ class Assessment {
         );
 
     factory Assessment.fromJson(Map<String, dynamic> json) => Assessment(
+        accessScope: accessScopeValues.map[json["access_scope"]]!,
         assessmentType: assessmentTypeValues.map[json["assessment_type"]]!,
         athleteRead: json["athlete_read"],
         coach: Coach.fromJson(json["coach"]),
@@ -114,6 +119,7 @@ class Assessment {
     );
 
     Map<String, dynamic> toJson() => {
+        "access_scope": accessScopeValues.reverse[accessScope],
         "assessment_type": assessmentTypeValues.reverse[assessmentType],
         "athlete_read": athleteRead,
         "coach": coach.toJson(),
@@ -128,6 +134,16 @@ class Assessment {
         "weighted_role": weightedRoleValues.reverse[weightedRole],
     };
 }
+
+enum AccessScope {
+    EXTERNAL,
+    TEAM
+}
+
+final accessScopeValues = EnumValues({
+    "external": AccessScope.EXTERNAL,
+    "team": AccessScope.TEAM
+});
 
 enum AssessmentType {
     FORMAL,

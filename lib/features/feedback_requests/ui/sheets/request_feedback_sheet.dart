@@ -12,6 +12,7 @@ import '../../../../shared/widgets/app_radio_card.dart';
 import '../../../../shared/widgets/app_screen_footer.dart';
 import '../../../../shared/widgets/app_sheet_layout.dart';
 import '../../../../shared/widgets/app_sheet_shell.dart';
+import '../../../auth/controllers/profile_providers.dart';
 import '../../../auth/data/api_result.dart';
 import '../../controllers/feedback_requests_providers.dart';
 
@@ -46,6 +47,27 @@ class _RequestFeedbackSheetState extends ConsumerState<RequestFeedbackSheet> {
     final coach = _selected;
     if (coach == null || _sending) return;
 
+    // Team-scope coaches carry the athlete's team on the row. External
+    // coaches carry no team affiliation (grants aren't tied to a team),
+    // so resolve to the athlete's active team from the profile — the
+    // eventual assessment still needs a team_id to slot the athlete's
+    // season history correctly, and the backend validates athlete is
+    // on that team either way.
+    var teamId = coach.team?.id;
+    if (teamId == null) {
+      final profile = ref.read(currentProfileProvider).value;
+      for (final m in profile?.teamMemberships ?? const []) {
+        if (m.coachType == null) {
+          teamId = m.team.id;
+          break;
+        }
+      }
+    }
+    if (teamId == null) {
+      setState(() => _error = 'You need an active team before requesting feedback.');
+      return;
+    }
+
     HapticFeedback.mediumImpact();
     setState(() {
       _sending = true;
@@ -54,7 +76,7 @@ class _RequestFeedbackSheetState extends ConsumerState<RequestFeedbackSheet> {
 
     final result = await ref.read(feedbackRequestsRepositoryProvider).createRequest(
           coachId: coach.id,
-          teamId: coach.team.id,
+          teamId: teamId,
         );
 
     if (!mounted) return;
@@ -119,8 +141,9 @@ class _RequestFeedbackSheetState extends ConsumerState<RequestFeedbackSheet> {
               AppRadioCard(
                 title: _coachTitle(coaches[i]),
                 subtitle: _coachSubtitle(coaches[i]),
-                selected: _selected?.id == coaches[i].id &&
-                    _selected?.team.id == coaches[i].team.id,
+                // Server dedupes on coach_id (team scope wins over
+                // external), so coach.id alone identifies a picker row.
+                selected: _selected?.id == coaches[i].id,
                 onTap: _sending ? () {} : () => setState(() => _selected = coaches[i]),
               ),
               if (i < coaches.length - 1) const SizedBox(height: AppSpacing.sm),
@@ -153,11 +176,21 @@ class _RequestFeedbackSheetState extends ConsumerState<RequestFeedbackSheet> {
   /// "Coach Jesse" — first-name prefixed. Matches the design mock.
   static String _coachTitle(Coach c) => 'Coach ${c.firstName}';
 
-  /// "Head Coach · Rampage U13" — role + team.
+  /// Subtitle format: "<role> · <suffix>" where suffix is the team
+  /// name for team-scope coaches and the literal "External" for
+  /// external-scope coaches. Role comes from coach_type — populated
+  /// on both scopes (external rows borrow it from the grant's
+  /// weighted_role, same enum). The granting_organization is on the
+  /// response for future use (e.g. "· External · Kraken") but the
+  /// MVP subtitle stays compact.
   static String _coachSubtitle(Coach c) {
-    final role = _roleLabel(c.coachType);
-    final team = c.team.name;
-    return team.isEmpty ? role : '$role · $team';
+    final role = c.coachType != null ? _roleLabel(c.coachType!) : '';
+    final suffix = c.accessScope == CoachAccessScope.EXTERNAL
+        ? 'External'
+        : (c.team?.name ?? '');
+    if (role.isEmpty) return suffix;
+    if (suffix.isEmpty) return role;
+    return '$role · $suffix';
   }
 
   static String _roleLabel(CoachType type) => switch (type) {

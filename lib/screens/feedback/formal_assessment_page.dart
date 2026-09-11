@@ -118,13 +118,20 @@ class _CoachHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final coach = detail.coach;
+    // External-authored assessments were slotted under the athlete's
+    // active team for season context; render "External" as the suffix
+    // (mirrors the Request Feedback picker + list) so the header doesn't
+    // imply the coach is on that team's staff.
+    final teamSuffix = detail.accessScope == detail_api.AccessScope.EXTERNAL
+        ? 'External'
+        : [
+            detail.team.name.trim(),
+            (detail.team.ageGroup ?? '').trim(),
+            (detail.team.level ?? '').trim(),
+          ].where((s) => s.isNotEmpty).join(' ');
     final teamLine = [
       _roleLabel(detail.weightedRole),
-      [
-        detail.team.name.trim(),
-        (detail.team.ageGroup ?? '').trim(),
-        (detail.team.level ?? '').trim(),
-      ].where((s) => s.isNotEmpty).join(' '),
+      teamSuffix,
     ].where((s) => s.isNotEmpty).join(' · ');
 
     return Row(

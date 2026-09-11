@@ -4,10 +4,15 @@
 
 // To parse this JSON data, do
 //
+//     final coachAccessScope = coachAccessScopeFromJson(jsonString);
 //     final getCoachesData = getCoachesDataFromJson(jsonString);
 //     final getCoachesRequest = getCoachesRequestFromJson(jsonString);
 
 import 'dart:convert';
+
+CoachAccessScope coachAccessScopeFromJson(String str) => coachAccessScopeValues.map[json.decode(str)]!;
+
+String coachAccessScopeToJson(CoachAccessScope data) => json.encode(coachAccessScopeValues.reverse[data]);
 
 GetCoachesData getCoachesDataFromJson(String str) => GetCoachesData.fromJson(json.decode(str));
 
@@ -41,57 +46,79 @@ class GetCoachesData {
 }
 
 class Coach {
+    final CoachAccessScope accessScope;
     final String? avatarUrl;
-    final CoachType coachType;
+    final CoachType? coachType;
     final String firstName;
+    final GrantingOrganization? grantingOrganization;
     final String id;
     final String lastName;
-    final Team team;
+    final Team? team;
 
     Coach({
+        required this.accessScope,
         required this.avatarUrl,
         required this.coachType,
         required this.firstName,
+        required this.grantingOrganization,
         required this.id,
         required this.lastName,
         required this.team,
     });
 
     Coach copyWith({
+        CoachAccessScope? accessScope,
         String? avatarUrl,
         CoachType? coachType,
         String? firstName,
+        GrantingOrganization? grantingOrganization,
         String? id,
         String? lastName,
         Team? team,
     }) => 
         Coach(
+            accessScope: accessScope ?? this.accessScope,
             avatarUrl: avatarUrl ?? this.avatarUrl,
             coachType: coachType ?? this.coachType,
             firstName: firstName ?? this.firstName,
+            grantingOrganization: grantingOrganization ?? this.grantingOrganization,
             id: id ?? this.id,
             lastName: lastName ?? this.lastName,
             team: team ?? this.team,
         );
 
     factory Coach.fromJson(Map<String, dynamic> json) => Coach(
+        accessScope: coachAccessScopeValues.map[json["access_scope"]]!,
         avatarUrl: json["avatar_url"],
-        coachType: coachTypeValues.map[json["coach_type"]]!,
+        coachType: coachTypeValues.map[json["coach_type"]],
         firstName: json["first_name"],
+        grantingOrganization: json["granting_organization"] == null ? null : GrantingOrganization.fromJson(json["granting_organization"]),
         id: json["id"],
         lastName: json["last_name"],
-        team: Team.fromJson(json["team"]),
+        team: json["team"] == null ? null : Team.fromJson(json["team"]),
     );
 
     Map<String, dynamic> toJson() => {
+        "access_scope": coachAccessScopeValues.reverse[accessScope],
         "avatar_url": avatarUrl,
         "coach_type": coachTypeValues.reverse[coachType],
         "first_name": firstName,
+        "granting_organization": grantingOrganization?.toJson(),
         "id": id,
         "last_name": lastName,
-        "team": team.toJson(),
+        "team": team?.toJson(),
     };
 }
+
+enum CoachAccessScope {
+    EXTERNAL,
+    TEAM
+}
+
+final coachAccessScopeValues = EnumValues({
+    "external": CoachAccessScope.EXTERNAL,
+    "team": CoachAccessScope.TEAM
+});
 
 enum CoachType {
     ASSISTANT_COACH,
@@ -106,6 +133,35 @@ final coachTypeValues = EnumValues({
     "offseason_coach": CoachType.OFFSEASON_COACH,
     "skills_coach": CoachType.SKILLS_COACH
 });
+
+class GrantingOrganization {
+    final String id;
+    final String name;
+
+    GrantingOrganization({
+        required this.id,
+        required this.name,
+    });
+
+    GrantingOrganization copyWith({
+        String? id,
+        String? name,
+    }) => 
+        GrantingOrganization(
+            id: id ?? this.id,
+            name: name ?? this.name,
+        );
+
+    factory GrantingOrganization.fromJson(Map<String, dynamic> json) => GrantingOrganization(
+        id: json["id"],
+        name: json["name"],
+    );
+
+    Map<String, dynamic> toJson() => {
+        "id": id,
+        "name": name,
+    };
+}
 
 class Team {
     final String? ageGroup;
