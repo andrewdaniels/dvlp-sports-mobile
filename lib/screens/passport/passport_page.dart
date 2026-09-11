@@ -19,6 +19,7 @@ import '../../shared/widgets/app_icon_button.dart';
 import '../../shared/widgets/app_level_badge.dart';
 import '../../shared/widgets/app_loading_indicator.dart';
 import '../../shared/widgets/app_player_passport_card.dart';
+import '../../shared/widgets/app_refresh_indicator.dart';
 
 class PassportPage extends ConsumerWidget {
   const PassportPage({super.key});
@@ -77,41 +78,50 @@ class _PassportBody extends ConsumerWidget {
     const cardOffset = heroDim * coinVisualCenterFraction;
     const cardTopInset = heroDim - cardOffset;
 
-    return ListView(
-      padding: AppPageInsets.padding,
-      children: [
-        Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.topCenter,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: cardOffset),
-              child: AppPlayerPassportCard(
-                firstName: profile.firstName,
-                lastName: profile.lastName,
-                teamLine: teamLine,
-                age: age,
-                height: height,
-                weight: weight,
-                hand: hand,
-                verified: '-',
-                avatarUrl: profile.avatarUrl,
-                topInset: cardTopInset,
+    return AppRefreshIndicator(
+      onRefresh: () async {
+        await Future.wait([
+          ref.read(currentProfileProvider.notifier).refresh(),
+          ref.read(assessmentsProvider(profile.id).notifier).refresh(),
+        ]);
+      },
+      child: ListView(
+        padding: AppPageInsets.padding,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.topCenter,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: cardOffset),
+                child: AppPlayerPassportCard(
+                  firstName: profile.firstName,
+                  lastName: profile.lastName,
+                  teamLine: teamLine,
+                  age: age,
+                  height: height,
+                  weight: weight,
+                  hand: hand,
+                  verified: '-',
+                  avatarUrl: profile.avatarUrl,
+                  topInset: cardTopInset,
+                ),
               ),
-            ),
-            const AppLevelHeroBadge(band: band),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.md),
-        AppButton(
-          label: 'Request Quick Feedback',
-          variant: AppButtonVariant.outline,
-          expand: true,
-          onPressed: () => showRequestFeedbackSheet(context, athleteId: profile.id),
-        ),
-        const SizedBox(height: AppSpacing.xl),
-        _RecentFeedbackSection(athleteId: profile.id),
-      ],
+              const AppLevelHeroBadge(band: band),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          AppButton(
+            label: 'Request Quick Feedback',
+            variant: AppButtonVariant.outline,
+            expand: true,
+            onPressed: () => showRequestFeedbackSheet(context, athleteId: profile.id),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          _RecentFeedbackSection(athleteId: profile.id),
+        ],
+      ),
     );
   }
 
@@ -143,12 +153,12 @@ class _RecentFeedbackSection extends ConsumerWidget {
     final colors = context.colors;
     final async = ref.watch(assessmentsProvider(athleteId));
     final items = async.value?.assessments ?? const <assessments_api.Assessment>[];
+    final loading = async.isLoading && items.isEmpty;
 
-    // Hide the whole section when the athlete has no submitted feedback.
-    if (async.isLoading && items.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    if (items.isEmpty) {
+    // On the first-mount loading pass, show the header + a spinner so
+    // the user sees the section is fetching rather than a mysteriously
+    // empty page. Once loaded with no rows, hide the whole section.
+    if (!loading && items.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -176,20 +186,26 @@ class _RecentFeedbackSection extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: AppSpacing.sm),
-        for (var i = 0; i < items.length; i++) ...[
-          AppFeedbackListItem(
-            assessment: items[i],
-            unread: !items[i].athleteRead,
-            onTap: () {
-              final a = items[i];
-              final path = a.assessmentType == assessments_api.AssessmentType.QUICK
-                  ? RouteNames.feedbackQuickFor(a.id)
-                  : RouteNames.feedbackFormalFor(a.id);
-              context.push(path);
-            },
-          ),
-          if (i < items.length - 1) const SizedBox(height: AppSpacing.sm),
-        ],
+        if (loading)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: AppSpacing.xl),
+            child: Center(child: AppLoadingIndicator()),
+          )
+        else
+          for (var i = 0; i < items.length; i++) ...[
+            AppFeedbackListItem(
+              assessment: items[i],
+              unread: !items[i].athleteRead,
+              onTap: () {
+                final a = items[i];
+                final path = a.assessmentType == assessments_api.AssessmentType.QUICK
+                    ? RouteNames.feedbackQuickFor(a.id)
+                    : RouteNames.feedbackFormalFor(a.id);
+                context.push(path);
+              },
+            ),
+            if (i < items.length - 1) const SizedBox(height: AppSpacing.sm),
+          ],
       ],
     );
   }
