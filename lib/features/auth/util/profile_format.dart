@@ -38,11 +38,11 @@ String formatHeight(double? cm) {
   return "$ft'$inches\"";
 }
 
-/// "145lbs" from kilograms.
+/// "145 lbs" from kilograms.
 String formatWeight(double? kg) {
   if (kg == null || kg <= 0) return '-';
   final lbs = (kg * 2.20462).round();
-  return '${lbs}lbs';
+  return '$lbs lbs';
 }
 
 /// "Left" / "Right" / "Both" — UI label for the [DominantSide] enum.

@@ -14,9 +14,8 @@ import '../../shared/widgets/app_icon.dart';
 import '../../shared/widgets/app_link_row.dart';
 
 /// Full-screen destination pushed from the Profile page's settings
-/// icon. Currently only surfaces the debug-only dev tools (theme
-/// cycler + design system + components dev pages). Real account
-/// settings sections will land here as they ship.
+/// icon. Sections stack top-to-bottom; new sections add a title +
+/// AppCard following the same pattern.
 class AccountSettingsPage extends StatelessWidget {
   const AccountSettingsPage({super.key});
 
@@ -28,7 +27,14 @@ class AccountSettingsPage extends StatelessWidget {
       body: ListView(
         padding: AppPageInsets.padding,
         children: [
+          Text(
+            'Legal',
+            style: AppTypography.titleMedium.copyWith(color: colors.primaryText),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          const _LegalCard(),
           if (kDebugMode) ...[
+            const SizedBox(height: AppSpacing.xl),
             Text(
               'Developer Tools',
               style: AppTypography.titleMedium.copyWith(color: colors.primaryText),
@@ -36,6 +42,37 @@ class AccountSettingsPage extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             const _DevToolsCard(),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+class _LegalCard extends StatelessWidget {
+  const _LegalCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        children: [
+          AppLinkRow(
+            label: 'Privacy Policy',
+            leadingIcon: AppIcons.fileShield,
+            onTap: () {
+              // TODO: launch privacy policy URL once the marketing
+              // site's legal page is published.
+            },
+          ),
+          const AppDivider(),
+          AppLinkRow(
+            label: 'Terms of Service',
+            leadingIcon: AppIcons.bookClosed,
+            onTap: () {
+              // TODO: launch terms of service URL once published.
+            },
+          ),
         ],
       ),
     );

@@ -75,6 +75,8 @@ class AppIcons {
   static const String grid = '$_base/grid-01.svg';
   static const String eye = '$_base/eye.svg';
   static const String eyeOff = '$_base/eye-off.svg';
+  static const String fileShield = '$_base/file-shield-01.svg';
+  static const String bookClosed = '$_base/book-closed.svg';
 
   // Selection controls
   static const String check = '$_base/check.svg';
