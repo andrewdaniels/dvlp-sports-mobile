@@ -89,10 +89,7 @@ class _CredentialsPageState extends ConsumerState<CredentialsPage> {
       case 'athlete':
         context.push(RouteNames.signupPlayerDetails);
       case 'coach':
-        // TODO: route to coach form once built.
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Coach form — coming next')),
-        );
+        context.push(RouteNames.signupCoachDetails);
     }
   }
 

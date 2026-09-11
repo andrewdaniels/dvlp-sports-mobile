@@ -12,8 +12,8 @@ import '../../features/auth/data/api_result.dart';
 import '../../features/reference/controllers/reference_providers.dart';
 import '../../generated/api/get_positions.dart';
 import '../../generated/api/get_profile.dart';
+import '../../shared/widgets/app_avatar.dart';
 import '../../shared/widgets/app_button.dart';
-import '../../shared/widgets/app_icon.dart';
 import '../../shared/widgets/app_onboarding_header.dart';
 import '../../shared/widgets/app_screen_footer.dart';
 import '../../shared/widgets/app_select_trigger.dart';
@@ -322,7 +322,11 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _PhotoRow(onUpload: _uploadPhoto),
+                      _PhotoRow(
+                        firstName: _first.text,
+                        lastName: _last.text,
+                        onUpload: _uploadPhoto,
+                      ),
                       const SizedBox(height: AppSpacing.lg),
                       AppTextField(
                         label: 'First Name',
@@ -445,25 +449,28 @@ class _FieldLabel extends StatelessWidget {
 }
 
 class _PhotoRow extends StatelessWidget {
-  const _PhotoRow({required this.onUpload});
+  const _PhotoRow({
+    required this.firstName,
+    required this.lastName,
+    required this.onUpload,
+  });
+
+  final String firstName;
+  final String lastName;
   final VoidCallback onUpload;
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colors;
     return Row(
       children: [
-        Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: colors.secondaryBackground,
-            border: Border.all(color: colors.alternate, width: 1),
-          ),
-          child: Center(
-            child: AppIcon(AppIcons.image, size: 24, color: colors.secondaryText),
-          ),
+        // Falls back to initials from invite-prefilled name, or the
+        // userFallback icon when nothing's typed yet. Both avatar and
+        // button trigger upload — wider tap target.
+        AppAvatar(
+          firstName: firstName,
+          lastName: lastName,
+          size: AppAvatarSize.large,
+          onTap: onUpload,
         ),
         const SizedBox(width: AppSpacing.md),
         Expanded(

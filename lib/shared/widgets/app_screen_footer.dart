@@ -5,11 +5,12 @@ import 'app_button.dart';
 
 /// Fixed-bottom footer that holds the primary action(s) of a screen.
 ///
-/// Owns the standard spacing above the buttons (`md`) and — deliberately
-/// — no explicit spacing below. Screens should wrap their body in
-/// `SafeArea`, which contributes the system's bottom inset (~34px on
-/// home-indicator iPhones); this widget doesn't stack extra padding on
-/// top of that.
+/// Owns the standard spacing above the buttons (`md`) plus a small
+/// `md` gap below so the buttons never touch the keyboard when the
+/// system keyboard is up (SafeArea's bottom inset collapses to 0 in
+/// that state). When the keyboard is down, this `md` stacks on top
+/// of the home-indicator SafeArea inset — a bit taller than a bare
+/// footer but consistent across keyboard-open and keyboard-closed.
 ///
 /// Pick the factory that matches the CTA shape:
 ///  - [single]  — one full-width button
@@ -68,7 +69,10 @@ class AppScreenFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: AppSpacing.md),
+      padding: const EdgeInsets.only(
+        top: AppSpacing.md,
+        bottom: AppSpacing.md,
+      ),
       child: child,
     );
   }
