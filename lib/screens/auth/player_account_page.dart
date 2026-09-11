@@ -11,6 +11,7 @@ import '../../features/auth/controllers/signup_flow_provider.dart';
 import '../../features/auth/data/api_result.dart';
 import '../../features/reference/controllers/reference_providers.dart';
 import '../../generated/api/get_positions.dart';
+import '../../generated/api/get_profile.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_icon.dart';
 import '../../shared/widgets/app_onboarding_header.dart';
@@ -254,7 +255,13 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
         ref.read(signupFlowProvider.notifier).state = null;
 
         if (!mounted) return;
-        context.go(RouteNames.passport);
+        // Chain profile fetch onto the same loading state so signup
+        // → shell is one seamless transition. Falls back to splash if
+        // the fetch fails so the user isn't stranded mid-loading.
+        await ref.read(currentProfileProvider.notifier).refresh();
+        if (!mounted) return;
+        final profile = ref.read(currentProfileProvider).value;
+        context.go(_landingFor(profile?.roleTier));
 
       case Failure(:final message):
         setState(() {
@@ -263,6 +270,15 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
         });
     }
   }
+
+  /// Mirrors [SplashPage._landingFor] — kept in sync with login_page so
+  /// post-auth direct-nav and cold-boot splash agree per role. Null
+  /// role falls back to splash to retry / show an error.
+  static String _landingFor(RoleTier? role) => switch (role) {
+        RoleTier.COACH => RouteNames.coachHome,
+        null => RouteNames.splash,
+        _ => RouteNames.athletePassport,
+      };
 
   static String _formatIsoDate(DateTime d) {
     final mm = d.month.toString().padLeft(2, '0');

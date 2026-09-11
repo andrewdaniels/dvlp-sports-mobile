@@ -3,21 +3,21 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../core/routing/route_names.dart';
-import '../../core/theme/theme.dart';
-import '../../features/assessments/controllers/assessments_providers.dart';
-import '../../features/auth/controllers/auth_providers.dart';
-import '../../features/auth/controllers/profile_providers.dart';
-import '../../features/auth/util/profile_format.dart';
-import '../../generated/api/get_profile.dart';
-import '../../shared/widgets/app_button.dart';
-import '../../shared/widgets/app_card.dart';
-import '../../shared/widgets/app_chevron_right.dart';
-import '../../shared/widgets/app_divider.dart';
-import '../../shared/widgets/app_icon.dart';
-import '../../shared/widgets/app_icon_button.dart';
-import '../../shared/widgets/app_loading_indicator.dart';
-import '../../shared/widgets/app_profile_header.dart';
+import '../../../core/routing/route_names.dart';
+import '../../../core/theme/theme.dart';
+import '../../../features/assessments/controllers/assessments_providers.dart';
+import '../../../features/auth/controllers/auth_providers.dart';
+import '../../../features/auth/controllers/profile_providers.dart';
+import '../../../features/auth/util/profile_format.dart';
+import '../../../generated/api/get_profile.dart';
+import '../../../shared/widgets/app_button.dart';
+import '../../../shared/widgets/app_card.dart';
+import '../../../shared/widgets/app_chevron_right.dart';
+import '../../../shared/widgets/app_divider.dart';
+import '../../../shared/widgets/app_icon.dart';
+import '../../../shared/widgets/app_icon_button.dart';
+import '../../../shared/widgets/app_loading_indicator.dart';
+import '../../../shared/widgets/app_profile_header.dart';
 import 'sheets/verified_coaches_sheet.dart';
 
 class ProfilePage extends ConsumerWidget {

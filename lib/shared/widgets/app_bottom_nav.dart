@@ -49,24 +49,29 @@ class AppBottomNav extends StatelessWidget {
           child: SafeArea(
             top: false,
             child: Padding(
+              // Items each claim an equal 1/N share of the padded row
+              // width via [Expanded] below. The horizontal `md` padding
+              // keeps the first/last items breathing from the physical
+              // screen edges instead of hugging the corners.
               padding: const EdgeInsets.only(
                 top: AppSpacing.sm,
-                left: AppSpacing.xxl,
-                right: AppSpacing.xxl,
+                left: AppSpacing.md,
+                right: AppSpacing.md,
                 bottom: AppSpacing.xs,
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   for (var i = 0; i < items.length; i++)
-                    _NavItem(
-                      item: items[i],
-                      selected: i == currentIndex,
-                      onTap: () {
-                        HapticFeedback.lightImpact();
-                        onTap(i);
-                      },
+                    Expanded(
+                      child: _NavItem(
+                        item: items[i],
+                        selected: i == currentIndex,
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          onTap(i);
+                        },
+                      ),
                     ),
                 ],
               ),
@@ -105,19 +110,20 @@ class _NavItem extends StatelessWidget {
     final color = selected ? colors.secondary : colors.secondaryText;
     final labelStyle = (selected ? AppTypography.boldSmall : AppTypography.bodySmall).copyWith(color: color);
 
+    // No fixed width — the parent [Expanded] slot decides how much
+    // room this item gets. Column stays intrinsic-height so the icon
+    // + label stack sits flush at the bottom (crossAxisAlignment.end
+    // on the parent Row).
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: SizedBox(
-        width: 60,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AppIcon(item.iconAsset, size: 24, color: color),
-            const SizedBox(height: 6),
-            Text(item.label, style: labelStyle, textAlign: TextAlign.center),
-          ],
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AppIcon(item.iconAsset, size: 24, color: color),
+          const SizedBox(height: 6),
+          Text(item.label, style: labelStyle, textAlign: TextAlign.center),
+        ],
       ),
     );
   }

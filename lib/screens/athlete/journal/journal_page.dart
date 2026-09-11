@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../core/theme/theme.dart';
-import '../../features/auth/controllers/profile_providers.dart';
-import '../../features/journal/controllers/journal_providers.dart';
-import '../../features/journal/ui/sheets/journal_entry_detail_sheet.dart';
-import '../../features/journal/ui/sheets/journal_entry_form_sheet.dart';
-import '../../features/journal/ui/widgets/journal_entry_row.dart';
-import '../../generated/api/get_journal_entries.dart';
-import '../../shared/widgets/app_button.dart';
-import '../../shared/widgets/app_detail_app_bar.dart';
-import '../../shared/widgets/app_icon.dart';
-import '../../shared/widgets/app_loading_indicator.dart';
-import '../../shared/widgets/app_refresh_indicator.dart';
+import '../../../core/theme/theme.dart';
+import '../../../features/auth/controllers/profile_providers.dart';
+import '../../../features/journal/controllers/journal_providers.dart';
+import '../../../features/journal/ui/sheets/journal_entry_detail_sheet.dart';
+import '../../../features/journal/ui/sheets/journal_entry_form_sheet.dart';
+import '../../../features/journal/ui/widgets/journal_entry_row.dart';
+import '../../../generated/api/get_journal_entries.dart';
+import '../../../shared/widgets/app_button.dart';
+import '../../../shared/widgets/app_detail_app_bar.dart';
+import '../../../shared/widgets/app_icon.dart';
+import '../../../shared/widgets/app_loading_indicator.dart';
+import '../../../shared/widgets/app_refresh_indicator.dart';
 
 /// Full-screen destination pushed from the DVLP → My Journal card.
 ///

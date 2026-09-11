@@ -1,24 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../screens/account_settings/account_settings_page.dart';
+import '../../screens/athlete/dvlp/dvlp_page.dart';
+import '../../screens/athlete/feedback/formal_assessment_page.dart';
+import '../../screens/athlete/feedback/my_feedback_page.dart';
+import '../../screens/athlete/feedback/quick_feedback_page.dart';
+import '../../screens/athlete/journal/journal_page.dart';
+import '../../screens/athlete/passport/passport_page.dart';
+import '../../screens/athlete/profile/profile_page.dart';
+import '../../screens/athlete/shell/athlete_shell.dart';
+import '../../screens/athlete/team/team_page.dart';
 import '../../screens/auth/credentials_page.dart';
 import '../../screens/auth/entry_page.dart';
 import '../../screens/auth/login_page.dart';
 import '../../screens/auth/player_account_page.dart';
 import '../../screens/auth/signup_code_page.dart';
-import '../../screens/account_settings/account_settings_page.dart';
 import '../../screens/auth/signup_type_page.dart';
+import '../../screens/coach/feedback/coach_feedback_page.dart';
+import '../../screens/coach/games/coach_games_page.dart';
+import '../../screens/coach/home/coach_home_page.dart';
+import '../../screens/coach/profile/coach_profile_page.dart';
+import '../../screens/coach/shell/coach_shell.dart';
+import '../../screens/coach/team/coach_team_page.dart';
 import '../../screens/dev/components_page.dart';
-import '../../screens/feedback/my_feedback_page.dart';
-import '../../screens/journal/journal_page.dart';
 import '../../screens/dev/design_system_page.dart';
-import '../../screens/dvlp/dvlp_page.dart';
-import '../../screens/feedback/formal_assessment_page.dart';
-import '../../screens/feedback/quick_feedback_page.dart';
-import '../../screens/passport/passport_page.dart';
-import '../../screens/profile/profile_page.dart';
-import '../../screens/shell/app_shell.dart';
-import '../../screens/team/team_page.dart';
+import '../../screens/splash/splash_page.dart';
 import '../services/supabase_service.dart';
 import 'route_names.dart';
 
@@ -38,53 +45,107 @@ const _publicRoutes = <String>{
 
 final appRouter = GoRouter(
   navigatorKey: _rootNavKey,
-  initialLocation: RouteNames.passport,
-  // Router listens to auth state changes; a fresh sign-in / sign-out
-  // triggers the redirect below to re-evaluate the current location.
+  // Start on the splash gate. It reads currentProfileProvider and
+  // navigates to /athlete/passport or /coach/home once the profile
+  // resolves. Loose role-based enforcement — a signed-in user with
+  // the wrong shell's URL will still render that shell (mobile has
+  // no URL bar, so this doesn't happen in practice; guard tightens
+  // when we build the coach app in earnest).
+  initialLocation: RouteNames.splash,
   refreshListenable: _AuthChangeNotifier(),
   redirect: (context, state) {
     final loggedIn = SupabaseService.client.auth.currentSession != null;
     final path = state.matchedLocation;
     final isPublic = _publicRoutes.contains(path);
 
-    if (!loggedIn && !isPublic) return RouteNames.entry;
-    // Bounce out of entry/login if a session is already active.
-    if (loggedIn && (path == RouteNames.entry || path == RouteNames.login)) {
-      return RouteNames.passport;
+    if (!loggedIn && !isPublic && path != RouteNames.splash) {
+      return RouteNames.entry;
     }
+    // Deliberately NOT bouncing off /entry or /login when logged in.
+    // Post-signIn navigation is owned by the login / signup pages so
+    // they can chain the profile fetch onto the button's loading
+    // state and go directly to the right shell — no intermediate
+    // splash flash. Cold-boot uses initialLocation `/` (splash) which
+    // handles the role-based routing itself.
     return null;
   },
   routes: [
+    // Splash / role gate.
+    GoRoute(
+      parentNavigatorKey: _rootNavKey,
+      path: RouteNames.splash,
+      builder: (context, state) => const SplashPage(),
+    ),
+
+    // ── Athlete shell ────────────────────────────────────────────
     StatefulShellRoute.indexedStack(
-      builder: (context, state, navigationShell) => AppShell(navigationShell: navigationShell),
+      builder: (context, state, navigationShell) => AthleteShell(navigationShell: navigationShell),
       branches: [
         StatefulShellBranch(routes: [
           GoRoute(
-            path: RouteNames.passport,
+            path: RouteNames.athletePassport,
             builder: (context, state) => const PassportPage(),
           ),
         ]),
         StatefulShellBranch(routes: [
           GoRoute(
-            path: RouteNames.dvlp,
+            path: RouteNames.athleteDvlp,
             builder: (context, state) => const DvlpPage(),
           ),
         ]),
         StatefulShellBranch(routes: [
           GoRoute(
-            path: RouteNames.team,
+            path: RouteNames.athleteTeam,
             builder: (context, state) => const TeamPage(),
           ),
         ]),
         StatefulShellBranch(routes: [
           GoRoute(
-            path: RouteNames.profile,
+            path: RouteNames.athleteProfile,
             builder: (context, state) => const ProfilePage(),
           ),
         ]),
       ],
     ),
-    // Auth / onboarding — full-screen routes (outside the shell)
+
+    // ── Coach shell ──────────────────────────────────────────────
+    StatefulShellRoute.indexedStack(
+      builder: (context, state, navigationShell) => CoachShell(navigationShell: navigationShell),
+      branches: [
+        StatefulShellBranch(routes: [
+          GoRoute(
+            path: RouteNames.coachHome,
+            builder: (context, state) => const CoachHomePage(),
+          ),
+        ]),
+        StatefulShellBranch(routes: [
+          GoRoute(
+            path: RouteNames.coachFeedback,
+            builder: (context, state) => const CoachFeedbackPage(),
+          ),
+        ]),
+        StatefulShellBranch(routes: [
+          GoRoute(
+            path: RouteNames.coachGames,
+            builder: (context, state) => const CoachGamesPage(),
+          ),
+        ]),
+        StatefulShellBranch(routes: [
+          GoRoute(
+            path: RouteNames.coachTeam,
+            builder: (context, state) => const CoachTeamPage(),
+          ),
+        ]),
+        StatefulShellBranch(routes: [
+          GoRoute(
+            path: RouteNames.coachProfile,
+            builder: (context, state) => const CoachProfilePage(),
+          ),
+        ]),
+      ],
+    ),
+
+    // Auth / onboarding — full-screen routes (outside any shell)
     GoRoute(
       parentNavigatorKey: _rootNavKey,
       path: RouteNames.entry,
@@ -115,8 +176,9 @@ final appRouter = GoRouter(
       path: RouteNames.signupPlayerDetails,
       builder: (context, state) => const PlayerAccountPage(),
     ),
-    // Feedback detail — pushed on root nav so it covers the shell.
-    // Split by assessment type so each page renders on the right scale.
+
+    // Assessment detail — pushed on root nav so it covers whichever
+    // shell the caller is inside.
     GoRoute(
       parentNavigatorKey: _rootNavKey,
       path: '${RouteNames.feedbackQuick}/:id',
@@ -131,25 +193,31 @@ final appRouter = GoRouter(
         assessmentId: state.pathParameters['id']!,
       ),
     ),
-    // Profile → Settings
-    GoRoute(
-      parentNavigatorKey: _rootNavKey,
-      path: RouteNames.accountSettings,
-      builder: (context, state) => const AccountSettingsPage(),
-    ),
-    // DVLP → Journal
-    GoRoute(
-      parentNavigatorKey: _rootNavKey,
-      path: RouteNames.journal,
-      builder: (context, state) => const JournalPage(),
-    ),
-    // Passport → My Feedback
+
+    // Athlete → Passport → My Feedback (kept at /feedback/all for
+    // backwards-compat with existing pushes; conceptually part of
+    // the athlete stack but pushed on root nav to escape the shell).
     GoRoute(
       parentNavigatorKey: _rootNavKey,
       path: RouteNames.myFeedback,
       builder: (context, state) => const MyFeedbackPage(),
     ),
-    // Dev tools — full-screen routes (outside the shell)
+
+    // Profile → Settings (shared across shells)
+    GoRoute(
+      parentNavigatorKey: _rootNavKey,
+      path: RouteNames.accountSettings,
+      builder: (context, state) => const AccountSettingsPage(),
+    ),
+
+    // Athlete → DVLP → Journal
+    GoRoute(
+      parentNavigatorKey: _rootNavKey,
+      path: RouteNames.journal,
+      builder: (context, state) => const JournalPage(),
+    ),
+
+    // Dev tools — full-screen routes (outside any shell)
     GoRoute(
       parentNavigatorKey: _rootNavKey,
       path: RouteNames.designSystem,
@@ -177,8 +245,6 @@ class _AuthChangeNotifier extends ChangeNotifier {
 
   @override
   void dispose() {
-    // GoRoute holds this notifier for the app's lifetime, so this rarely
-    // fires; still, tear down the subscription defensively.
     (_subscription as dynamic).cancel();
     super.dispose();
   }
