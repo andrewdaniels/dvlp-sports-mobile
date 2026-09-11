@@ -129,11 +129,13 @@ class _PassportBody extends ConsumerWidget {
     final membership = profile.teamMemberships.isNotEmpty ? profile.teamMemberships.first : null;
     final team = membership?.team;
     final positionName = profile.athleteDetails?.position?.name;
-    // Team names in our seed already include the age group ("Rampage U13"),
-    // so we only append the level classification here to avoid "U13 U13".
-    final teamName = team?.name.trim() ?? '';
-    final level = team?.levelClassification?.trim() ?? '';
-    final teamText = [teamName, level].where((s) => s.isNotEmpty).join(' ');
+    // Team name is the club identity only ("Rampage"); compose age
+    // + level from their own fields to get "Rampage U13 AAA".
+    final teamText = [
+      team?.name.trim() ?? '',
+      (team?.ageGroup ?? '').trim(),
+      (team?.levelClassification ?? '').trim(),
+    ].where((s) => s.isNotEmpty).join(' ');
     if (teamText.isEmpty && (positionName == null || positionName.isEmpty)) return '';
     if (teamText.isEmpty) return positionName!;
     if (positionName == null || positionName.isEmpty) return teamText;

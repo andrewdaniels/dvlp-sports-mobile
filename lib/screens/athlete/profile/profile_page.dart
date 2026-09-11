@@ -81,7 +81,13 @@ class _ProfileBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final displayName = formatDisplayName(profile.firstName, profile.lastName);
     final team = profile.teamMemberships.isNotEmpty ? profile.teamMemberships.first.team : null;
-    final subtitle = team?.name;
+    final subtitle = team == null
+        ? null
+        : [
+            team.name.trim(),
+            (team.ageGroup ?? '').trim(),
+            (team.levelClassification ?? '').trim(),
+          ].where((s) => s.isNotEmpty).join(' ');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -124,11 +130,12 @@ class _ProfileInfoCard extends ConsumerWidget {
     final athlete = profile.athleteDetails;
     final team = profile.teamMemberships.isNotEmpty ? profile.teamMemberships.first.team : null;
 
-    // "Rampage AAA U13" — swapped from the passport formatting so the
-    // level classification leads (matches the profile design intent).
+    // Team value line — compose club name + age group + level so we
+    // get "Rampage U13 AAA" (team.name is club identity only now).
     final teamValue = [
       team?.name.trim() ?? '',
-      team?.levelClassification?.trim() ?? '',
+      (team?.ageGroup ?? '').trim(),
+      (team?.levelClassification ?? '').trim(),
     ].where((s) => s.isNotEmpty).join(' ');
 
     // Verified Coaches — derived from the already-cached assessments
