@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../shared/widgets/app_bottom_nav.dart';
-import '../../shared/widgets/app_icon.dart';
+import '../../../shared/widgets/app_bottom_nav.dart';
+import '../../../shared/widgets/app_icon.dart';
 
-/// Bottom nav shell hosting the 4 main tabs.
-/// Uses go_router's [StatefulNavigationShell] so tab state persists on switch.
-class AppShell extends StatelessWidget {
-  const AppShell({super.key, required this.navigationShell});
+/// Athlete-side bottom nav shell hosting the 4 main tabs (Passport,
+/// DVLP, Team, Profile). Uses go_router's [StatefulNavigationShell]
+/// so tab state persists on switch.
+///
+/// Coach-side users route through [CoachShell] instead. Router picks
+/// the shell based on the caller's role_tier via the splash gate.
+class AthleteShell extends StatelessWidget {
+  const AthleteShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 

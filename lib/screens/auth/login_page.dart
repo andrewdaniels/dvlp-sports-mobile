@@ -5,7 +5,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../core/routing/route_names.dart';
 import '../../core/theme/theme.dart';
 import '../../features/auth/controllers/auth_providers.dart';
+import '../../features/auth/controllers/profile_providers.dart';
 import '../../features/auth/data/auth_repository.dart';
+import '../../generated/api/get_profile.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_screen_footer.dart';
 import '../../shared/widgets/app_text_field.dart';
@@ -48,7 +50,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             password: _password.text,
           );
       if (!mounted) return;
-      context.go(RouteNames.passport);
+
+      // Chain the profile fetch onto the same loading state so login
+      // → shell is a single transition (no intermediate splash spinner
+      // in the user's face). Falls back to splash if the profile fetch
+      // fails so the user isn't stranded on the login page mid-loading.
+      await ref.read(currentProfileProvider.notifier).refresh();
+      if (!mounted) return;
+      final profile = ref.read(currentProfileProvider).value;
+      final target = _landingFor(profile?.roleTier);
+      context.go(target);
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -57,6 +68,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       });
     }
   }
+
+  /// Mirrors [SplashPage._landingFor] — kept in sync so post-login
+  /// direct-nav and cold-boot splash agree on where each role lands.
+  /// Null role (profile fetch failed) falls back to splash so the
+  /// gate can retry / show an error.
+  static String _landingFor(RoleTier? role) => switch (role) {
+        RoleTier.COACH => RouteNames.coachHome,
+        null => RouteNames.splash,
+        _ => RouteNames.athletePassport,
+      };
 
   @override
   Widget build(BuildContext context) {

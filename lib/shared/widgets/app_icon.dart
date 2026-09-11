@@ -48,11 +48,17 @@ class AppIcons {
 
   static const String _base = 'assets/icons/untitled';
 
-  // Bottom nav
+  // Bottom nav — athlete
   static const String navPassport = '$_base/book-open-02.svg';
   static const String navDvlp = '$_base/bar-chart-circle-01.svg';
   static const String navTeam = '$_base/users-01.svg';
   static const String navProfile = '$_base/user-circle.svg';
+
+  // Bottom nav — coach (extra tabs). Home + Profile reuse athlete
+  // icons above; Team is also shared. Feedback + Games are coach-only.
+  static const String coachNavHome = '$_base/home-02.svg';
+  static const String coachNavFeedback = '$_base/message-square-02.svg';
+  static const String coachNavGames = '$_base/play-square.svg';
 
   // Avatar fallback
   static const String userFallback = '$_base/user-01.svg';

@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../core/theme/theme.dart';
-import '../../features/auth/controllers/profile_providers.dart';
-import '../../features/help/ui/how_it_works_sheet.dart';
-import '../../features/journal/ui/widgets/journal_summary_card.dart';
-import '../../features/skills/controllers/skills_providers.dart';
-import '../../features/skills/ui/sheets/skill_detail_sheet.dart';
-import '../../features/skills/ui/widgets/skill_row.dart';
-import '../../shared/widgets/app_icon.dart';
-import '../../shared/widgets/app_icon_button.dart';
-import '../../shared/widgets/app_loading_indicator.dart';
-import '../../shared/widgets/app_refresh_indicator.dart';
+import '../../../core/theme/theme.dart';
+import '../../../features/auth/controllers/profile_providers.dart';
+import '../../../features/help/ui/how_it_works_sheet.dart';
+import '../../../features/journal/ui/widgets/journal_summary_card.dart';
+import '../../../features/skills/controllers/skills_providers.dart';
+import '../../../features/skills/ui/sheets/skill_detail_sheet.dart';
+import '../../../features/skills/ui/widgets/skill_row.dart';
+import '../../../shared/widgets/app_icon.dart';
+import '../../../shared/widgets/app_icon_button.dart';
+import '../../../shared/widgets/app_loading_indicator.dart';
+import '../../../shared/widgets/app_refresh_indicator.dart';
 
 /// Development ("DVLP") tab. Two sections:
 ///   - My Journal — entry-point card at the top. Backend not built

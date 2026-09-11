@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/theme.dart';
-import '../../../generated/api/get_assessments.dart';
-import '../../../shared/widgets/app_avatar.dart';
-import '../../../shared/widgets/app_card.dart';
-import '../../../shared/widgets/app_sheet_layout.dart';
-import '../../../shared/widgets/app_sheet_shell.dart';
+import '../../../../core/theme/theme.dart';
+import '../../../../generated/api/get_assessments.dart';
+import '../../../../shared/widgets/app_avatar.dart';
+import '../../../../shared/widgets/app_card.dart';
+import '../../../../shared/widgets/app_sheet_layout.dart';
+import '../../../../shared/widgets/app_sheet_shell.dart';
 
 /// Read-only list of the coaches who have submitted feedback for this
 /// athlete. Opened from the "Verified Coaches" row on the profile

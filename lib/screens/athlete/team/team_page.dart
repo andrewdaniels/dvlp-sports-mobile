@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../core/theme/theme.dart';
-import '../../features/auth/controllers/profile_providers.dart';
-import '../../features/team/controllers/games_providers.dart';
-import '../../generated/api/get_games.dart';
-import '../../generated/api/get_profile.dart' as profile_api;
-import '../../shared/widgets/app_card.dart';
-import '../../shared/widgets/app_divider.dart';
-import '../../shared/widgets/app_profile_header.dart';
-import '../../shared/widgets/app_loading_indicator.dart';
-import '../../shared/widgets/app_refresh_indicator.dart';
-import '../../shared/widgets/app_text_badge.dart';
+import '../../../core/theme/theme.dart';
+import '../../../features/auth/controllers/profile_providers.dart';
+import '../../../features/team/controllers/games_providers.dart';
+import '../../../generated/api/get_games.dart';
+import '../../../generated/api/get_profile.dart' as profile_api;
+import '../../../shared/widgets/app_card.dart';
+import '../../../shared/widgets/app_divider.dart';
+import '../../../shared/widgets/app_profile_header.dart';
+import '../../../shared/widgets/app_loading_indicator.dart';
+import '../../../shared/widgets/app_refresh_indicator.dart';
+import '../../../shared/widgets/app_text_badge.dart';
 
 class TeamPage extends ConsumerWidget {
   const TeamPage({super.key});
