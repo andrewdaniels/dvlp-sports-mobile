@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 
 /// DVLP brand mark.
 ///
-/// Two sizes only — both callers pick from the enum to keep usage
-/// consistent (no `height: 87` sprinkled across screens).
+/// Three sizes — pick from the enum to keep usage consistent (no
+/// `height: 87` sprinkled across screens):
 ///
-/// - [AppLogoSize.hero] — large centered mark on the entry screen
-/// - [AppLogoSize.header] — small mark for top-left of onboarding pages
+/// - [AppLogoSize.hero]   — 96px, large centered mark on the entry
+///                          screen + cold-boot splash.
+/// - [AppLogoSize.medium] — 64px, in-between mark for surfaces that
+///                          want brand presence without dominating
+///                          (splash alternative, empty states).
+/// - [AppLogoSize.header] — 32px, small mark for top-left of
+///                          onboarding pages.
 ///
 /// The asset is a fixed gradient PNG — no color tint prop, because
 /// tinting would flatten the gradient. Extend with a `variant` enum
@@ -20,6 +25,8 @@ class AppLogo extends StatelessWidget {
     switch (size) {
       case AppLogoSize.hero:
         return 96;
+      case AppLogoSize.medium:
+        return 64;
       case AppLogoSize.header:
         return 32;
     }
@@ -35,4 +42,4 @@ class AppLogo extends StatelessWidget {
   }
 }
 
-enum AppLogoSize { hero, header }
+enum AppLogoSize { hero, medium, header }

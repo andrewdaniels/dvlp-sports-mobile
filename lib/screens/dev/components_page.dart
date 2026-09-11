@@ -1200,6 +1200,7 @@ class _AppLogoDemo extends StatelessWidget {
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         AppLogo(size: AppLogoSize.header),
+        AppLogo(size: AppLogoSize.medium),
         AppLogo(size: AppLogoSize.hero),
       ],
     );

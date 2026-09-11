@@ -11,6 +11,7 @@ import '../../screens/athlete/passport/passport_page.dart';
 import '../../screens/athlete/profile/profile_page.dart';
 import '../../screens/athlete/shell/athlete_shell.dart';
 import '../../screens/athlete/team/team_page.dart';
+import '../../screens/auth/coach_account_page.dart';
 import '../../screens/auth/credentials_page.dart';
 import '../../screens/auth/entry_page.dart';
 import '../../screens/auth/login_page.dart';
@@ -58,15 +59,18 @@ final appRouter = GoRouter(
     final path = state.matchedLocation;
     final isPublic = _publicRoutes.contains(path);
 
-    if (!loggedIn && !isPublic && path != RouteNames.splash) {
+    // Not logged in → entry (auth guard for every non-public path,
+    // including splash). Cold-boot with no session goes directly to
+    // /entry without ever rendering splash.
+    if (!loggedIn && !isPublic) {
       return RouteNames.entry;
     }
     // Deliberately NOT bouncing off /entry or /login when logged in.
     // Post-signIn navigation is owned by the login / signup pages so
     // they can chain the profile fetch onto the button's loading
     // state and go directly to the right shell — no intermediate
-    // splash flash. Cold-boot uses initialLocation `/` (splash) which
-    // handles the role-based routing itself.
+    // splash flash. Splash only renders on cold-boot with a valid
+    // session, resolving role → shell.
     return null;
   },
   routes: [
@@ -175,6 +179,11 @@ final appRouter = GoRouter(
       parentNavigatorKey: _rootNavKey,
       path: RouteNames.signupPlayerDetails,
       builder: (context, state) => const PlayerAccountPage(),
+    ),
+    GoRoute(
+      parentNavigatorKey: _rootNavKey,
+      path: RouteNames.signupCoachDetails,
+      builder: (context, state) => const CoachAccountPage(),
     ),
 
     // Assessment detail — pushed on root nav so it covers whichever

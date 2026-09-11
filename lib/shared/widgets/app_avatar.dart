@@ -1,13 +1,22 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/theme/theme.dart';
 import 'app_icon.dart';
 
-/// Standard avatar with a 3-tier fallback:
+/// Standard avatar with a 4-tier image resolution + fallback:
 ///
-/// 1. If [imageUrl] is provided and loads → show image
-/// 2. Else if [firstName] or [lastName] is provided → show initials
-/// 3. Else → show `user-01` icon from Untitled UI
+/// 1. If [imageFile] is provided → show the local file (used to
+///    preview a freshly-picked image before it's uploaded).
+/// 2. Else if [imageUrl] is provided and loads → show the network image.
+/// 3. Else if [firstName] or [lastName] is provided → show initials.
+/// 4. Else → show `user-01` icon from Untitled UI.
+///
+/// Optional [onTap] wraps the whole avatar in a tappable region with
+/// a light haptic. Use for "tap to change photo" affordances on
+/// signup + profile edit surfaces.
 ///
 /// Sizes:
 /// - `AppAvatarSize.small`  — 32
@@ -17,44 +26,77 @@ class AppAvatar extends StatelessWidget {
   const AppAvatar({
     super.key,
     this.imageUrl,
+    this.imageFile,
     this.firstName,
     this.lastName,
     this.size = AppAvatarSize.medium,
+    this.onTap,
   });
 
   final String? imageUrl;
+
+  /// Local file to render — takes priority over [imageUrl] so a
+  /// freshly-picked image previews immediately without waiting for a
+  /// storage upload. Callers construct with `File(picker.path)` or
+  /// similar. Mobile-only (dart:io File isn't available on web); add
+  /// a bytes variant when web lands.
+  final File? imageFile;
+
   final String? firstName;
   final String? lastName;
   final AppAvatarSize size;
+
+  /// When set, the whole avatar is tappable and fires a light haptic
+  /// on press. Null → non-interactive (default).
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final dimension = _dimension;
-    final hasImage = imageUrl != null && imageUrl!.trim().isNotEmpty;
+    final hasFile = imageFile != null;
+    final hasUrl = imageUrl != null && imageUrl!.trim().isNotEmpty;
 
-    return SizedBox(
+    final avatar = SizedBox(
       width: dimension,
       height: dimension,
       child: ClipOval(
         child: Container(
           color: colors.alternate,
           alignment: Alignment.center,
-          child: hasImage
-              ? Image.network(
-                  imageUrl!,
+          child: hasFile
+              ? Image.file(
+                  imageFile!,
                   width: dimension,
                   height: dimension,
                   fit: BoxFit.cover,
                   errorBuilder: (_, _, _) => _fallback(context, dimension),
-                  loadingBuilder: (context, child, progress) {
-                    if (progress == null) return child;
-                    return _fallback(context, dimension);
-                  },
                 )
-              : _fallback(context, dimension),
+              : hasUrl
+                  ? Image.network(
+                      imageUrl!,
+                      width: dimension,
+                      height: dimension,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => _fallback(context, dimension),
+                      loadingBuilder: (context, child, progress) {
+                        if (progress == null) return child;
+                        return _fallback(context, dimension);
+                      },
+                    )
+                  : _fallback(context, dimension),
         ),
       ),
+    );
+
+    if (onTap == null) return avatar;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap!();
+      },
+      child: avatar,
     );
   }
 

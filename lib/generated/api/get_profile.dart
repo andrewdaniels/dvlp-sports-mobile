@@ -303,12 +303,14 @@ class Organization {
 
 class Team {
     final String? ageGroup;
+    final AssessmentCadence assessmentCadence;
     final String id;
     final String? levelClassification;
     final String name;
 
     Team({
         required this.ageGroup,
+        required this.assessmentCadence,
         required this.id,
         required this.levelClassification,
         required this.name,
@@ -316,12 +318,14 @@ class Team {
 
     Team copyWith({
         String? ageGroup,
+        AssessmentCadence? assessmentCadence,
         String? id,
         String? levelClassification,
         String? name,
     }) => 
         Team(
             ageGroup: ageGroup ?? this.ageGroup,
+            assessmentCadence: assessmentCadence ?? this.assessmentCadence,
             id: id ?? this.id,
             levelClassification: levelClassification ?? this.levelClassification,
             name: name ?? this.name,
@@ -329,6 +333,7 @@ class Team {
 
     factory Team.fromJson(Map<String, dynamic> json) => Team(
         ageGroup: json["age_group"],
+        assessmentCadence: assessmentCadenceValues.map[json["assessment_cadence"]]!,
         id: json["id"],
         levelClassification: json["level_classification"],
         name: json["name"],
@@ -336,11 +341,32 @@ class Team {
 
     Map<String, dynamic> toJson() => {
         "age_group": ageGroup,
+        "assessment_cadence": assessmentCadenceValues.reverse[assessmentCadence],
         "id": id,
         "level_classification": levelClassification,
         "name": name,
     };
 }
+
+enum AssessmentCadence {
+    ANNUAL,
+    BI_MONTHLY,
+    BI_WEEKLY,
+    MONTHLY,
+    QUARTERLY,
+    SEMI_ANNUAL,
+    WEEKLY
+}
+
+final assessmentCadenceValues = EnumValues({
+    "annual": AssessmentCadence.ANNUAL,
+    "bi_monthly": AssessmentCadence.BI_MONTHLY,
+    "bi_weekly": AssessmentCadence.BI_WEEKLY,
+    "monthly": AssessmentCadence.MONTHLY,
+    "quarterly": AssessmentCadence.QUARTERLY,
+    "semi_annual": AssessmentCadence.SEMI_ANNUAL,
+    "weekly": AssessmentCadence.WEEKLY
+});
 
 class EnumValues<T> {
     Map<String, T> map;
