@@ -169,7 +169,11 @@ List<VerifiedCoachRow> deriveVerifiedCoaches(List<Assessment> assessments) {
       roleLabel: _roleLabel(a.weightedRole),
       contextLabel: a.accessScope == AccessScope.EXTERNAL
           ? 'External'
-          : a.team.name.trim(),
+          : [
+              a.team.name.trim(),
+              (a.team.ageGroup ?? '').trim(),
+              (a.team.levelClassification?.name ?? '').trim(),
+            ].where((s) => s.isNotEmpty).join(' '),
     );
   }
   return seen.values.toList(growable: false);

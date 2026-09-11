@@ -79,7 +79,11 @@ class _TeamHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Compose subtitle from age + level tokens (they live on the
+    // team object separately from name; team.name is club identity
+    // only now — e.g., "Rampage" not "Rampage U13 AAA").
     final subtitleParts = <String>[
+      if ((team.ageGroup ?? '').isNotEmpty) team.ageGroup!,
       if ((team.levelClassification ?? '').isNotEmpty) team.levelClassification!,
       // Northern League etc. isn't in the schema yet — placeholder slot
       // for when it is. Keeping the join here so we can drop the value

@@ -16,8 +16,10 @@ import '../../shared/widgets/app_logo.dart';
 import '../../shared/widgets/app_onboarding_header.dart';
 import '../../shared/widgets/app_player_passport_card.dart';
 import '../../shared/widgets/app_profile_header.dart';
+import '../../shared/widgets/app_chip.dart';
 import '../../shared/widgets/app_radio_card.dart';
 import '../../shared/widgets/app_score_bar.dart';
+import '../../shared/widgets/app_tab_bar.dart';
 import '../../features/assessments/ui/widgets/app_feedback_list_item.dart';
 import '../../features/assessments/ui/widgets/score_gauge.dart';
 import '../../generated/api/get_assessments.dart';
@@ -102,6 +104,16 @@ class ComponentsPage extends StatelessWidget {
             name: 'AppRadioCard',
             description: 'Card-shaped radio option. Selected card gets the gold-highlight AppCard treatment.',
             child: _AppRadioCardDemo(),
+          ),
+          _ComponentSection(
+            name: 'AppTabBar',
+            description: 'Horizontally-scrollable underline tab bar. Active tab: bold `primaryText` + `secondary`-colored underline. Inactive: `secondaryText`, no underline.',
+            child: _AppTabBarDemo(),
+          ),
+          _ComponentSection(
+            name: 'AppChip',
+            description: 'Selectable filter pill. Selected: `link`-tint background + `link` border + primary text. Unselected: transparent + `alternate` border + secondary text. Fires selection haptic on tap.',
+            child: _AppChipDemo(),
           ),
           _ComponentSection(
             name: 'AppStarRating',
@@ -766,6 +778,67 @@ class _AppRadioCardDemoState extends State<_AppRadioCardDemo> {
           const SizedBox(height: AppSpacing.sm),
         ],
       ],
+    );
+  }
+}
+
+// ============================================================================
+// AppTabBar demo (stateful — interactive)
+// ============================================================================
+
+class _AppTabBarDemo extends StatefulWidget {
+  const _AppTabBarDemo();
+
+  @override
+  State<_AppTabBarDemo> createState() => _AppTabBarDemoState();
+}
+
+class _AppTabBarDemoState extends State<_AppTabBarDemo> {
+  int _selected = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppTabBar(
+      labels: const ['Chapter 1 - A', 'Chapter 2 - AA', 'Chapter 3 - AAA'],
+      currentIndex: _selected,
+      onTap: (i) => setState(() => _selected = i),
+    );
+  }
+}
+
+// ============================================================================
+// AppChip demo (stateful — interactive)
+// ============================================================================
+
+class _AppChipDemo extends StatefulWidget {
+  const _AppChipDemo();
+
+  @override
+  State<_AppChipDemo> createState() => _AppChipDemoState();
+}
+
+class _AppChipDemoState extends State<_AppChipDemo> {
+  String? _selected;
+
+  @override
+  Widget build(BuildContext context) {
+    const options = ['All', 'Rampage U11 A', 'Rampage U12 A'];
+    return SizedBox(
+      height: 36,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: [
+          for (var i = 0; i < options.length; i++) ...[
+            if (i > 0) const SizedBox(width: AppSpacing.sm),
+            AppChip(
+              label: options[i],
+              // First option ("All") = null selection state.
+              selected: (i == 0 && _selected == null) || _selected == options[i],
+              onTap: () => setState(() => _selected = i == 0 ? null : options[i]),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

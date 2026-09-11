@@ -164,6 +164,7 @@ class AppFeedbackListItem extends StatelessWidget {
         ? 'External'
         : [
             a.team.name.trim(),
+            (a.team.ageGroup ?? '').trim(),
             (a.team.levelClassification?.name ?? '').trim(),
           ].where((s) => s.isNotEmpty).join(' ');
     return suffix.isEmpty ? role : '$role · $suffix';
