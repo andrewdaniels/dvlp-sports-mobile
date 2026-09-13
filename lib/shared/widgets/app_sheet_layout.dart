@@ -42,15 +42,16 @@ class AppSheetLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Bottom body padding accounts for keyboard visibility so the last
+    // input isn't hidden under it when the footer is present (footer
+    // collapses on keyboard-up, so body needs its own bottom breathing
+    // room in that state). Footer owns its own SafeArea + keyboard-hide.
     final media = MediaQuery.of(context);
     final safeBottom = media.padding.bottom;
-    // Keyboard height. When > 0, an input is focused. We hide the
-    // fixed footer in that state to give the athlete more room to
-    // read the field they're editing. Return-key dismissal or
-    // tap-outside brings the footer back.
     final keyboardVisible = media.viewInsets.bottom > 0;
-    final showFooter = footer != null && !keyboardVisible;
-    final bodyBottomPad = showFooter ? AppSpacing.md : safeBottom + AppSpacing.xl;
+    final bodyBottomPad = footer != null && !keyboardVisible
+        ? AppSpacing.md
+        : safeBottom + AppSpacing.xl;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -63,25 +64,9 @@ class AppSheetLayout extends StatelessWidget {
             child: child,
           ),
         ),
-        if (footer != null)
-          // AnimatedSize smoothly collapses / expands the footer's
-          // height when the keyboard rises or dismisses. Duration +
-          // curve tuned to match iOS's keyboard animation so the
-          // two transitions feel continuous instead of racing.
-          AnimatedSize(
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeInOut,
-            alignment: Alignment.topCenter,
-            child: showFooter
-                ? Padding(
-                    // Horizontal matches the body's bodyPadding so
-                    // buttons line up under text; vertical passes
-                    // through the safe-area inset.
-                    padding: bodyPadding.add(EdgeInsets.only(bottom: safeBottom)),
-                    child: footer!,
-                  )
-                : const SizedBox.shrink(),
-          ),
+        // Footer owns its own horizontal padding, SafeArea, and
+        // keyboard-hide (see AppScreenFooter). Just render it.
+        ?footer,
       ],
     );
   }

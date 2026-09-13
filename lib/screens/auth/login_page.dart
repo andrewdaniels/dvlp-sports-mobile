@@ -93,61 +93,71 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           onPressed: () => context.canPop() ? context.pop() : context.go(RouteNames.entry),
         ),
       ),
+      // Outer SafeArea handles top; footer owns bottom SafeArea +
+      // horizontal padding + keyboard-hide.
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: AppSpacing.lg),
-              AppTextField(
-                label: 'Email',
-                placeholder: 'you@example.com',
-                controller: _email,
-                keyboardType: TextInputType.emailAddress,
-                onChanged: (_) => setState(() {}),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              AppTextField(
-                label: 'Password',
-                placeholder: 'Your password',
-                controller: _password,
-                obscureText: true,
-                errorText: _errorText,
-                onChanged: (_) => setState(() {
-                  if (_errorText != null) _errorText = null;
-                }),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Align(
-                alignment: Alignment.centerRight,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Forgot password — coming later')),
-                    );
-                  },
-                  child: Text(
-                    'Forgot password?',
-                    style: AppTypography.bodySmall.copyWith(
-                      color: colors.link,
-                      fontWeight: FontWeight.w600,
+        bottom: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: AppSpacing.lg),
+                    AppTextField(
+                      label: 'Email',
+                      placeholder: 'you@example.com',
+                      controller: _email,
+                      keyboardType: TextInputType.emailAddress,
+                      onChanged: (_) => setState(() {}),
                     ),
-                  ),
+                    const SizedBox(height: AppSpacing.md),
+                    AppTextField(
+                      label: 'Password',
+                      placeholder: 'Your password',
+                      controller: _password,
+                      obscureText: true,
+                      errorText: _errorText,
+                      onChanged: (_) => setState(() {
+                        if (_errorText != null) _errorText = null;
+                      }),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Forgot password — coming later')),
+                          );
+                        },
+                        child: Text(
+                          'Forgot password?',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: colors.link,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                  ],
                 ),
               ),
-              const Spacer(),
-              AppScreenFooter.single(
-                primary: AppButton(
-                  label: 'Log In',
-                  variant: AppButtonVariant.primary,
-                  loading: _submitting,
-                  onPressed: _canSubmit ? _submit : null,
-                ),
+            ),
+            AppScreenFooter.single(
+              horizontalPadding: AppSpacing.xl,
+              primary: AppButton(
+                label: 'Log In',
+                variant: AppButtonVariant.primary,
+                loading: _submitting,
+                onPressed: _canSubmit ? _submit : null,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

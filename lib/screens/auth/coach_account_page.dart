@@ -68,80 +68,90 @@ class _CoachAccountPageState extends ConsumerState<CoachAccountPage> {
 
     return Scaffold(
       backgroundColor: colors.primaryBackground,
+      // Outer SafeArea handles top; footer owns bottom SafeArea +
+      // horizontal padding + keyboard-hide.
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: AppSpacing.lg),
-              const AppOnboardingHeader(
-                title: 'Your Account',
-                subtitle: 'Enter the information below to create your account',
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              Row(
-                children: [
-                  // Falls back to initials from the invite-prefilled
-                  // name until the avatar upload flow is wired up.
-                  // Both the avatar itself and the pill button trigger
-                  // the same upload action for a wider tap target.
-                  AppAvatar(
-                    firstName: _first.text,
-                    lastName: _last.text,
-                    size: AppAvatarSize.large,
-                    onTap: _uploadPhoto,
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: AppButton(
-                      label: 'Upload Profile Picture',
-                      variant: AppButtonVariant.outline,
-                      size: AppButtonSize.medium,
-                      expand: true,
-                      onPressed: _uploadPhoto,
+        bottom: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: AppSpacing.lg),
+                    const AppOnboardingHeader(
+                      title: 'Your Account',
+                      subtitle: 'Enter the information below to create your account',
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              AppTextField(
-                label: 'First Name',
-                placeholder: 'Enter first name',
-                controller: _first,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              AppTextField(
-                label: 'Last Name',
-                placeholder: 'Enter last name',
-                controller: _last,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              AppTextField(
-                label: 'Phone Number',
-                placeholder: 'Enter phone number',
-                controller: _phone,
-                keyboardType: TextInputType.phone,
-              ),
-              const Spacer(),
-              AppScreenFooter.row(
-                secondary: AppButton(
-                  label: 'Back',
-                  variant: AppButtonVariant.outline,
-                  onPressed: () => context.pop(),
+                    const SizedBox(height: AppSpacing.xl),
+                    Row(
+                      children: [
+                        // Falls back to initials from the invite-prefilled
+                        // name until the avatar upload flow is wired up.
+                        // Both the avatar itself and the pill button trigger
+                        // the same upload action for a wider tap target.
+                        AppAvatar(
+                          firstName: _first.text,
+                          lastName: _last.text,
+                          size: AppAvatarSize.large,
+                          onTap: _uploadPhoto,
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: AppButton(
+                            label: 'Upload Profile Picture',
+                            variant: AppButtonVariant.outline,
+                            size: AppButtonSize.medium,
+                            expand: true,
+                            onPressed: _uploadPhoto,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+                    AppTextField(
+                      label: 'First Name',
+                      placeholder: 'Enter first name',
+                      controller: _first,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    AppTextField(
+                      label: 'Last Name',
+                      placeholder: 'Enter last name',
+                      controller: _last,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    AppTextField(
+                      label: 'Phone Number',
+                      placeholder: 'Enter phone number',
+                      controller: _phone,
+                      keyboardType: TextInputType.phone,
+                    ),
+                    const Spacer(),
+                  ],
                 ),
-                // Disabled until the create-profile coach path +
-                // avatar upload architecture is wired up. Passing
-                // null onPressed puts the button in its disabled
-                // state per AppButton's contract.
-                primary: const AppButton(
-                  label: 'Next',
-                  variant: AppButtonVariant.primary,
-                  onPressed: null,
-                ),
               ),
-            ],
-          ),
+            ),
+            AppScreenFooter.row(
+              horizontalPadding: AppSpacing.xl,
+              secondary: AppButton(
+                label: 'Back',
+                variant: AppButtonVariant.outline,
+                onPressed: () => context.pop(),
+              ),
+              // Disabled until the create-profile coach path +
+              // avatar upload architecture is wired up. Passing
+              // null onPressed puts the button in its disabled
+              // state per AppButton's contract.
+              primary: const AppButton(
+                label: 'Next',
+                variant: AppButtonVariant.primary,
+                onPressed: null,
+              ),
+            ),
+          ],
         ),
       ),
     );

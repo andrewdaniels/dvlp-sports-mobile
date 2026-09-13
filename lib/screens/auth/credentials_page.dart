@@ -108,62 +108,72 @@ class _CredentialsPageState extends ConsumerState<CredentialsPage> {
 
     return Scaffold(
       backgroundColor: colors.primaryBackground,
+      // Outer SafeArea handles top (status bar / notch); footer owns
+      // its own bottom SafeArea + horizontal padding + keyboard-hide.
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: AppSpacing.lg),
-              const AppOnboardingHeader(
-                title: 'Almost There',
-                subtitle: 'Create a password to secure your account.',
-              ),
-              const SizedBox(height: AppSpacing.xxl),
-              if (needsEmail) ...[
-                AppTextField(
-                  label: 'Email',
-                  placeholder: 'you@example.com',
-                  controller: _email,
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: AppSpacing.md),
-              ],
-              AppTextField(
-                label: 'Password',
-                placeholder: 'At least $_minPasswordLength characters',
-                controller: _password,
-                obscureText: true,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              AppTextField(
-                label: 'Confirm Password',
-                placeholder: 'Re-enter your password',
-                controller: _confirm,
-                obscureText: true,
-              ),
-              if (hasError) ...[
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  _errorText!,
-                  style: AppTypography.bodyMedium.copyWith(color: colors.error),
-                ),
-              ],
-              const Spacer(),
-              AppScreenFooter.row(
-                secondary: AppButton(
-                  label: 'Back',
-                  variant: AppButtonVariant.outline,
-                  onPressed: () => context.pop(),
-                ),
-                primary: AppButton(
-                  label: 'Next',
-                  variant: AppButtonVariant.primary,
-                  onPressed: () => _submit(ctx),
+        bottom: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: AppSpacing.lg),
+                    const AppOnboardingHeader(
+                      title: 'Almost There',
+                      subtitle: 'Create a password to secure your account.',
+                    ),
+                    const SizedBox(height: AppSpacing.xxl),
+                    if (needsEmail) ...[
+                      AppTextField(
+                        label: 'Email',
+                        placeholder: 'you@example.com',
+                        controller: _email,
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                    ],
+                    AppTextField(
+                      label: 'Password',
+                      placeholder: 'At least $_minPasswordLength characters',
+                      controller: _password,
+                      obscureText: true,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    AppTextField(
+                      label: 'Confirm Password',
+                      placeholder: 'Re-enter your password',
+                      controller: _confirm,
+                      obscureText: true,
+                    ),
+                    if (hasError) ...[
+                      const SizedBox(height: AppSpacing.md),
+                      Text(
+                        _errorText!,
+                        style: AppTypography.bodyMedium.copyWith(color: colors.error),
+                      ),
+                    ],
+                    const Spacer(),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+            AppScreenFooter.row(
+              horizontalPadding: AppSpacing.xl,
+              secondary: AppButton(
+                label: 'Back',
+                variant: AppButtonVariant.outline,
+                onPressed: () => context.pop(),
+              ),
+              primary: AppButton(
+                label: 'Next',
+                variant: AppButtonVariant.primary,
+                onPressed: () => _submit(ctx),
+              ),
+            ),
+          ],
         ),
       ),
     );

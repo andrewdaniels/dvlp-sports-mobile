@@ -306,126 +306,136 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
 
     return Scaffold(
       backgroundColor: colors.primaryBackground,
+      // Outer SafeArea handles top; footer owns bottom SafeArea +
+      // horizontal padding + keyboard-hide.
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-          child: Column(
-            children: [
-              const SizedBox(height: AppSpacing.lg),
-              const AppOnboardingHeader(
-                title: 'Your Account',
-                subtitle: 'Enter the information below to create your account',
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _PhotoRow(
-                        firstName: _first.text,
-                        lastName: _last.text,
-                        onUpload: _uploadPhoto,
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      AppTextField(
-                        label: 'First Name',
-                        placeholder: 'Enter first name',
-                        controller: _first,
-                        enabled: !lockFirst,
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      AppTextField(
-                        label: 'Last Name',
-                        placeholder: 'Enter last name',
-                        controller: _last,
-                        enabled: !lockLast,
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      _FieldLabel('Height'),
-                      const SizedBox(height: AppSpacing.xxs),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: AppSelectTrigger(
-                              placeholder: 'ft',
-                              value: _heightFt == null ? null : '$_heightFt ft',
-                              onTap: _pickHeightFt,
+        bottom: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                child: Column(
+                  children: [
+                    const SizedBox(height: AppSpacing.lg),
+                    const AppOnboardingHeader(
+                      title: 'Your Account',
+                      subtitle: 'Enter the information below to create your account',
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            _PhotoRow(
+                              firstName: _first.text,
+                              lastName: _last.text,
+                              onUpload: _uploadPhoto,
                             ),
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          Expanded(
-                            child: AppSelectTrigger(
-                              placeholder: 'in',
-                              value: _heightIn == null ? null : '$_heightIn in',
-                              onTap: _pickHeightIn,
+                            const SizedBox(height: AppSpacing.lg),
+                            AppTextField(
+                              label: 'First Name',
+                              placeholder: 'Enter first name',
+                              controller: _first,
+                              enabled: !lockFirst,
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: AppSelectTrigger(
-                              label: 'Weight',
-                              placeholder: 'Select weight',
-                              value: _weightLbs == null ? null : '$_weightLbs lbs',
-                              onTap: _pickWeight,
+                            const SizedBox(height: AppSpacing.md),
+                            AppTextField(
+                              label: 'Last Name',
+                              placeholder: 'Enter last name',
+                              controller: _last,
+                              enabled: !lockLast,
                             ),
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          Expanded(
-                            child: AppSelectTrigger(
-                              label: 'Date of Birth',
-                              placeholder: 'Select date',
-                              value: _dob == null ? null : _formatDob(_dob!),
-                              onTap: _pickDob,
+                            const SizedBox(height: AppSpacing.md),
+                            _FieldLabel('Height'),
+                            const SizedBox(height: AppSpacing.xxs),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: AppSelectTrigger(
+                                    placeholder: 'ft',
+                                    value: _heightFt == null ? null : '$_heightFt ft',
+                                    onTap: _pickHeightFt,
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.md),
+                                Expanded(
+                                  child: AppSelectTrigger(
+                                    placeholder: 'in',
+                                    value: _heightIn == null ? null : '$_heightIn in',
+                                    onTap: _pickHeightIn,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      AppSelectTrigger(
-                        label: 'Position',
-                        placeholder: positionsLoading ? 'Loading positions…' : 'Select Position',
-                        value: _position?.name,
-                        onTap: positionsLoading ? null : _pickPosition,
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      AppSelectTrigger(
-                        label: 'Dominant Side',
-                        placeholder: 'Select side',
-                        value: _dominantSide?.label,
-                        onTap: _pickDominantSide,
-                      ),
-                      if (_errorText != null) ...[
-                        const SizedBox(height: AppSpacing.md),
-                        Text(
-                          _errorText!,
-                          style: AppTypography.bodyMedium.copyWith(color: colors.error),
+                            const SizedBox(height: AppSpacing.md),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: AppSelectTrigger(
+                                    label: 'Weight',
+                                    placeholder: 'Select weight',
+                                    value: _weightLbs == null ? null : '$_weightLbs lbs',
+                                    onTap: _pickWeight,
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.md),
+                                Expanded(
+                                  child: AppSelectTrigger(
+                                    label: 'Date of Birth',
+                                    placeholder: 'Select date',
+                                    value: _dob == null ? null : _formatDob(_dob!),
+                                    onTap: _pickDob,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            AppSelectTrigger(
+                              label: 'Position',
+                              placeholder: positionsLoading ? 'Loading positions…' : 'Select Position',
+                              value: _position?.name,
+                              onTap: positionsLoading ? null : _pickPosition,
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            AppSelectTrigger(
+                              label: 'Dominant Side',
+                              placeholder: 'Select side',
+                              value: _dominantSide?.label,
+                              onTap: _pickDominantSide,
+                            ),
+                            if (_errorText != null) ...[
+                              const SizedBox(height: AppSpacing.md),
+                              Text(
+                                _errorText!,
+                                style: AppTypography.bodyMedium.copyWith(color: colors.error),
+                              ),
+                            ],
+                            const SizedBox(height: AppSpacing.lg),
+                          ],
                         ),
-                      ],
-                      const SizedBox(height: AppSpacing.lg),
-                    ],
-                  ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              AppScreenFooter.row(
-                secondary: AppButton(
-                  label: secondaryLabel,
-                  variant: AppButtonVariant.outline,
-                  onPressed: _submitting ? null : _back,
-                ),
-                primary: AppButton(
-                  label: primaryLabel,
-                  variant: AppButtonVariant.primary,
-                  loading: _submitting,
-                  onPressed: _submit,
-                ),
+            ),
+            AppScreenFooter.row(
+              horizontalPadding: AppSpacing.xl,
+              secondary: AppButton(
+                label: secondaryLabel,
+                variant: AppButtonVariant.outline,
+                onPressed: _submitting ? null : _back,
               ),
-            ],
-          ),
+              primary: AppButton(
+                label: primaryLabel,
+                variant: AppButtonVariant.primary,
+                loading: _submitting,
+                onPressed: _submit,
+              ),
+            ),
+          ],
         ),
       ),
     );

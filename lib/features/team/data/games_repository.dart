@@ -4,6 +4,7 @@ import 'dart:developer' as developer;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../generated/api/get_games.dart';
+import '../../../generated/api/update_game.dart';
 import '../../auth/data/api_result.dart';
 
 /// Wraps games-related edge functions. Pure I/O — no caching happens
@@ -20,6 +21,39 @@ class GamesRepository {
       fromJson: GetGamesData.fromJson,
     );
   }
+
+  /// Partial-update a game — post-game report (score + note) or any
+  /// mutable game field. Only pass keys that changed; the server treats
+  /// omitted keys as "don't touch." Pass `null` on nullable fields to
+  /// explicitly clear them.
+  ///
+  /// Attribution rule for `note` (server-enforced): setting a non-empty
+  /// note also sets `note_coach_id = caller`; clearing note also clears
+  /// note_coach_id. When `note` is omitted, note_coach_id is untouched
+  /// (a score-only edit won't re-attribute an existing note).
+  Future<ApiResult<UpdateGameData>> updateGame({
+    required String gameId,
+    Object? teamScore = absent,
+    Object? opponentScore = absent,
+    Object? note = absent,
+  }) {
+    final body = <String, dynamic>{'game_id': gameId};
+    if (!identical(teamScore, absent)) body['team_score'] = teamScore;
+    if (!identical(opponentScore, absent)) body['opponent_score'] = opponentScore;
+    if (!identical(note, absent)) body['note'] = note;
+    return _invoke<UpdateGameData>(
+      name: 'update-game',
+      body: body,
+      fromJson: UpdateGameData.fromJson,
+    );
+  }
+
+  /// Sentinel to distinguish "field omitted" from "field passed as
+  /// null". Dart's optional-param default is null, but null on a
+  /// nullable column means "explicitly clear it" — we need a third
+  /// state for "don't touch." Callers pass [absent] to signal "don't
+  /// include this key in the request payload."
+  static const Object absent = Object();
 
   // ─── Envelope parsing ──────────────────────────────────────────────
   // Duplicated from ProfileRepository for now. When we add a 3rd

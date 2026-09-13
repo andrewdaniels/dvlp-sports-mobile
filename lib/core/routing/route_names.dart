@@ -40,6 +40,11 @@ class RouteNames {
   static const coachTeam = '/coach/team';
   static const coachProfile = '/coach/profile';
 
+  // Coach → Games → Game details (post-game report composer for
+  // completed games; read-only preview for upcoming).
+  static const coachGameDetails = '/coach/games/details';
+  static String coachGameDetailsFor(String gameId) => '$coachGameDetails/$gameId';
+
   // Assessment detail — pushed on the root navigator (over either
   // shell). Split by type so each renders on the right score scale.
   static const feedbackQuick = '/feedback/quick';

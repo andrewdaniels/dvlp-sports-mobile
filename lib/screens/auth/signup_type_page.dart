@@ -47,39 +47,49 @@ class _SignupTypePageState extends ConsumerState<SignupTypePage> {
 
     return Scaffold(
       backgroundColor: colors.primaryBackground,
+      // Outer SafeArea handles top; footer owns bottom SafeArea +
+      // horizontal padding + keyboard-hide.
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: AppSpacing.lg),
-              const AppOnboardingHeader(
-                title: 'Welcome',
-                subtitle: 'Select your user type to begin creating your account.',
-              ),
-              const SizedBox(height: AppSpacing.xxl),
-              _TypeOption(
-                label: 'I am a player',
-                selected: _selected == _SignupType.player,
-                onTap: () => _select(_SignupType.player),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              _TypeOption(
-                label: 'I am a coach',
-                selected: _selected == _SignupType.coach,
-                onTap: () => _select(_SignupType.coach),
-              ),
-              const Spacer(),
-              AppScreenFooter.single(
-                primary: AppButton(
-                  label: 'Next',
-                  variant: AppButtonVariant.primary,
-                  onPressed: _selected == null ? null : _next,
+        bottom: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: AppSpacing.lg),
+                    const AppOnboardingHeader(
+                      title: 'Welcome',
+                      subtitle: 'Select your user type to begin creating your account.',
+                    ),
+                    const SizedBox(height: AppSpacing.xxl),
+                    _TypeOption(
+                      label: 'I am a player',
+                      selected: _selected == _SignupType.player,
+                      onTap: () => _select(_SignupType.player),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    _TypeOption(
+                      label: 'I am a coach',
+                      selected: _selected == _SignupType.coach,
+                      onTap: () => _select(_SignupType.coach),
+                    ),
+                    const Spacer(),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+            AppScreenFooter.single(
+              horizontalPadding: AppSpacing.xl,
+              primary: AppButton(
+                label: 'Next',
+                variant: AppButtonVariant.primary,
+                onPressed: _selected == null ? null : _next,
+              ),
+            ),
+          ],
         ),
       ),
     );
