@@ -22,7 +22,11 @@ import '../../shared/widgets/app_score_bar.dart';
 import '../../shared/widgets/app_tab_bar.dart';
 import '../../features/assessments/ui/widgets/app_feedback_list_item.dart';
 import '../../features/assessments/ui/widgets/score_gauge.dart';
+import '../../features/team/ui/widgets/game_result_row.dart';
+import '../../features/team/ui/widgets/todo_row.dart';
+import '../../features/team/ui/widgets/upcoming_game_card.dart';
 import '../../generated/api/get_assessments.dart';
+import '../../generated/api/get_games.dart';
 import '../../shared/widgets/app_select_trigger.dart';
 import '../../shared/widgets/app_sheet_layout.dart';
 import '../../shared/widgets/app_sheet_shell.dart';
@@ -134,6 +138,21 @@ class ComponentsPage extends StatelessWidget {
             name: 'AppFeedbackListItem (features/assessments)',
             description: 'Feedback / assessment row. Primitive props for now — feature wrapper (later) will map from Assessment model.',
             child: _AppFeedbackListItemDemo(),
+          ),
+          _ComponentSection(
+            name: 'TodoRow (features/team)',
+            description: 'Actionable to-do row used on coach dashboard surfaces (Games, Home). Composes AppIconIndicator + title/subtitle + chevron; fires light haptic on tap. Feature-scoped for now.',
+            child: _TodoRowDemo(),
+          ),
+          _ComponentSection(
+            name: 'UpcomingGameCard (features/team)',
+            description: 'Compact card for a scheduled future game. Blue outline via AppCardVariant.unread. Fixed-width so it sits nicely in a horizontal scroller.',
+            child: _UpcomingGameCardDemo(),
+          ),
+          _ComponentSection(
+            name: 'GameResultRow (features/team)',
+            description: 'List row for a completed game — coach Games Results section. Composes AppGameResultBadge; derives W/L/T from scores; formats date and vs/@ prefix from the Game model.',
+            child: _GameResultRowDemo(),
           ),
           _ComponentSection(
             name: 'ScoreGauge (features/assessments)',
@@ -1360,6 +1379,129 @@ class _AppPlayerPassportCardDemo extends StatelessWidget {
         ),
         const AppLevelHeroBadge(band: LevelBand.silver),
       ],
+    );
+  }
+}
+
+class _TodoRowDemo extends StatelessWidget {
+  const _TodoRowDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TodoRow(
+          icon: AppIcons.coachNavGames,
+          iconColor: colors.error,
+          title: 'Post-game report pending',
+          subtitle: 'vs Lakers · Feb 22',
+          onTap: () {},
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        TodoRow(
+          icon: AppIcons.award,
+          iconColor: colors.success,
+          title: '2 Formal Assessments due',
+          subtitle: 'Timmy R., Blake W.',
+          onTap: () {},
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        TodoRow(
+          icon: AppIcons.messageQuestionSquare,
+          iconColor: colors.secondary,
+          title: '3 Quick Feedback Requests',
+          subtitle: 'Timmy R., Blake W., Nate O.',
+          onTap: () {},
+        ),
+      ],
+    );
+  }
+}
+
+class _UpcomingGameCardDemo extends StatelessWidget {
+  const _UpcomingGameCardDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 108,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: 3,
+        separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
+        itemBuilder: (context, i) => UpcomingGameCard(
+          game: _mockUpcoming(
+            opponent: ['Sabers', 'Bruins', 'Rangers'][i],
+            location: ['Riverside Arena', 'Central Rink', 'North Park'][i],
+            daysFromNow: [1, 3, 7][i],
+            isHome: [true, false, true][i],
+          ),
+          onTap: () {},
+        ),
+      ),
+    );
+  }
+
+  static Game _mockUpcoming({
+    required String opponent,
+    required String location,
+    required int daysFromNow,
+    required bool isHome,
+  }) {
+    final at = DateTime.now().add(Duration(days: daysFromNow, hours: 10, minutes: 15));
+    return Game(
+      id: '00000000-0000-0000-0000-00000000000$daysFromNow',
+      teamId: '00000000-0000-0000-0000-000000000000',
+      opponentName: opponent,
+      startsAt: at.toIso8601String(),
+      location: location,
+      isHome: isHome,
+      teamScore: null,
+      opponentScore: null,
+      note: null,
+      noteCoachId: null,
+    );
+  }
+}
+
+class _GameResultRowDemo extends StatelessWidget {
+  const _GameResultRowDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        GameResultRow(game: _mockResult(opponent: 'Lakers', team: 4, opp: 2, daysAgo: 5, isHome: true), onTap: () {}),
+        const SizedBox(height: AppSpacing.sm),
+        GameResultRow(game: _mockResult(opponent: 'Sabres', team: 2, opp: 4, daysAgo: 12, isHome: false), onTap: () {}),
+        const SizedBox(height: AppSpacing.sm),
+        GameResultRow(game: _mockResult(opponent: 'Rangers', team: 3, opp: 3, daysAgo: 19, isHome: true), onTap: () {}),
+      ],
+    );
+  }
+
+  static Game _mockResult({
+    required String opponent,
+    required int team,
+    required int opp,
+    required int daysAgo,
+    required bool isHome,
+  }) {
+    final at = DateTime.now().subtract(Duration(days: daysAgo));
+    return Game(
+      id: '00000000-0000-0000-0000-00000000000$daysAgo',
+      teamId: '00000000-0000-0000-0000-000000000000',
+      opponentName: opponent,
+      startsAt: at.toIso8601String(),
+      location: null,
+      isHome: isHome,
+      teamScore: team,
+      opponentScore: opp,
+      note: null,
+      noteCoachId: null,
     );
   }
 }

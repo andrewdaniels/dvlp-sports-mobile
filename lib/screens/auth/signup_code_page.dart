@@ -103,61 +103,71 @@ class _SignupCodePageState extends ConsumerState<SignupCodePage> {
 
     return Scaffold(
       backgroundColor: colors.primaryBackground,
+      // Outer SafeArea handles top; footer owns bottom SafeArea +
+      // horizontal padding + keyboard-hide.
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: AppSpacing.lg),
-              AppOnboardingHeader(
-                title: 'Enter Invite Code',
-                subtitle:
-                    'Enter the $_codeLength-character code from your invite email to get started.',
-              ),
-              const SizedBox(height: AppSpacing.xxl),
-              _CodeInput(
-                controller: _controller,
-                length: _codeLength,
-                onChanged: (_) => setState(() {
-                  if (_errorText != null) _errorText = null;
-                }),
-                onCompleted: (_) => _submit(),
-              ),
-              if (hasError) ...[
-                const SizedBox(height: AppSpacing.md),
-                Center(
-                  child: Text(
-                    _errorText!,
-                    textAlign: TextAlign.center,
-                    style: AppTypography.bodyMedium.copyWith(color: colors.error),
-                  ),
-                ),
-              ],
-              const Spacer(),
-              Center(
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: _continueWithoutCode,
-                  child: Text(
-                    "I don't have a code",
-                    style: AppTypography.bodyMedium.copyWith(
-                      color: colors.link,
-                      fontWeight: FontWeight.w600,
+        bottom: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: AppSpacing.lg),
+                    AppOnboardingHeader(
+                      title: 'Enter Invite Code',
+                      subtitle:
+                          'Enter the $_codeLength-character code from your invite email to get started.',
                     ),
-                  ),
+                    const SizedBox(height: AppSpacing.xxl),
+                    _CodeInput(
+                      controller: _controller,
+                      length: _codeLength,
+                      onChanged: (_) => setState(() {
+                        if (_errorText != null) _errorText = null;
+                      }),
+                      onCompleted: (_) => _submit(),
+                    ),
+                    if (hasError) ...[
+                      const SizedBox(height: AppSpacing.md),
+                      Center(
+                        child: Text(
+                          _errorText!,
+                          textAlign: TextAlign.center,
+                          style: AppTypography.bodyMedium.copyWith(color: colors.error),
+                        ),
+                      ),
+                    ],
+                    const Spacer(),
+                    Center(
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: _continueWithoutCode,
+                        child: Text(
+                          "I don't have a code",
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: colors.link,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              AppScreenFooter.single(
-                primary: AppButton(
-                  label: 'Continue',
-                  variant: AppButtonVariant.primary,
-                  loading: _submitting,
-                  onPressed: _complete ? _submit : null,
-                ),
+            ),
+            AppScreenFooter.single(
+              horizontalPadding: AppSpacing.xl,
+              primary: AppButton(
+                label: 'Continue',
+                variant: AppButtonVariant.primary,
+                loading: _submitting,
+                onPressed: _complete ? _submit : null,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

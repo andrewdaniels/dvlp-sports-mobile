@@ -2,6 +2,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../core/services/supabase_service.dart';
 import '../../../generated/api/get_games.dart';
+import '../../../generated/api/update_game.dart' as update_game;
 import '../../auth/data/api_result.dart';
 import '../data/games_repository.dart';
 
@@ -41,6 +42,40 @@ class GamesNotifier extends FamilyAsyncNotifier<GetGamesData?, String> {
   void optimisticSet(GetGamesData games) {
     state = AsyncData(games);
   }
+
+  /// Replace one game in the cached list after a successful mutation
+  /// (post-game report submit, score edit, etc.). No refetch; the
+  /// server-returned game is the source of truth for the swapped row.
+  ///
+  /// Takes the update-game response's Game type and maps into the
+  /// get-games Game type. The two are structurally identical but
+  /// nominally distinct because each function's schema.ts owns its
+  /// own local GameSchema — see [[chore-codegen-shared-schemas]]
+  /// follow-up which will delete this mapper.
+  void replaceGame(update_game.Game returned) {
+    final current = state.value;
+    if (current == null) return;
+    final mapped = _mapUpdatedGame(returned);
+    final swapped = current.games
+        .map((g) => g.id == mapped.id ? mapped : g)
+        .toList(growable: false);
+    state = AsyncData(GetGamesData(games: swapped));
+  }
+
+  // Stopgap mapper — deleted once shared-schemas codegen (Path A)
+  // lands and both endpoints share one canonical `Game` type.
+  static Game _mapUpdatedGame(update_game.Game g) => Game(
+        id: g.id,
+        teamId: g.teamId,
+        opponentName: g.opponentName,
+        startsAt: g.startsAt,
+        location: g.location,
+        isHome: g.isHome,
+        teamScore: g.teamScore,
+        opponentScore: g.opponentScore,
+        note: g.note,
+        noteCoachId: g.noteCoachId,
+      );
 
   /// Force a network refetch (pull-to-refresh or after external changes).
   Future<void> refresh() async {

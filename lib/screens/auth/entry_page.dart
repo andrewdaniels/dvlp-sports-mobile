@@ -20,31 +20,41 @@ class EntryPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.colors.primaryBackground,
+      // Outer SafeArea handles top (status bar / notch); footer owns
+      // its own bottom SafeArea + horizontal padding + keyboard-hide.
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 80),
-              const Center(child: AppLogo(size: AppLogoSize.hero)),
-              const SizedBox(height: AppSpacing.lg),
-              const _EntryWordmark(),
-              const Spacer(),
-              AppScreenFooter.stacked(
-                primary: AppButton(
-                  label: 'Create Account',
-                  variant: AppButtonVariant.primary,
-                  onPressed: () => context.push(RouteNames.signupCode),
-                ),
-                secondary: AppButton(
-                  label: 'Log In',
-                  variant: AppButtonVariant.outline,
-                  onPressed: () => context.push(RouteNames.login),
+        bottom: false,
+        child: Column(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 80),
+                    const Center(child: AppLogo(size: AppLogoSize.hero)),
+                    const SizedBox(height: AppSpacing.lg),
+                    const _EntryWordmark(),
+                    const Spacer(),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+            AppScreenFooter.stacked(
+              horizontalPadding: AppSpacing.xl,
+              primary: AppButton(
+                label: 'Create Account',
+                variant: AppButtonVariant.primary,
+                onPressed: () => context.push(RouteNames.signupCode),
+              ),
+              secondary: AppButton(
+                label: 'Log In',
+                variant: AppButtonVariant.outline,
+                onPressed: () => context.push(RouteNames.login),
+              ),
+            ),
+          ],
         ),
       ),
     );

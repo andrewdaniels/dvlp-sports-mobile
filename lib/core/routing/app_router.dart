@@ -19,6 +19,7 @@ import '../../screens/auth/player_account_page.dart';
 import '../../screens/auth/signup_code_page.dart';
 import '../../screens/auth/signup_type_page.dart';
 import '../../screens/coach/feedback/coach_feedback_page.dart';
+import '../../screens/coach/games/coach_game_details_page.dart';
 import '../../screens/coach/games/coach_games_page.dart';
 import '../../screens/coach/home/coach_home_page.dart';
 import '../../screens/coach/profile/coach_profile_page.dart';
@@ -210,6 +211,18 @@ final appRouter = GoRouter(
       parentNavigatorKey: _rootNavKey,
       path: RouteNames.myFeedback,
       builder: (context, state) => const MyFeedbackPage(),
+    ),
+
+    // Coach → Games → Game details. Pushed on root nav so it covers
+    // the coach shell. Same page handles the post-game report
+    // composer (for completed games) and the read-only upcoming
+    // preview (for future games).
+    GoRoute(
+      parentNavigatorKey: _rootNavKey,
+      path: '${RouteNames.coachGameDetails}/:id',
+      builder: (context, state) => CoachGameDetailsPage(
+        gameId: state.pathParameters['id']!,
+      ),
     ),
 
     // Profile → Settings (shared across shells)
