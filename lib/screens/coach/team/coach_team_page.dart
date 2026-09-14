@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../../core/routing/route_names.dart';
 import '../../../core/theme/theme.dart';
 import '../../../features/auth/controllers/profile_providers.dart';
 import '../../../features/team/controllers/games_providers.dart';
 import '../../../features/team/controllers/team_roster_providers.dart';
+import '../../../features/team/ui/widgets/coach_athlete_passport_card.dart';
 import '../../../features/team/ui/widgets/external_connection_row.dart';
 import '../../../features/team/ui/widgets/roster_row.dart';
 import '../../../features/team/ui/widgets/stat_card.dart';
@@ -97,9 +100,13 @@ class _CoachTeamBody extends ConsumerWidget {
             for (var i = 0; i < roster.length; i++) ...[
               RosterRow(
                 entry: roster[i],
-                onTap: () {
-                  // TODO: coach Player Details route (feat/coach-player-details).
-                },
+                onTap: () => context.push(
+                  RouteNames.coachAthleteDetailsFor(roster[i].athlete.id),
+                  extra: AthletePassportRanking.fromRoster(
+                    codegenBand: roster[i].ranking?.band,
+                    subLevel: roster[i].ranking?.subLevel,
+                  ),
+                ),
               ),
               if (i < roster.length - 1) const SizedBox(height: AppSpacing.sm),
             ],
@@ -110,9 +117,13 @@ class _CoachTeamBody extends ConsumerWidget {
             for (var i = 0; i < externals.length; i++) ...[
               ExternalConnectionRow(
                 entry: externals[i],
-                onTap: () {
-                  // TODO: coach Player Details route (feat/coach-player-details).
-                },
+                onTap: () => context.push(
+                  RouteNames.coachAthleteDetailsFor(externals[i].athlete.id),
+                  extra: AthletePassportRanking.fromRoster(
+                    codegenBand: externals[i].ranking?.band,
+                    subLevel: externals[i].ranking?.subLevel,
+                  ),
+                ),
               ),
               if (i < externals.length - 1) const SizedBox(height: AppSpacing.sm),
             ],

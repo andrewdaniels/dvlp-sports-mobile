@@ -22,6 +22,7 @@ import '../../shared/widgets/app_score_bar.dart';
 import '../../shared/widgets/app_tab_bar.dart';
 import '../../features/assessments/ui/widgets/app_feedback_list_item.dart';
 import '../../features/assessments/ui/widgets/score_gauge.dart';
+import '../../features/team/ui/widgets/coach_athlete_passport_card.dart';
 import '../../features/team/ui/widgets/external_connection_row.dart';
 import '../../features/team/ui/widgets/game_result_row.dart';
 import '../../features/team/ui/widgets/roster_row.dart';
@@ -179,6 +180,11 @@ class ComponentsPage extends StatelessWidget {
             name: 'ExternalConnectionRow (features/team)',
             description: 'Coach Team page External Connections row. Avatar + name + subtitle (position · linked-team-name in blue) + AppLevelCoin. Ranking coin reflects the athlete\'s current-team level. Handles null current-team (no team) with "-".',
             child: _ExternalConnectionRowDemo(),
+          ),
+          _ComponentSection(
+            name: 'CoachAthletePassportCard (features/team)',
+            description: 'Passport card for the coach Athlete Details page. Featured+prominent AppCard with avatar + name + team-line + trailing bordered ranking container (AppLevelCoin + band label). Stats row (Age/Height/Weight/Hand/Verified) below. Verified is "-" until wired.',
+            child: _CoachAthletePassportCardDemo(),
           ),
           _ComponentSection(
             name: 'ScoreGauge (features/assessments)',
@@ -1725,6 +1731,61 @@ class _ExternalConnectionRowDemo extends StatelessWidget {
       ),
       currentTeam: null,
       ranking: null,
+    );
+  }
+}
+
+class _CoachAthletePassportCardDemo extends StatelessWidget {
+  const _CoachAthletePassportCardDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    final profile = profile_api.GetProfileData(
+      id: '00000000-0000-0000-0000-000000000000',
+      firstName: 'Marcus',
+      lastName: 'Thompson',
+      email: 'marcus@dvlpsports.test',
+      phone: null,
+      avatarUrl: null,
+      dateOfBirth: '2011-03-14',
+      profileStatus: profile_api.ProfileStatus.ACTIVE,
+      roleTier: profile_api.RoleTier.ATHLETE,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      athleteDetails: profile_api.AthleteDetails(
+        heightCm: 175,
+        weightKg: 66,
+        dominantSide: profile_api.DominantSide.RIGHT,
+        position: profile_api.Position(
+          id: '00000000-0000-0000-0000-000000000000',
+          name: 'Forward',
+        ),
+      ),
+      teamMemberships: [
+        profile_api.TeamMembership(
+          coachType: null,
+          joinedAt: DateTime.now(),
+          organization: profile_api.Organization(
+            id: '00000000-0000-0000-0000-000000000000',
+            name: 'Test Hockey Club',
+          ),
+          team: profile_api.Team(
+            id: '00000000-0000-0000-0000-000000000000',
+            name: 'Rampage',
+            ageGroup: 'U13',
+            levelClassification: 'AAA',
+            assessmentCadence: profile_api.AssessmentCadence.MONTHLY,
+          ),
+        ),
+      ],
+    );
+    return CoachAthletePassportCard(
+      profile: profile,
+      teamLine: 'Rampage U13 AAA | Forward',
+      ranking: const AthletePassportRanking(
+        band: LevelBand.silver,
+        subLevel: 1,
+      ),
     );
   }
 }

@@ -5,12 +5,17 @@
 // To parse this JSON data, do
 //
 //     final getProfileData = getProfileDataFromJson(jsonString);
+//     final getProfileRequest = getProfileRequestFromJson(jsonString);
 
 import 'dart:convert';
 
 GetProfileData getProfileDataFromJson(String str) => GetProfileData.fromJson(json.decode(str));
 
 String getProfileDataToJson(GetProfileData data) => json.encode(data.toJson());
+
+GetProfileRequest getProfileRequestFromJson(String str) => GetProfileRequest.fromJson(json.decode(str));
+
+String getProfileRequestToJson(GetProfileRequest data) => json.encode(data.toJson());
 
 class GetProfileData {
     final AthleteDetails? athleteDetails;
@@ -367,6 +372,29 @@ final assessmentCadenceValues = EnumValues({
     "semi_annual": AssessmentCadence.SEMI_ANNUAL,
     "weekly": AssessmentCadence.WEEKLY
 });
+
+class GetProfileRequest {
+    final String? athleteId;
+
+    GetProfileRequest({
+        this.athleteId,
+    });
+
+    GetProfileRequest copyWith({
+        String? athleteId,
+    }) => 
+        GetProfileRequest(
+            athleteId: athleteId ?? this.athleteId,
+        );
+
+    factory GetProfileRequest.fromJson(Map<String, dynamic> json) => GetProfileRequest(
+        athleteId: json["athlete_id"],
+    );
+
+    Map<String, dynamic> toJson() => {
+        "athlete_id": athleteId,
+    };
+}
 
 class EnumValues<T> {
     Map<String, T> map;
