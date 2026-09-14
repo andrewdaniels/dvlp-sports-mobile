@@ -22,11 +22,17 @@ import '../../shared/widgets/app_score_bar.dart';
 import '../../shared/widgets/app_tab_bar.dart';
 import '../../features/assessments/ui/widgets/app_feedback_list_item.dart';
 import '../../features/assessments/ui/widgets/score_gauge.dart';
+import '../../features/team/ui/widgets/external_connection_row.dart';
 import '../../features/team/ui/widgets/game_result_row.dart';
+import '../../features/team/ui/widgets/roster_row.dart';
+import '../../features/team/ui/widgets/stat_card.dart';
+import '../../features/team/ui/widgets/team_header.dart';
 import '../../features/team/ui/widgets/todo_row.dart';
 import '../../features/team/ui/widgets/upcoming_game_card.dart';
 import '../../generated/api/get_assessments.dart';
 import '../../generated/api/get_games.dart';
+import '../../generated/api/get_profile.dart' as profile_api;
+import '../../generated/api/get_team_roster.dart' as roster;
 import '../../shared/widgets/app_select_trigger.dart';
 import '../../shared/widgets/app_sheet_layout.dart';
 import '../../shared/widgets/app_sheet_shell.dart';
@@ -153,6 +159,26 @@ class ComponentsPage extends StatelessWidget {
             name: 'GameResultRow (features/team)',
             description: 'List row for a completed game — coach Games Results section. Composes AppGameResultBadge; derives W/L/T from scores; formats date and vs/@ prefix from the Game model.',
             child: _GameResultRowDemo(),
+          ),
+          _ComponentSection(
+            name: 'TeamHeader (features/team)',
+            description: 'Team hero card shown on Team pages (athlete + coach) and later coach Home. Featured + prominent AppCard with team crest, uppercase name, and composed subtitle (age + level, joined with " · ").',
+            child: _TeamHeaderDemo(),
+          ),
+          _ComponentSection(
+            name: 'StatCard (features/team)',
+            description: 'Small stat tile used in a horizontal row on Team pages — uppercase label above headline value. `accent: true` for the marquee stat (RANKING) styles the value gold.',
+            child: _StatCardDemo(),
+          ),
+          _ComponentSection(
+            name: 'RosterRow (features/team)',
+            description: 'Coach Team page roster row. Avatar + name + subtitle (position · band label) + AppLevelCoin. Handles the null-ranking case (unassessed athletes) by preserving layout with a coin-sized spacer.',
+            child: _RosterRowDemo(),
+          ),
+          _ComponentSection(
+            name: 'ExternalConnectionRow (features/team)',
+            description: 'Coach Team page External Connections row. Avatar + name + subtitle (position · linked-team-name in blue) + AppLevelCoin. Ranking coin reflects the athlete\'s current-team level. Handles null current-team (no team) with "-".',
+            child: _ExternalConnectionRowDemo(),
           ),
           _ComponentSection(
             name: 'ScoreGauge (features/assessments)',
@@ -1502,6 +1528,203 @@ class _GameResultRowDemo extends StatelessWidget {
       opponentScore: opp,
       note: null,
       noteCoachId: null,
+    );
+  }
+}
+
+class _TeamHeaderDemo extends StatelessWidget {
+  const _TeamHeaderDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    return TeamHeader(
+      team: profile_api.Team(
+        id: '00000000-0000-0000-0000-000000000000',
+        name: 'Rampage',
+        ageGroup: 'U13',
+        levelClassification: 'AAA',
+        assessmentCadence: profile_api.AssessmentCadence.MONTHLY,
+      ),
+    );
+  }
+}
+
+class _StatCardDemo extends StatelessWidget {
+  const _StatCardDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Row(
+      children: [
+        Expanded(child: StatCard(label: 'RECORD', value: '8-3-1')),
+        SizedBox(width: AppSpacing.md),
+        Expanded(child: StatCard(label: 'RANKING', value: '2nd', accent: true)),
+      ],
+    );
+  }
+}
+
+class _RosterRowDemo extends StatelessWidget {
+  const _RosterRowDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        RosterRow(entry: _mockEntry('Ethan',   'Callahan',  'Goalie',      roster.Band.GOLD,    3, 8.8), onTap: () {}),
+        const SizedBox(height: AppSpacing.sm),
+        RosterRow(entry: _mockEntry('Marcus',  'Thompson',  'Defense',     roster.Band.GOLD,    1, 7.7), onTap: () {}),
+        const SizedBox(height: AppSpacing.sm),
+        RosterRow(entry: _mockEntry('Nate',    'O\'Connor', 'Right Wing',  roster.Band.SILVER,  3, 7.3), onTap: () {}),
+        const SizedBox(height: AppSpacing.sm),
+        RosterRow(entry: _mockEntry('Timmy',   'Reyes',     'Center',      roster.Band.BRONZE,  2, 4.9), onTap: () {}),
+        const SizedBox(height: AppSpacing.sm),
+        RosterRow(entry: _mockUnranked('Alex', 'Kim', 'Defense'), onTap: () {}),
+      ],
+    );
+  }
+
+  static roster.Roster _mockEntry(
+    String first,
+    String last,
+    String position,
+    roster.Band band,
+    int subLevel,
+    double score,
+  ) {
+    return roster.Roster(
+      athlete: roster.RosterAthlete(
+        id: '00000000-0000-0000-0000-000000000000',
+        firstName: first,
+        lastName: last,
+        avatarUrl: null,
+        position: roster.FluffyPosition(
+          id: '00000000-0000-0000-0000-000000000000',
+          name: position,
+        ),
+      ),
+      ranking: roster.RosterRanking(
+        overallScore: score,
+        band: band,
+        subLevel: subLevel,
+        assessmentCount: 1,
+      ),
+    );
+  }
+
+  static roster.Roster _mockUnranked(String first, String last, String position) {
+    return roster.Roster(
+      athlete: roster.RosterAthlete(
+        id: '00000000-0000-0000-0000-000000000000',
+        firstName: first,
+        lastName: last,
+        avatarUrl: null,
+        position: roster.FluffyPosition(
+          id: '00000000-0000-0000-0000-000000000000',
+          name: position,
+        ),
+      ),
+      ranking: null,
+    );
+  }
+}
+
+class _ExternalConnectionRowDemo extends StatelessWidget {
+  const _ExternalConnectionRowDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ExternalConnectionRow(
+          entry: _mockEntry(
+            first: 'Test',
+            last: 'Athlete',
+            position: 'Right Wing',
+            teamName: 'Rampage',
+            ageGroup: 'U13',
+            level: 'AAA',
+            band: roster.Band.SILVER,
+            subLevel: 3,
+            score: 7.05,
+          ),
+          onTap: () {},
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        ExternalConnectionRow(
+          entry: _mockEntry(
+            first: 'Jordan',
+            last: 'Reyes',
+            position: 'Center',
+            teamName: 'Markham Majors',
+            ageGroup: 'U12',
+            level: 'AA',
+            band: roster.Band.BRONZE,
+            subLevel: 2,
+            score: 5.1,
+          ),
+          onTap: () {},
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        // No-team edge case (grant active but athlete left every team).
+        ExternalConnectionRow(entry: _mockNoTeam(), onTap: () {}),
+      ],
+    );
+  }
+
+  static roster.ExternalConnection _mockEntry({
+    required String first,
+    required String last,
+    required String position,
+    required String teamName,
+    required String ageGroup,
+    required String level,
+    required roster.Band band,
+    required int subLevel,
+    required double score,
+  }) {
+    return roster.ExternalConnection(
+      athlete: roster.ExternalConnectionAthlete(
+        id: '00000000-0000-0000-0000-000000000000',
+        firstName: first,
+        lastName: last,
+        avatarUrl: null,
+        position: roster.PurplePosition(
+          id: '00000000-0000-0000-0000-000000000000',
+          name: position,
+        ),
+      ),
+      currentTeam: roster.CurrentTeam(
+        id: '00000000-0000-0000-0000-000000000000',
+        name: teamName,
+        ageGroup: ageGroup,
+        levelClassification: level,
+      ),
+      ranking: roster.ExternalConnectionRanking(
+        overallScore: score,
+        band: band,
+        subLevel: subLevel,
+        assessmentCount: 6,
+      ),
+    );
+  }
+
+  static roster.ExternalConnection _mockNoTeam() {
+    return roster.ExternalConnection(
+      athlete: roster.ExternalConnectionAthlete(
+        id: '00000000-0000-0000-0000-000000000000',
+        firstName: 'Casey',
+        lastName: 'Nguyen',
+        avatarUrl: null,
+        position: roster.PurplePosition(
+          id: '00000000-0000-0000-0000-000000000000',
+          name: 'Defense',
+        ),
+      ),
+      currentTeam: null,
+      ranking: null,
     );
   }
 }

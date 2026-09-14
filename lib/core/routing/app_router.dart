@@ -17,7 +17,6 @@ import '../../screens/auth/entry_page.dart';
 import '../../screens/auth/login_page.dart';
 import '../../screens/auth/player_account_page.dart';
 import '../../screens/auth/signup_code_page.dart';
-import '../../screens/auth/signup_type_page.dart';
 import '../../screens/coach/feedback/coach_feedback_page.dart';
 import '../../screens/coach/games/coach_game_details_page.dart';
 import '../../screens/coach/games/coach_games_page.dart';
@@ -39,7 +38,6 @@ const _publicRoutes = <String>{
   RouteNames.entry,
   RouteNames.login,
   RouteNames.signupCode,
-  RouteNames.signupType,
   RouteNames.signupCredentials,
   RouteNames.signupPlayerDetails,
   RouteNames.signupCoachDetails,
@@ -165,11 +163,6 @@ final appRouter = GoRouter(
       parentNavigatorKey: _rootNavKey,
       path: RouteNames.signupCode,
       builder: (context, state) => const SignupCodePage(),
-    ),
-    GoRoute(
-      parentNavigatorKey: _rootNavKey,
-      path: RouteNames.signupType,
-      builder: (context, state) => const SignupTypePage(),
     ),
     GoRoute(
       parentNavigatorKey: _rootNavKey,

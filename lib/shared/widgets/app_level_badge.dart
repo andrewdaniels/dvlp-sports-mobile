@@ -43,8 +43,11 @@ extension _LevelBandSlug on LevelBand {
 }
 
 /// Small level indicator — a coin with the sub-level (I / II / III)
-/// baked into the PNG. Fixed 48×48 so it drops into rows and headers
-/// without size fussing.
+/// baked into the PNG.
+///
+/// Sizes:
+///   - `small`  — 32×32 (list rows, next to a small avatar)
+///   - `medium` — 48×48 (default; headers, hero contexts)
 ///
 /// Beginner has only sub-level `1`. Other bands accept `1..3`.
 class AppLevelCoin extends StatelessWidget {
@@ -52,23 +55,38 @@ class AppLevelCoin extends StatelessWidget {
     super.key,
     required this.band,
     this.subLevel = 1,
+    this.size = AppLevelCoinSize.medium,
   }) : assert(subLevel >= 1 && subLevel <= 3);
 
   final LevelBand band;
   final int subLevel;
+  final AppLevelCoinSize size;
 
+  /// Backwards-compat: previous callers referenced `AppLevelCoin.dim`
+  /// for layout math (e.g., preserving row alignment when the coin is
+  /// missing). Points at the medium size — new callers should read
+  /// [AppLevelCoinSize.dim] directly with the size they're using.
   static const double dim = 48;
 
   @override
   Widget build(BuildContext context) {
     final effective = band == LevelBand.beginner ? 1 : subLevel;
+    final resolved = size.dim;
     return Image.asset(
       LevelBadgeAssets.coin(band, effective),
-      width: dim,
-      height: dim,
+      width: resolved,
+      height: resolved,
       fit: BoxFit.contain,
     );
   }
+}
+
+enum AppLevelCoinSize {
+  small(32),
+  medium(48);
+
+  const AppLevelCoinSize(this.dim);
+  final double dim;
 }
 
 /// Large presentational badge — hero coin PNG with the band name baked
