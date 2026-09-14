@@ -4,11 +4,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../core/theme/theme.dart';
 import '../../../features/auth/controllers/profile_providers.dart';
 import '../../../features/team/controllers/games_providers.dart';
+import '../../../features/team/ui/widgets/stat_card.dart';
+import '../../../features/team/ui/widgets/team_header.dart';
 import '../../../generated/api/get_games.dart';
 import '../../../generated/api/get_profile.dart' as profile_api;
 import '../../../shared/widgets/app_card.dart';
 import '../../../shared/widgets/app_divider.dart';
-import '../../../shared/widgets/app_profile_header.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/app_refresh_indicator.dart';
 import '../../../shared/widgets/app_text_badge.dart';
@@ -53,7 +54,7 @@ class _TeamBody extends ConsumerWidget {
       child: ListView(
         padding: AppPageInsets.padding,
         children: [
-          _TeamHeader(team: team),
+          TeamHeader(team: team),
           const SizedBox(height: AppSpacing.md),
           _StatsRow(games: games),
           const SizedBox(height: AppSpacing.md),
@@ -73,28 +74,6 @@ class _TeamBody extends ConsumerWidget {
   }
 }
 
-class _TeamHeader extends StatelessWidget {
-  const _TeamHeader({required this.team});
-  final profile_api.Team team;
-
-  @override
-  Widget build(BuildContext context) {
-    // Compose subtitle from age + level tokens (they live on the
-    // team object separately from name; team.name is club identity
-    // only now — e.g., "Rampage" not "Rampage U13 AAA").
-    final subtitleParts = <String>[
-      if ((team.ageGroup ?? '').isNotEmpty) team.ageGroup!,
-      if ((team.levelClassification ?? '').isNotEmpty) team.levelClassification!,
-      // Northern League etc. isn't in the schema yet — placeholder slot
-      // for when it is. Keeping the join here so we can drop the value
-      // in without touching call sites.
-    ];
-    return AppProfileHeader(
-      title: team.name,
-      subtitle: subtitleParts.isEmpty ? null : subtitleParts.join(' · '),
-    );
-  }
-}
 
 class _StatsRow extends StatelessWidget {
   const _StatsRow({required this.games});
@@ -107,9 +86,9 @@ class _StatsRow extends StatelessWidget {
     // standings source.
     return Row(
       children: [
-        Expanded(child: _StatCard(label: 'RECORD', value: record)),
+        Expanded(child: StatCard(label: 'RECORD', value: record)),
         const SizedBox(width: AppSpacing.md),
-        Expanded(child: _StatCard(label: 'RANKING', value: '-')),
+        const Expanded(child: StatCard(label: 'RANKING', value: '-', accent: true)),
       ],
     );
   }
@@ -128,40 +107,6 @@ class _StatsRow extends StatelessWidget {
       }
     }
     return '$w-$l-$t';
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  const _StatCard({required this.label, required this.value});
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final isRanking = label == 'RANKING';
-    return AppCard(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            label,
-            style: AppTypography.boldSmall.copyWith(
-              color: colors.secondaryText,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            value,
-            style: AppTypography.headlineSmall.copyWith(
-              color: isRanking ? colors.secondary : colors.primaryText,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }
 

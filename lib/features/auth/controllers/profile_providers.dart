@@ -9,6 +9,7 @@ import '../../feedback_requests/controllers/feedback_requests_providers.dart';
 import '../../journal/controllers/journal_providers.dart';
 import '../../skills/controllers/skills_providers.dart';
 import '../../team/controllers/games_providers.dart';
+import '../../team/controllers/team_roster_providers.dart';
 import '../data/api_result.dart';
 import '../data/profile_repository.dart';
 
@@ -97,6 +98,7 @@ final profileAuthSyncProvider = Provider<void>((ref) {
           // Nuke all keyed caches — new session may belong to a
           // different user with different data.
           ref.invalidate(gamesProvider);
+          ref.invalidate(teamRosterProvider);
           ref.invalidate(assessmentsProvider);
           ref.invalidate(skillProgressProvider);
           ref.invalidate(skillHistoryProvider);

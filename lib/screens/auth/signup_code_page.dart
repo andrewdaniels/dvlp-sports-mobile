@@ -17,9 +17,8 @@ import '../../shared/widgets/app_screen_footer.dart';
 
 /// First step after tapping "Create Account" on the entry screen.
 ///
-/// Leads with invite code entry (the expected path for most signups
-/// since the platform is invite-driven), with an escape hatch for
-/// users without a code that routes to the type-selection screen.
+/// Invite-only for MVP — no escape hatch for users without a code.
+/// If they don't have one, they can't sign up here.
 class SignupCodePage extends ConsumerStatefulWidget {
   const SignupCodePage({super.key});
 
@@ -91,11 +90,6 @@ class _SignupCodePageState extends ConsumerState<SignupCodePage> {
     }
   }
 
-  void _continueWithoutCode() {
-    HapticFeedback.lightImpact();
-    context.push(RouteNames.signupType);
-  }
-
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
@@ -141,19 +135,6 @@ class _SignupCodePageState extends ConsumerState<SignupCodePage> {
                       ),
                     ],
                     const Spacer(),
-                    Center(
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: _continueWithoutCode,
-                        child: Text(
-                          "I don't have a code",
-                          style: AppTypography.bodyMedium.copyWith(
-                            color: colors.link,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),
