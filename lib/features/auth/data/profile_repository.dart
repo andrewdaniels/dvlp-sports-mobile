@@ -13,11 +13,16 @@ class ProfileRepository {
   ProfileRepository(this._client);
   final SupabaseClient _client;
 
-  /// Fetch the current authenticated user's profile.
-  Future<ApiResult<GetProfileData>> getProfile() {
+  /// Fetch a profile. Defaults to the current authenticated user;
+  /// pass `athleteId` to fetch another athlete (coach flows, family
+  /// flows). Server enforces `coach_can_access_athlete` when
+  /// `athleteId != caller` and returns 403 on unauthorized access.
+  Future<ApiResult<GetProfileData>> getProfile({String? athleteId}) {
     return _invoke<GetProfileData>(
       name: 'get-profile',
-      body: const {},
+      body: {
+        'athlete_id': ?athleteId,
+      },
       fromJson: GetProfileData.fromJson,
     );
   }

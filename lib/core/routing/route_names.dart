@@ -44,6 +44,11 @@ class RouteNames {
   static const coachGameDetails = '/coach/games/details';
   static String coachGameDetailsFor(String gameId) => '$coachGameDetails/$gameId';
 
+  // Coach → Team → Athlete details (roster row + external connection tap).
+  static const coachAthleteDetails = '/coach/team/athlete';
+  static String coachAthleteDetailsFor(String athleteId) =>
+      '$coachAthleteDetails/$athleteId';
+
   // Assessment detail — pushed on the root navigator (over either
   // shell). Split by type so each renders on the right score scale.
   static const feedbackQuick = '/feedback/quick';

@@ -23,6 +23,8 @@ import '../../screens/coach/games/coach_games_page.dart';
 import '../../screens/coach/home/coach_home_page.dart';
 import '../../screens/coach/profile/coach_profile_page.dart';
 import '../../screens/coach/shell/coach_shell.dart';
+import '../../features/team/ui/widgets/coach_athlete_passport_card.dart';
+import '../../screens/coach/team/coach_athlete_details_page.dart';
 import '../../screens/coach/team/coach_team_page.dart';
 import '../../screens/dev/components_page.dart';
 import '../../screens/dev/design_system_page.dart';
@@ -215,6 +217,22 @@ final appRouter = GoRouter(
       path: '${RouteNames.coachGameDetails}/:id',
       builder: (context, state) => CoachGameDetailsPage(
         gameId: state.pathParameters['id']!,
+      ),
+    ),
+
+    // Coach → Team → Athlete details. Pushed on root nav.
+    // `state.extra` is the AthletePassportRanking captured from the
+    // roster / external row that navigated here — lets the passport
+    // card render the coin immediately without an extra fetch. Null
+    // when deep-linked or navigated without a source row.
+    GoRoute(
+      parentNavigatorKey: _rootNavKey,
+      path: '${RouteNames.coachAthleteDetails}/:athleteId',
+      builder: (context, state) => CoachAthleteDetailsPage(
+        athleteId: state.pathParameters['athleteId']!,
+        initialRanking: state.extra is AthletePassportRanking
+            ? state.extra as AthletePassportRanking
+            : null,
       ),
     ),
 

@@ -77,6 +77,52 @@ class CurrentProfileNotifier extends AsyncNotifier<GetProfileData?> {
   }
 }
 
+/// Profile cache for an ARBITRARY athlete — used by coach flows (and
+/// later parent / manager flows) to read someone else's profile.
+///
+/// Keyed by `athleteId` so multiple athletes can be cached
+/// independently (e.g., coach navigating between roster players).
+/// Session-lifetime, no TTL. Invalidated on sign-out via
+/// [profileAuthSyncProvider].
+///
+/// Server-side, get-profile enforces `coach_can_access_athlete` when
+/// the target isn't the caller. A 403 comes back as a Failure that
+/// this provider surfaces as null.
+final athleteProfileProvider =
+    AsyncNotifierProvider.family<AthleteProfileNotifier, GetProfileData?, String>(
+  AthleteProfileNotifier.new,
+);
+
+class AthleteProfileNotifier
+    extends FamilyAsyncNotifier<GetProfileData?, String> {
+  @override
+  Future<GetProfileData?> build(String athleteId) async {
+    final session = SupabaseService.client.auth.currentSession;
+    if (session == null) return null;
+
+    final result = await ref
+        .read(profileRepositoryProvider)
+        .getProfile(athleteId: athleteId);
+    return switch (result) {
+      Success(:final data) => data,
+      Failure() => null,
+    };
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final result = await ref
+          .read(profileRepositoryProvider)
+          .getProfile(athleteId: arg);
+      return switch (result) {
+        Success(:final data) => data,
+        Failure(:final message) => throw Exception(message),
+      };
+    });
+  }
+}
+
 /// Watches auth state; refreshes/clears the profile cache as the user
 /// signs in or out. Consumed once at app startup (see `main.dart` / the
 /// root widget) so it lives for the app's lifetime.
@@ -99,6 +145,7 @@ final profileAuthSyncProvider = Provider<void>((ref) {
           // different user with different data.
           ref.invalidate(gamesProvider);
           ref.invalidate(teamRosterProvider);
+          ref.invalidate(athleteProfileProvider);
           ref.invalidate(assessmentsProvider);
           ref.invalidate(skillProgressProvider);
           ref.invalidate(skillHistoryProvider);
