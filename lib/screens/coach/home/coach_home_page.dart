@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -15,6 +16,7 @@ import '../../../generated/api/get_games.dart';
 import '../../../generated/api/get_profile.dart' as profile_api;
 import '../../../generated/api/get_team_aggregates.dart' as agg_api;
 import '../../../shared/widgets/app_icon.dart';
+import '../../../shared/widgets/app_icon_button.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/app_refresh_indicator.dart';
 
@@ -42,7 +44,23 @@ class CoachHomePage extends ConsumerWidget {
     final profileAsync = ref.watch(currentProfileProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Home')),
+      appBar: AppBar(
+        title: const Text('Home'),
+        actions: [
+          AppIconButton(
+            icon: AppIcons.bell,
+            size: AppIconButtonSize.large,
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              // TODO: notifications screen (shared across coach + athlete
+              // shells once wired). Coach-relevant types today:
+              // assessment_requested_quick when an athlete requests
+              // feedback from this coach.
+            },
+          ),
+          const SizedBox(width: AppSpacing.xs),
+        ],
+      ),
       body: profileAsync.when(
         loading: () => const Center(child: AppLoadingIndicator()),
         error: (_, _) => const SizedBox.shrink(),
