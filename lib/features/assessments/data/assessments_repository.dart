@@ -3,8 +3,11 @@ import 'dart:developer' as developer;
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../generated/api/create_assessment.dart';
 import '../../../generated/api/get_assessment_detail.dart';
+import '../../../generated/api/get_assessment_schema.dart';
 import '../../../generated/api/get_assessments.dart';
+import '../../../generated/api/update_assessment.dart';
 import '../../auth/data/api_result.dart';
 
 /// Wraps assessment-related edge functions. Pure I/O — no caching
@@ -31,6 +34,80 @@ class AssessmentsRepository {
       name: 'get-assessment-detail',
       body: {'assessment_id': assessmentId},
       fromJson: GetAssessmentDetailData.fromJson,
+    );
+  }
+
+  /// Composer schema: skills for the team's sport + the sport's score
+  /// scale. Powers the coach's create-assessment composer for both
+  /// quick and formal (quick ignores score_scale — it's a client-side
+  /// constant of 1–5 stars).
+  Future<ApiResult<GetAssessmentSchemaData>> getAssessmentSchema({
+    required String teamId,
+  }) {
+    return _invoke<GetAssessmentSchemaData>(
+      name: 'get-assessment-schema',
+      body: {'team_id': teamId},
+      fromJson: GetAssessmentSchemaData.fromJson,
+    );
+  }
+
+  /// Coach creates a new assessment (quick or formal).
+  /// - [scores] can be empty for a draft; server rejects submit with
+  ///   no scores.
+  /// - [requestId] is only valid for a submitted quick assessment;
+  ///   server flips the request row to `completed` in the same call.
+  Future<ApiResult<CreateAssessmentData>> createAssessment({
+    required String assessmentType, // 'quick' | 'formal'
+    required String athleteId,
+    required String teamId,
+    required String status, // 'draft' | 'submitted'
+    String? notes,
+    List<({String skillId, num score})> scores = const [],
+    String? requestId,
+  }) {
+    return _invoke<CreateAssessmentData>(
+      name: 'create-assessment',
+      body: {
+        'assessment_type': assessmentType,
+        'athlete_id': athleteId,
+        'team_id': teamId,
+        'status': status,
+        // ignore: use_null_aware_elements
+        if (notes != null) 'notes': notes,
+        'scores': [
+          for (final s in scores) {'skill_id': s.skillId, 'score': s.score},
+        ],
+        // ignore: use_null_aware_elements
+        if (requestId != null) 'request_id': requestId,
+      },
+      fromJson: CreateAssessmentData.fromJson,
+    );
+  }
+
+  /// Author-only edit of an existing assessment. PATCH semantics —
+  /// omit a field to leave it alone. When [scores] is non-null it
+  /// REPLACES the full stored set.
+  Future<ApiResult<UpdateAssessmentData>> updateAssessment({
+    required String assessmentId,
+    String? status, // only 'submitted' is meaningful
+    String? notes,
+    List<({String skillId, num score})>? scores,
+  }) {
+    return _invoke<UpdateAssessmentData>(
+      name: 'update-assessment',
+      body: {
+        'assessment_id': assessmentId,
+        // ignore: use_null_aware_elements
+        if (status != null) 'status': status,
+        // ignore: use_null_aware_elements
+        if (notes != null) 'notes': notes,
+        if (scores != null)
+          'scores': [
+            for (final s in scores)
+              {'skill_id': s.skillId, 'score': s.score},
+          ],
+      },
+      fromJson: UpdateAssessmentData.fromJson,
     );
   }
 

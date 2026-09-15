@@ -3,27 +3,32 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/app_star_rating.dart';
 
-/// One skill row in the quick-feedback detail view.
+/// One skill row in the quick-feedback views.
 ///
 /// Layout:
 ///   [ Skill name          ] · · · [ ★★★☆☆ ]
 ///   [ Skill description   ]
 ///
-/// Quick scores are 1–5 (star scale). When the formal detail page
-/// lands, either extend this widget with a numeric trailing variant or
-/// ship a `NumericSkillScoreRow` sibling — same title/subtitle
-/// structure, different trailing indicator.
+/// Quick scores are 1–5 (star scale). Read-only when [onScoreChanged]
+/// is null; interactive when a callback is passed (composer / edit
+/// mode) — taps forward through to [AppStarRating.onChanged].
 class SkillScoreRow extends StatelessWidget {
   const SkillScoreRow({
     super.key,
     required this.skillName,
     required this.skillDescription,
     required this.score,
+    this.onScoreChanged,
   });
 
   final String skillName;
   final String? skillDescription;
   final int score;
+
+  /// When non-null, the star rating becomes interactive. Value passed
+  /// through unchanged from AppStarRating (respects its tap-same-star
+  /// = clear semantics).
+  final ValueChanged<int>? onScoreChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +57,7 @@ class SkillScoreRow extends StatelessWidget {
           ),
         ),
         const SizedBox(width: AppSpacing.md),
-        AppStarRating(value: score),
+        AppStarRating(value: score, onChanged: onScoreChanged),
       ],
     );
   }

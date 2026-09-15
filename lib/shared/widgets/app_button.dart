@@ -10,6 +10,10 @@ import 'app_icon.dart';
 /// - `primary` — gold gradient CTA (Figma: Primary + Primary state)
 /// - `secondary` — solid `brand.secondary` yellow (Figma: Secondary + Primary state)
 /// - `outline` — transparent bg + 2px `alternate` border
+/// - `alternate` — same 2px `alternate` border as outline, but filled
+///   with the `alternate` token so it reads as a soft "chip" or "unset"
+///   affordance (e.g. an empty score slot). Content color matches
+///   outline (`primaryText`).
 /// - `text` — no bg or border; for tertiary actions (Skip / Cancel / See All / Learn more)
 ///
 /// Sizes: `xs` (30h), `small` (36h), `medium` (48h), `large` (56h). Padding,
@@ -116,6 +120,12 @@ class AppButton extends StatelessWidget {
             border: Border.all(color: colors.alternate, width: 2),
             borderRadius: radius,
           );
+        case AppButtonVariant.alternate:
+          return BoxDecoration(
+            color: colors.alternate,
+            border: Border.all(color: colors.alternate, width: 2),
+            borderRadius: radius,
+          );
         case AppButtonVariant.text:
           return BoxDecoration(borderRadius: radius);
       }
@@ -141,6 +151,12 @@ class AppButton extends StatelessWidget {
           border: Border.all(color: colors.alternate, width: 2),
           borderRadius: radius,
         );
+      case AppButtonVariant.alternate:
+        return BoxDecoration(
+          color: colors.alternate,
+          border: Border.all(color: colors.alternate, width: 2),
+          borderRadius: radius,
+        );
       case AppButtonVariant.text:
         return BoxDecoration(borderRadius: radius);
     }
@@ -155,6 +171,7 @@ class AppButton extends StatelessWidget {
         // Dark text on gold — always dark regardless of mode.
         return colors.persistDark;
       case AppButtonVariant.outline:
+      case AppButtonVariant.alternate:
         return colors.primaryText;
       case AppButtonVariant.text:
         // Text buttons act as inline links (See All / Learn more /
@@ -170,6 +187,7 @@ class AppButton extends StatelessWidget {
         HapticFeedback.mediumImpact();
         break;
       case AppButtonVariant.outline:
+      case AppButtonVariant.alternate:
       case AppButtonVariant.text:
         HapticFeedback.lightImpact();
         break;
@@ -222,7 +240,7 @@ class AppButton extends StatelessWidget {
   }
 }
 
-enum AppButtonVariant { primary, secondary, outline, text }
+enum AppButtonVariant { primary, secondary, outline, alternate, text }
 
 enum AppButtonSize { xs, small, medium, large }
 

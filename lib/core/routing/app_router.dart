@@ -182,6 +182,29 @@ final appRouter = GoRouter(
       builder: (context, state) => const CoachAccountPage(),
     ),
 
+    // Assessment composer — coach creates a NEW assessment. Listed
+    // BEFORE the viewer routes so GoRouter matches `/feedback/*/new/*`
+    // before falling back to the single-segment viewer path.
+    // team_id is a required query param; request_id is optional
+    // (quick only, links a pending assessment_request).
+    GoRoute(
+      parentNavigatorKey: _rootNavKey,
+      path: '${RouteNames.feedbackFormalNew}/:athleteId',
+      builder: (context, state) => FormalFeedbackPage(
+        newForAthleteId: state.pathParameters['athleteId']!,
+        newForTeamId: state.uri.queryParameters['team_id']!,
+      ),
+    ),
+    GoRoute(
+      parentNavigatorKey: _rootNavKey,
+      path: '${RouteNames.feedbackQuickNew}/:athleteId',
+      builder: (context, state) => QuickFeedbackPage(
+        newForAthleteId: state.pathParameters['athleteId']!,
+        newForTeamId: state.uri.queryParameters['team_id']!,
+        requestId: state.uri.queryParameters['request_id'],
+      ),
+    ),
+
     // Assessment detail — pushed on root nav so it covers whichever
     // shell the caller is inside.
     GoRoute(
