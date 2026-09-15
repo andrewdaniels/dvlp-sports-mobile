@@ -82,7 +82,7 @@ class ExternalConnectionRow extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: AppSpacing.xxs),
+                  const SizedBox(height: AppSpacing.xs),
                   _Subtitle(
                     position: a.position?.name,
                     teamLabel: teamLabel,

@@ -26,6 +26,8 @@ import '../../features/assessments/ui/widgets/score_gauge.dart';
 import '../../features/coach_feedback/ui/widgets/cadence_hero_card.dart';
 import '../../features/coach_feedback/ui/widgets/feedback_request_row.dart';
 import '../../features/coach_feedback/ui/widgets/recent_completion_row.dart';
+import '../../features/home/ui/widgets/skill_average_row.dart';
+import '../../features/home/ui/widgets/team_health_hero_card.dart';
 import '../../features/team/ui/widgets/coach_athlete_passport_card.dart';
 import '../../features/team/ui/widgets/external_connection_row.dart';
 import '../../features/team/ui/widgets/game_result_row.dart';
@@ -108,8 +110,13 @@ class ComponentsPage extends StatelessWidget {
           ),
           _ComponentSection(
             name: 'AppLevelCoin',
-            description: 'Small coin PNG with sub-level (I/II/III) baked in. Fixed 72×72. Beginner has only sub-level 1; others accept 1–3.',
+            description: 'Small coin PNG with sub-level (I/II/III) baked in. Beginner has only sub-level 1; others accept 1–3. Three sizes: xsmall (20 · Home skill rows), small (32 · roster/passport), medium (48 · default).',
             child: _AppLevelCoinDemo(),
+          ),
+          _ComponentSection(
+            name: 'AppLevelCoin — sizes',
+            description: 'Same coin at each size, side by side, so the size-vs-usage story is legible. Sub-level 2 across the board.',
+            child: _AppLevelCoinSizesDemo(),
           ),
           _ComponentSection(
             name: 'AppCheckbox',
@@ -190,6 +197,16 @@ class ComponentsPage extends StatelessWidget {
             name: 'CoachAthletePassportCard (features/team)',
             description: 'Passport card for the coach Athlete Details page. Featured+prominent AppCard with avatar + name + team-line + trailing bordered ranking container (AppLevelCoin + band label). Stats row (Age/Height/Weight/Hand/Verified) below. Verified is "-" until wired.',
             child: _CoachAthletePassportCardDemo(),
+          ),
+          _ComponentSection(
+            name: 'TeamHealthHeroCard (features/home)',
+            description: 'Coach Home hero. Featured+prominent AppCard with team crest + name + subtitle, "Current team health" divider, and two stat tiles inside (avg tier with coin, X/Y evaluated). Shows null-tier fallback ("-") when the roster has no scored summaries yet.',
+            child: _TeamHealthHeroCardDemo(),
+          ),
+          _ComponentSection(
+            name: 'SkillAverageRow (features/home)',
+            description: 'Coach Home Team Skill Levels row. Skill name + coin + numeric average + AppScoreBar with pointer. Coin color follows the band the average falls into (same levelBandForPct mapping the ScoreGauge uses).',
+            child: _SkillAverageRowDemo(),
           ),
           _ComponentSection(
             name: 'CadenceHeroCard (features/coach_feedback)',
@@ -767,6 +784,35 @@ class _AppLevelCoinDemo extends StatelessWidget {
             children: [
               for (final n in band == LevelBand.beginner ? const [1] : const [1, 2, 3])
                 _Labeled(label: 'sub $n', child: AppLevelCoin(band: band, subLevel: n)),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+        ],
+      ],
+    );
+  }
+}
+
+class _AppLevelCoinSizesDemo extends StatelessWidget {
+  const _AppLevelCoinSizesDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final band in LevelBand.values) ...[
+          _sectionLabel(context, band.name.toUpperCase()),
+          Wrap(
+            spacing: AppSpacing.md,
+            runSpacing: AppSpacing.md,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              for (final s in AppLevelCoinSize.values)
+                _Labeled(
+                  label: '${s.name} (${s.dim.toInt()})',
+                  child: AppLevelCoin(band: band, subLevel: 2, size: s),
+                ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -1951,6 +1997,59 @@ class _RecentCompletionRowDemo extends StatelessWidget {
           ),
           onTap: () {},
         ),
+      ],
+    );
+  }
+}
+
+class _TeamHealthHeroCardDemo extends StatelessWidget {
+  const _TeamHealthHeroCardDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      children: [
+        TeamHealthHeroCard(
+          teamName: 'Rampage',
+          teamSubtitle: 'U13 AAA · Northern League',
+          avgBand: LevelBand.silver,
+          avgSubLevel: 1,
+          completedCount: 12,
+          totalAthletes: 15,
+        ),
+        SizedBox(height: AppSpacing.md),
+        // Fresh-team fallback: no scored summaries yet.
+        TeamHealthHeroCard(
+          teamName: 'Rampage',
+          teamSubtitle: 'U13 AAA · Northern League',
+          avgBand: null,
+          avgSubLevel: null,
+          completedCount: 0,
+          totalAthletes: 15,
+        ),
+      ],
+    );
+  }
+}
+
+class _SkillAverageRowDemo extends StatelessWidget {
+  const _SkillAverageRowDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SkillAverageRow(skillName: 'Skating', avgScore: 7.3, maxScore: 10),
+        SizedBox(height: AppSpacing.lg),
+        SkillAverageRow(skillName: 'Shooting', avgScore: 8.2, maxScore: 10),
+        SizedBox(height: AppSpacing.lg),
+        SkillAverageRow(skillName: 'Stick Handling', avgScore: 6.0, maxScore: 10),
+        SizedBox(height: AppSpacing.lg),
+        SkillAverageRow(skillName: 'Compete Level', avgScore: 4.0, maxScore: 10),
+        SizedBox(height: AppSpacing.lg),
+        // No scored value yet
+        SkillAverageRow(skillName: 'Hockey IQ', avgScore: null, maxScore: 10),
       ],
     );
   }

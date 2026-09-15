@@ -91,9 +91,17 @@ class SkillRow extends StatelessWidget {
                 const SizedBox(width: AppSpacing.md),
                 _DeltaLabel(delta: skill.delta),
                 const SizedBox(width: AppSpacing.sm),
-                Text(
-                  _formatScore(skill.currentScore),
-                  style: AppTypography.titleMedium.copyWith(color: colors.primaryText),
+                // Fixed-width right-aligned score slot — anchors the
+                // score's right edge so digit-count variance ("5" vs
+                // "7.4" vs "10") doesn't push the chevron around row
+                // to row. Same treatment as SkillAverageRow on Home.
+                SizedBox(
+                  width: _scoreSlotWidth,
+                  child: Text(
+                    _formatScore(skill.currentScore),
+                    textAlign: TextAlign.end,
+                    style: AppTypography.titleMedium.copyWith(color: colors.primaryText),
+                  ),
                 ),
                 const SizedBox(width: AppSpacing.xs),
                 const AppChevronRight(),
@@ -116,6 +124,11 @@ class SkillRow extends StatelessWidget {
     if (v == v.roundToDouble()) return v.toStringAsFixed(0);
     return v.toStringAsFixed(1);
   }
+
+  /// Wide enough for the largest expected value at titleMedium (18/w600):
+  /// "10" plus a hair of headroom. Same width used by SkillAverageRow
+  /// on the Home page so both rows read consistently.
+  static const double _scoreSlotWidth = 32;
 }
 
 class _DeltaLabel extends StatelessWidget {
