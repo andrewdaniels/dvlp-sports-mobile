@@ -11,7 +11,6 @@ import '../../../features/auth/util/profile_format.dart';
 import '../../../generated/api/get_profile.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_card.dart';
-import '../../../shared/widgets/app_chevron_right.dart';
 import '../../../shared/widgets/app_divider.dart';
 import '../../../shared/widgets/app_icon.dart';
 import '../../../shared/widgets/app_icon_button.dart';
@@ -171,15 +170,10 @@ class _CoachInfoCard extends StatelessWidget {
           const AppDivider(),
           _StatRow(label: 'Evaluations Logged', value: '-'),
           const AppDivider(),
-          _StatRow(
-            label: 'Cadence',
-            value: cadenceLabel,
-            onTap: team == null
-                ? null
-                : () {
-                    // TODO: open cadence sheet (edit/change cadence).
-                  },
-          ),
+          // Cadence renders as display-only for now — no chevron. The
+          // edit sheet is deferred; every team is on bi_monthly by
+          // default and the client hasn't asked for per-team overrides.
+          _StatRow(label: 'Cadence', value: cadenceLabel),
         ],
       ),
     );
@@ -256,26 +250,19 @@ class _TeamRow extends StatelessWidget {
   }
 }
 
-/// Plain label + right-aligned value row. Optional [onTap] adds the
-/// chevron + haptic. Mirrors the athlete profile's _ProfileRow so the
-/// two profiles read identically; consider extracting to a shared
+/// Plain label + right-aligned value row. Display-only; mirrors the
+/// athlete profile's _ProfileRow. Consider extracting to a shared
 /// AppInfoRow once a third page needs the same pattern.
 class _StatRow extends StatelessWidget {
-  const _StatRow({
-    required this.label,
-    required this.value,
-    this.onTap,
-  });
+  const _StatRow({required this.label, required this.value});
 
   final String label;
   final String value;
-  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final tappable = onTap != null;
-    final row = Padding(
+    return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.lg,
@@ -295,22 +282,8 @@ class _StatRow extends StatelessWidget {
             style: AppTypography.bodyLarge.copyWith(color: colors.secondaryText),
             textAlign: TextAlign.end,
           ),
-          if (tappable) ...[
-            const SizedBox(width: AppSpacing.xxs),
-            const AppChevronRight(),
-          ],
         ],
       ),
-    );
-
-    if (!tappable) return row;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () {
-        HapticFeedback.lightImpact();
-        onTap!();
-      },
-      child: row,
     );
   }
 }
