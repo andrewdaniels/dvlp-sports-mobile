@@ -33,8 +33,13 @@ import '../../../shared/widgets/app_screen_footer.dart';
 ///   - Feedback History section: reuses AppFeedbackListItem, reads
 ///     assessmentsProvider(athleteId). Same cache the athlete's own
 ///     Passport / My Feedback pages use.
-///   - Yellow featured "Quick Feedback" CTA (stubbed for this branch —
-///     wire the composer sheet on a follow-up).
+///   - Yellow featured "Quick Feedback" CTA → pushes the composer at
+///     `/feedback/quick/new/:athleteId?team_id=<athlete-team-id>`.
+///     The composer submits via `create-assessment`. team_id is the
+///     ATHLETE's current team (not the coach's) so the flow works
+///     for both own-team roster rows AND external connection rows
+///     where the coach isn't on the athlete's team — server auth
+///     resolves via team_coaches OR external_coach_grants.
 ///
 /// Backend enforces coach_can_access_athlete on all three endpoints,
 /// so a coach without an active team_coaches / external_coach_grant
@@ -57,6 +62,13 @@ class CoachAthleteDetailsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(athleteProfileProvider(athleteId));
 
+    // Athlete's current team drives the composer's team_id. Same
+    // source the passport card's team line uses (first membership).
+    // Null while the profile is still loading — button disables until
+    // it resolves so we can't push with a missing param.
+    final memberships = profileAsync.value?.teamMemberships ?? const [];
+    final athleteTeamId = memberships.isEmpty ? null : memberships.first.team.id;
+
     return Scaffold(
       appBar: const AppDetailAppBar(title: 'Athlete Details'),
       body: profileAsync.when(
@@ -74,26 +86,15 @@ class CoachAthleteDetailsPage extends ConsumerWidget {
         primary: AppButton(
           label: 'Quick Feedback',
           variant: AppButtonVariant.primary,
-          onPressed: () {
-            HapticFeedback.lightImpact();
-            // Resolve the coach's team id (same lookup as other coach
-            // surfaces) — required by the composer for score-scale +
-            // authorization. If unavailable, silently no-op; the
-            // button shouldn't render in a coach-less shell.
-            final coachTeamId = ref
-                .read(currentProfileProvider)
-                .value
-                ?.teamMemberships
-                .where((m) => m.coachType != null)
-                .firstOrNull
-                ?.team
-                .id;
-            if (coachTeamId == null) return;
-            context.push(RouteNames.feedbackQuickNewFor(
-              athleteId: athleteId,
-              teamId: coachTeamId,
-            ));
-          },
+          onPressed: athleteTeamId == null
+              ? null
+              : () {
+                  HapticFeedback.lightImpact();
+                  context.push(RouteNames.feedbackQuickNewFor(
+                    athleteId: athleteId,
+                    teamId: athleteTeamId,
+                  ));
+                },
         ),
       ),
     );
