@@ -22,6 +22,9 @@ import '../../shared/widgets/app_score_bar.dart';
 import '../../shared/widgets/app_tab_bar.dart';
 import '../../features/assessments/ui/widgets/app_feedback_list_item.dart';
 import '../../features/assessments/ui/widgets/score_gauge.dart';
+import '../../features/coach_feedback/ui/widgets/cadence_hero_card.dart';
+import '../../features/coach_feedback/ui/widgets/feedback_request_row.dart';
+import '../../features/coach_feedback/ui/widgets/recent_completion_row.dart';
 import '../../features/team/ui/widgets/coach_athlete_passport_card.dart';
 import '../../features/team/ui/widgets/external_connection_row.dart';
 import '../../features/team/ui/widgets/game_result_row.dart';
@@ -31,6 +34,7 @@ import '../../features/team/ui/widgets/team_header.dart';
 import '../../features/team/ui/widgets/todo_row.dart';
 import '../../features/team/ui/widgets/upcoming_game_card.dart';
 import '../../generated/api/get_assessments.dart';
+import '../../generated/api/get_coach_feedback_summary.dart' as feedback_summary;
 import '../../generated/api/get_games.dart';
 import '../../generated/api/get_profile.dart' as profile_api;
 import '../../generated/api/get_team_roster.dart' as roster;
@@ -185,6 +189,21 @@ class ComponentsPage extends StatelessWidget {
             name: 'CoachAthletePassportCard (features/team)',
             description: 'Passport card for the coach Athlete Details page. Featured+prominent AppCard with avatar + name + team-line + trailing bordered ranking container (AppLevelCoin + band label). Stats row (Age/Height/Weight/Hand/Verified) below. Verified is "-" until wired.',
             child: _CoachAthletePassportCardDemo(),
+          ),
+          _ComponentSection(
+            name: 'CadenceHeroCard (features/coach_feedback)',
+            description: 'Coach Feedback hero. Featured+prominent AppCard, count/total headline + cadence label ("this cycle"), progress bar (yellow while pending, green when complete), pending athlete rollup below.',
+            child: _CadenceHeroCardDemo(),
+          ),
+          _ComponentSection(
+            name: 'FeedbackRequestRow (features/coach_feedback)',
+            description: 'Coach Feedback Requests row. Avatar + name + "Submitted Xd ago" + chevron. Consumes one entry from quick_feedback_requests[].',
+            child: _FeedbackRequestRowDemo(),
+          ),
+          _ComponentSection(
+            name: 'RecentCompletionRow (features/coach_feedback)',
+            description: 'Coach Feedback Completed row. Avatar + name + "Completed Xd ago" + chevron. Assessment type carried on the entry drives which detail route is opened on tap.',
+            child: _RecentCompletionRowDemo(),
           ),
           _ComponentSection(
             name: 'ScoreGauge (features/assessments)',
@@ -1786,6 +1805,119 @@ class _CoachAthletePassportCardDemo extends StatelessWidget {
         band: LevelBand.silver,
         subLevel: 1,
       ),
+    );
+  }
+}
+
+class _CadenceHeroCardDemo extends StatelessWidget {
+  const _CadenceHeroCardDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    final period = feedback_summary.Period(
+      cadence: feedback_summary.Cadence.BI_MONTHLY,
+      startIso: '2026-09-01T00:00:00.000Z',
+      endIso: '2026-11-01T00:00:00.000Z',
+      label: 'this cycle',
+    );
+    return Column(
+      children: [
+        feedback_summary.FormalCadence(
+          period: period,
+          totalAthletes: 15,
+          completedCount: 12,
+          pendingAthletes: [
+            _pending('Marcus', 'Thompson'),
+            _pending('Alex', 'Kim'),
+            _pending('Ethan', 'Callahan'),
+          ],
+        ),
+        feedback_summary.FormalCadence(
+          period: period,
+          totalAthletes: 15,
+          completedCount: 15,
+          pendingAthletes: const [],
+        ),
+      ]
+          .map((c) => Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                child: CadenceHeroCard(cadence: c),
+              ))
+          .toList(),
+    );
+  }
+
+  static feedback_summary.PendingAthlete _pending(String first, String last) =>
+      feedback_summary.PendingAthlete(
+        athlete: feedback_summary.PendingAthleteAthlete(
+          id: '00000000-0000-0000-0000-000000000000',
+          firstName: first,
+          lastName: last,
+          avatarUrl: null,
+        ),
+      );
+}
+
+class _FeedbackRequestRowDemo extends StatelessWidget {
+  const _FeedbackRequestRowDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    final entry = feedback_summary.QuickFeedbackRequest(
+      requestId: '00000000-0000-0000-0000-000000000000',
+      requestedAt:
+          DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
+      athlete: feedback_summary.QuickFeedbackRequestAthlete(
+        id: '00000000-0000-0000-0000-000000000000',
+        firstName: 'Alex',
+        lastName: 'Kim',
+        avatarUrl: null,
+      ),
+    );
+    return FeedbackRequestRow(entry: entry, onTap: () {});
+  }
+}
+
+class _RecentCompletionRowDemo extends StatelessWidget {
+  const _RecentCompletionRowDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    return Column(
+      children: [
+        RecentCompletionRow(
+          entry: feedback_summary.RecentCompleted(
+            assessmentId: '00000000-0000-0000-0000-000000000000',
+            assessmentType: feedback_summary.AssessmentType.QUICK,
+            submittedAt:
+                now.subtract(const Duration(hours: 3)).toIso8601String(),
+            athlete: feedback_summary.RecentCompletedAthlete(
+              id: '00000000-0000-0000-0000-000000000000',
+              firstName: 'Marcus',
+              lastName: 'Thompson',
+              avatarUrl: null,
+            ),
+          ),
+          onTap: () {},
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        RecentCompletionRow(
+          entry: feedback_summary.RecentCompleted(
+            assessmentId: '00000000-0000-0000-0000-000000000000',
+            assessmentType: feedback_summary.AssessmentType.FORMAL,
+            submittedAt:
+                now.subtract(const Duration(days: 2)).toIso8601String(),
+            athlete: feedback_summary.RecentCompletedAthlete(
+              id: '00000000-0000-0000-0000-000000000000',
+              firstName: 'Ethan',
+              lastName: 'Callahan',
+              avatarUrl: null,
+            ),
+          ),
+          onTap: () {},
+        ),
+      ],
     );
   }
 }

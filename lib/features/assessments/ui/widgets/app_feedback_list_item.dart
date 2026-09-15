@@ -6,6 +6,7 @@ import '../../../../generated/api/get_assessments.dart';
 import '../../../../shared/widgets/app_avatar.dart';
 import '../../../../shared/widgets/app_card.dart';
 import '../../../../shared/widgets/app_chevron_right.dart';
+import '../../../../shared/util/time_ago.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import '../../../../shared/widgets/app_icon_indicator.dart';
 
@@ -43,7 +44,7 @@ class AppFeedbackListItem extends StatelessWidget {
     final colors = context.colors;
     final coachName = 'Coach ${assessment.coach.firstName}';
     final coachRole = _coachRoleLine(assessment);
-    final timeAgo = _timeAgo(assessment.submittedAt);
+    final timeAgo = formatTimeAgo(assessment.submittedAt);
     final isQuick = assessment.assessmentType == AssessmentType.QUICK;
     final indicatorIcon = isQuick ? AppIcons.star : AppIcons.award;
     final indicatorColor = isQuick ? colors.secondary : colors.success;
@@ -168,20 +169,5 @@ class AppFeedbackListItem extends StatelessWidget {
             (a.team.levelClassification?.name ?? '').trim(),
           ].where((s) => s.isNotEmpty).join(' ');
     return suffix.isEmpty ? role : '$role · $suffix';
-  }
-
-  /// Coarse relative time ("just now" / "5m ago" / "3d ago" / ...) —
-  /// good enough for a feed row.
-  static String _timeAgo(String iso) {
-    final dt = DateTime.tryParse(iso);
-    if (dt == null) return '';
-    final diff = DateTime.now().difference(dt.toLocal());
-    if (diff.inMinutes < 1) return 'just now';
-    if (diff.inHours < 1) return '${diff.inMinutes}m ago';
-    if (diff.inDays < 1) return '${diff.inHours}h ago';
-    if (diff.inDays < 7) return '${diff.inDays}d ago';
-    if (diff.inDays < 30) return '${diff.inDays ~/ 7}w ago';
-    if (diff.inDays < 365) return '${diff.inDays ~/ 30}mo ago';
-    return '${diff.inDays ~/ 365}y ago';
   }
 }

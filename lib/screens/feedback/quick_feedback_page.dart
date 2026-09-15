@@ -2,17 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import '../../../core/theme/theme.dart';
-import '../../../features/assessments/controllers/assessments_providers.dart';
-import '../../../features/assessments/ui/widgets/skill_score_row.dart';
-import '../../../generated/api/get_assessment_detail.dart' as detail_api;
-import '../../../shared/widgets/app_audio_note.dart';
-import '../../../shared/widgets/app_avatar.dart';
-import '../../../shared/widgets/app_detail_app_bar.dart';
-import '../../../shared/widgets/app_icon.dart';
-import '../../../shared/widgets/app_icon_button.dart';
-import '../../../shared/widgets/app_loading_indicator.dart';
-import '../../../shared/widgets/app_refresh_indicator.dart';
+import '../../core/theme/theme.dart';
+import '../../features/assessments/controllers/assessments_providers.dart';
+import '../../features/assessments/ui/widgets/skill_score_row.dart';
+import '../../generated/api/get_assessment_detail.dart' as detail_api;
+import '../../shared/widgets/app_audio_note.dart';
+import '../../shared/widgets/app_avatar.dart';
+import '../../shared/widgets/app_detail_app_bar.dart';
+import '../../shared/widgets/app_icon.dart';
+import '../../shared/widgets/app_icon_button.dart';
+import '../../shared/widgets/app_loading_indicator.dart';
+import '../../shared/widgets/app_refresh_indicator.dart';
 
 /// Detail view for a submitted quick assessment.
 ///

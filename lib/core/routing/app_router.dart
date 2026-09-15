@@ -3,9 +3,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../screens/account_settings/account_settings_page.dart';
 import '../../screens/athlete/dvlp/dvlp_page.dart';
-import '../../screens/athlete/feedback/formal_assessment_page.dart';
 import '../../screens/athlete/feedback/my_feedback_page.dart';
-import '../../screens/athlete/feedback/quick_feedback_page.dart';
+import '../../screens/feedback/formal_feedback_page.dart';
+import '../../screens/feedback/quick_feedback_page.dart';
 import '../../screens/athlete/journal/journal_page.dart';
 import '../../screens/athlete/passport/passport_page.dart';
 import '../../screens/athlete/profile/profile_page.dart';
@@ -194,7 +194,7 @@ final appRouter = GoRouter(
     GoRoute(
       parentNavigatorKey: _rootNavKey,
       path: '${RouteNames.feedbackFormal}/:id',
-      builder: (context, state) => FormalAssessmentPage(
+      builder: (context, state) => FormalFeedbackPage(
         assessmentId: state.pathParameters['id']!,
       ),
     ),
