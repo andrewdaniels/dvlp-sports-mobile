@@ -9,6 +9,7 @@ import '../../../generated/api/get_coach_feedback_summary.dart' as summary_api;
 import '../../../generated/api/update_assessment.dart' as update_api;
 import '../../auth/data/api_result.dart';
 import '../../coach_feedback/controllers/coach_feedback_providers.dart';
+import '../../home/controllers/coach_home_providers.dart';
 import '../data/assessments_repository.dart';
 
 final assessmentsRepositoryProvider = Provider<AssessmentsRepository>((ref) {
@@ -283,6 +284,11 @@ class AssessmentActions {
       // fresh fetch on next visit is acceptable and keeps the code
       // simpler than reconstructing the full Assessment shape locally.
       _ref.invalidate(assessmentsProvider(athleteId));
+      // Home team aggregates shift on every new assessment (avg tier
+      // + per-skill averages both move). Invalidate the whole family
+      // so any cached team's aggregates refetch on next watch — only
+      // costs a re-fetch when the coach navigates back to Home.
+      _ref.invalidate(teamAggregatesProvider);
     }
     return result;
   }
@@ -324,6 +330,9 @@ class AssessmentActions {
       // later surface total_score on the row we'll add a patch method
       // and drop this invalidate.
       _ref.invalidate(coachFeedbackSummaryProvider);
+      // An edit changes at least one skill score → team's aggregate
+      // shifts. Same family-wide invalidate as create.
+      _ref.invalidate(teamAggregatesProvider);
     }
     return result;
   }

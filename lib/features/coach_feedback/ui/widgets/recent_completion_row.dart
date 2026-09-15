@@ -75,7 +75,7 @@ class RecentCompletionRow extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: AppSpacing.xxs),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     subtitle,
                     style: AppTypography.labelSmall.copyWith(color: colors.secondaryText),

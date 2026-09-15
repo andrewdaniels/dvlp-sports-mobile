@@ -77,7 +77,7 @@ class RosterRow extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   if (subtitle.isNotEmpty) ...[
-                    const SizedBox(height: AppSpacing.xxs),
+                    const SizedBox(height: AppSpacing.xs),
                     Text(
                       subtitle,
                       style: AppTypography.labelSmall.copyWith(color: colors.secondaryText),

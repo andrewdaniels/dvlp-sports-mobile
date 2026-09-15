@@ -74,7 +74,7 @@ class TodoRow extends StatelessWidget {
                     title,
                     style: AppTypography.boldLarge.copyWith(color: colors.primaryText),
                   ),
-                  const SizedBox(height: AppSpacing.xxs),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     subtitle,
                     style: AppTypography.labelSmall.copyWith(color: colors.secondaryText),

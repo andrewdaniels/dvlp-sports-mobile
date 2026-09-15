@@ -7,6 +7,7 @@ import '../../../generated/api/get_profile.dart';
 import '../../assessments/controllers/assessments_providers.dart';
 import '../../coach_feedback/controllers/coach_feedback_providers.dart';
 import '../../feedback_requests/controllers/feedback_requests_providers.dart';
+import '../../home/controllers/coach_home_providers.dart';
 import '../../journal/controllers/journal_providers.dart';
 import '../../skills/controllers/skills_providers.dart';
 import '../../team/controllers/games_providers.dart';
@@ -154,6 +155,7 @@ final profileAuthSyncProvider = Provider<void>((ref) {
           ref.invalidate(coachesProvider);
           ref.invalidate(coachFeedbackSummaryProvider);
           ref.invalidate(composerSchemaProvider);
+          ref.invalidate(teamAggregatesProvider);
         default:
           break;
       }

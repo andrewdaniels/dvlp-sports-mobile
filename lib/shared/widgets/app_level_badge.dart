@@ -82,6 +82,7 @@ class AppLevelCoin extends StatelessWidget {
 }
 
 enum AppLevelCoinSize {
+  xsmall(20),
   small(32),
   medium(48);
 
