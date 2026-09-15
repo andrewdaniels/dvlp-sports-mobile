@@ -312,6 +312,7 @@ class Team {
     final String id;
     final String? levelClassification;
     final String name;
+    final int? ranking;
 
     Team({
         required this.ageGroup,
@@ -319,6 +320,7 @@ class Team {
         required this.id,
         required this.levelClassification,
         required this.name,
+        required this.ranking,
     });
 
     Team copyWith({
@@ -327,6 +329,7 @@ class Team {
         String? id,
         String? levelClassification,
         String? name,
+        int? ranking,
     }) => 
         Team(
             ageGroup: ageGroup ?? this.ageGroup,
@@ -334,6 +337,7 @@ class Team {
             id: id ?? this.id,
             levelClassification: levelClassification ?? this.levelClassification,
             name: name ?? this.name,
+            ranking: ranking ?? this.ranking,
         );
 
     factory Team.fromJson(Map<String, dynamic> json) => Team(
@@ -342,6 +346,7 @@ class Team {
         id: json["id"],
         levelClassification: json["level_classification"],
         name: json["name"],
+        ranking: json["ranking"],
     );
 
     Map<String, dynamic> toJson() => {
@@ -350,6 +355,7 @@ class Team {
         "id": id,
         "level_classification": levelClassification,
         "name": name,
+        "ranking": ranking,
     };
 }
 

@@ -176,14 +176,17 @@ class _Body extends ConsumerWidget {
   }
 
   static List<Game> _pendingReports(List<Game> games) {
-    // Matches the coach Games page rule: a game with scores set but
-    // no coach note is a pending post-game report.
-    return games
-        .where((g) =>
-            g.teamScore != null &&
-            g.opponentScore != null &&
-            (g.note ?? '').isEmpty)
-        .toList();
+    // Matches the coach Games page rule: a game that started in the
+    // past AND doesn't yet have both scores set is pending. Notes
+    // are optional (per client spec) so an empty note alone doesn't
+    // count as pending.
+    final now = DateTime.now();
+    return games.where((g) {
+      final scored = g.teamScore != null && g.opponentScore != null;
+      if (scored) return false;
+      final startsAt = DateTime.tryParse(g.startsAt);
+      return startsAt != null && !startsAt.isAfter(now);
+    }).toList();
   }
 
   static String _composeTeamSubtitle(profile_api.Team team) {

@@ -48,6 +48,7 @@ class Game {
     final String? noteCoachId;
     final String opponentName;
     final int? opponentScore;
+    final List<String> standoutAthleteIds;
     final String startsAt;
     final String teamId;
     final int? teamScore;
@@ -60,6 +61,7 @@ class Game {
         required this.noteCoachId,
         required this.opponentName,
         required this.opponentScore,
+        required this.standoutAthleteIds,
         required this.startsAt,
         required this.teamId,
         required this.teamScore,
@@ -73,6 +75,7 @@ class Game {
         String? noteCoachId,
         String? opponentName,
         int? opponentScore,
+        List<String>? standoutAthleteIds,
         String? startsAt,
         String? teamId,
         int? teamScore,
@@ -85,6 +88,7 @@ class Game {
             noteCoachId: noteCoachId ?? this.noteCoachId,
             opponentName: opponentName ?? this.opponentName,
             opponentScore: opponentScore ?? this.opponentScore,
+            standoutAthleteIds: standoutAthleteIds ?? this.standoutAthleteIds,
             startsAt: startsAt ?? this.startsAt,
             teamId: teamId ?? this.teamId,
             teamScore: teamScore ?? this.teamScore,
@@ -98,6 +102,7 @@ class Game {
         noteCoachId: json["note_coach_id"],
         opponentName: json["opponent_name"],
         opponentScore: json["opponent_score"],
+        standoutAthleteIds: List<String>.from(json["standout_athlete_ids"].map((x) => x)),
         startsAt: json["starts_at"],
         teamId: json["team_id"],
         teamScore: json["team_score"],
@@ -111,6 +116,7 @@ class Game {
         "note_coach_id": noteCoachId,
         "opponent_name": opponentName,
         "opponent_score": opponentScore,
+        "standout_athlete_ids": List<dynamic>.from(standoutAthleteIds.map((x) => x)),
         "starts_at": startsAt,
         "team_id": teamId,
         "team_score": teamScore,
@@ -121,12 +127,14 @@ class UpdateGameRequest {
     final String gameId;
     final String? note;
     final int? opponentScore;
+    final List<String>? standoutAthleteIds;
     final int? teamScore;
 
     UpdateGameRequest({
         required this.gameId,
         this.note,
         this.opponentScore,
+        this.standoutAthleteIds,
         this.teamScore,
     });
 
@@ -134,12 +142,14 @@ class UpdateGameRequest {
         String? gameId,
         String? note,
         int? opponentScore,
+        List<String>? standoutAthleteIds,
         int? teamScore,
     }) => 
         UpdateGameRequest(
             gameId: gameId ?? this.gameId,
             note: note ?? this.note,
             opponentScore: opponentScore ?? this.opponentScore,
+            standoutAthleteIds: standoutAthleteIds ?? this.standoutAthleteIds,
             teamScore: teamScore ?? this.teamScore,
         );
 
@@ -147,6 +157,7 @@ class UpdateGameRequest {
         gameId: json["game_id"],
         note: json["note"],
         opponentScore: json["opponent_score"],
+        standoutAthleteIds: json["standout_athlete_ids"] == null ? [] : List<String>.from(json["standout_athlete_ids"]!.map((x) => x)),
         teamScore: json["team_score"],
     );
 
@@ -154,6 +165,7 @@ class UpdateGameRequest {
         "game_id": gameId,
         "note": note,
         "opponent_score": opponentScore,
+        "standout_athlete_ids": standoutAthleteIds == null ? [] : List<dynamic>.from(standoutAthleteIds!.map((x) => x)),
         "team_score": teamScore,
     };
 }

@@ -36,11 +36,18 @@ class GamesRepository {
     Object? teamScore = absent,
     Object? opponentScore = absent,
     Object? note = absent,
+    // Standouts follow the same absent-vs-passed pattern. Pass a list
+    // (even empty) to REPLACE the full set for this game; omit to
+    // leave existing rows untouched.
+    Object? standoutAthleteIds = absent,
   }) {
     final body = <String, dynamic>{'game_id': gameId};
     if (!identical(teamScore, absent)) body['team_score'] = teamScore;
     if (!identical(opponentScore, absent)) body['opponent_score'] = opponentScore;
     if (!identical(note, absent)) body['note'] = note;
+    if (!identical(standoutAthleteIds, absent)) {
+      body['standout_athlete_ids'] = standoutAthleteIds;
+    }
     return _invoke<UpdateGameData>(
       name: 'update-game',
       body: body,

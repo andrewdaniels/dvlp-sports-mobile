@@ -1567,6 +1567,7 @@ class _UpcomingGameCardDemo extends StatelessWidget {
       opponentScore: null,
       note: null,
       noteCoachId: null,
+      standoutAthleteIds: const [],
     );
   }
 }
@@ -1607,6 +1608,7 @@ class _GameResultRowDemo extends StatelessWidget {
       opponentScore: opp,
       note: null,
       noteCoachId: null,
+      standoutAthleteIds: const [],
     );
   }
 }
@@ -1623,6 +1625,7 @@ class _TeamHeaderDemo extends StatelessWidget {
         ageGroup: 'U13',
         levelClassification: 'AAA',
         assessmentCadence: profile_api.AssessmentCadence.MONTHLY,
+        ranking: 3,
       ),
     );
   }
@@ -1848,6 +1851,7 @@ class _CoachAthletePassportCardDemo extends StatelessWidget {
             ageGroup: 'U13',
             levelClassification: 'AAA',
             assessmentCadence: profile_api.AssessmentCadence.MONTHLY,
+            ranking: 3,
           ),
         ),
       ],

@@ -62,6 +62,12 @@ class _CoachGamesBody extends ConsumerWidget {
     final games = gamesAsync.value?.games ?? const <Game>[];
 
     // Client-side derivations. Games arrive `starts_at` DESC.
+    //
+    // "Pending post-game report" = the game has already been played
+    // and the coach hasn't entered a score yet. Notes are optional
+    // (per client spec) so an unmarked note doesn't trigger the
+    // to-do. Once scores are set, the report is done regardless of
+    // note / standout state.
     final now = DateTime.now();
     final pendingReports = <Game>[];
     final upcoming = <Game>[];
@@ -70,11 +76,15 @@ class _CoachGamesBody extends ConsumerWidget {
       final scored = g.teamScore != null && g.opponentScore != null;
       if (scored) {
         results.add(g);
-        if ((g.note ?? '').isEmpty) pendingReports.add(g);
         continue;
       }
       final startsAt = DateTime.tryParse(g.startsAt);
-      if (startsAt != null && startsAt.isAfter(now)) upcoming.add(g);
+      if (startsAt == null) continue;
+      if (startsAt.isAfter(now)) {
+        upcoming.add(g);
+      } else {
+        pendingReports.add(g);
+      }
     }
     // Upcoming should read ASC (soonest first); games arrive DESC.
     upcoming.sort((a, b) => a.startsAt.compareTo(b.startsAt));

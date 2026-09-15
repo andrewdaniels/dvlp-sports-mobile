@@ -20,8 +20,8 @@ import '../../../shared/widgets/app_refresh_indicator.dart';
 
 /// Coach Team tab.
 ///   - Hero: TeamHeader (team crest + name + subtitle).
-///   - Stats row: RECORD (from games) + RANKING (placeholder '-'
-///     until we have a standings source).
+///   - Stats row: RECORD (from games) + RANKING (team.ranking from
+///     get-profile; renders "-" when null — no standings for this team).
 ///   - Roster: RosterRows from get-team-roster, each with the
 ///     athlete's ranking coin at their team's level.
 ///   - External Connections: deferred (needs a backend endpoint —
@@ -85,7 +85,7 @@ class _CoachTeamBody extends ConsumerWidget {
         children: [
           TeamHeader(team: team),
           const SizedBox(height: AppSpacing.md),
-          _StatsRow(games: games),
+          _StatsRow(games: games, ranking: team.ranking),
           const SizedBox(height: AppSpacing.lg),
           _SectionHeader(label: 'Roster'),
           const SizedBox(height: AppSpacing.sm),
@@ -135,8 +135,9 @@ class _CoachTeamBody extends ConsumerWidget {
 }
 
 class _StatsRow extends StatelessWidget {
-  const _StatsRow({required this.games});
+  const _StatsRow({required this.games, required this.ranking});
   final List<Game> games;
+  final int? ranking;
 
   @override
   Widget build(BuildContext context) {
@@ -145,7 +146,13 @@ class _StatsRow extends StatelessWidget {
       children: [
         Expanded(child: StatCard(label: 'RECORD', value: record)),
         const SizedBox(width: AppSpacing.md),
-        const Expanded(child: StatCard(label: 'RANKING', value: '-', accent: true)),
+        Expanded(
+          child: StatCard(
+            label: 'RANKING',
+            value: ranking == null ? '-' : '#$ranking',
+            accent: true,
+          ),
+        ),
       ],
     );
   }
