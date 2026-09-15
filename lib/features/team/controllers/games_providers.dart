@@ -75,6 +75,7 @@ class GamesNotifier extends FamilyAsyncNotifier<GetGamesData?, String> {
         opponentScore: g.opponentScore,
         note: g.note,
         noteCoachId: g.noteCoachId,
+        standoutAthleteIds: g.standoutAthleteIds,
       );
 
   /// Force a network refetch (pull-to-refresh or after external changes).

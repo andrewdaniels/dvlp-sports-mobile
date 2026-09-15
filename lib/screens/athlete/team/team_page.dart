@@ -56,7 +56,7 @@ class _TeamBody extends ConsumerWidget {
         children: [
           TeamHeader(team: team),
           const SizedBox(height: AppSpacing.md),
-          _StatsRow(games: games),
+          _StatsRow(games: games, ranking: team.ranking),
           const SizedBox(height: AppSpacing.md),
           _NextGameCard(games: games),
           if (recap != null) ...[
@@ -76,19 +76,24 @@ class _TeamBody extends ConsumerWidget {
 
 
 class _StatsRow extends StatelessWidget {
-  const _StatsRow({required this.games});
+  const _StatsRow({required this.games, required this.ranking});
   final List<Game> games;
+  final int? ranking;
 
   @override
   Widget build(BuildContext context) {
     final record = _computeRecord(games);
-    // Ranking isn't in the schema yet — placeholder until we have a
-    // standings source.
     return Row(
       children: [
         Expanded(child: StatCard(label: 'RECORD', value: record)),
         const SizedBox(width: AppSpacing.md),
-        const Expanded(child: StatCard(label: 'RANKING', value: '-', accent: true)),
+        Expanded(
+          child: StatCard(
+            label: 'RANKING',
+            value: ranking == null ? '-' : '#$ranking',
+            accent: true,
+          ),
+        ),
       ],
     );
   }

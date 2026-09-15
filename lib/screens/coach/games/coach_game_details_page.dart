@@ -7,7 +7,9 @@ import '../../../core/theme/theme.dart';
 import '../../../features/auth/controllers/profile_providers.dart';
 import '../../../features/auth/data/api_result.dart';
 import '../../../features/team/controllers/games_providers.dart';
+import '../../../features/team/controllers/team_roster_providers.dart';
 import '../../../features/team/data/games_repository.dart';
+import '../../../features/team/ui/sheets/athlete_selection_sheet.dart';
 import '../../../generated/api/get_games.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_card.dart';
@@ -20,12 +22,14 @@ import '../../../shared/widgets/keyboard_dismissible.dart';
 
 /// Coach-side game detail. Two modes based on the game's state:
 ///
-///   • Completed (has scores) → composer: editable score row + notes +
-///     Publish/Update Report CTA. Publish/Update wording flips based on
-///     whether `note` is already populated.
-///   • Upcoming (no scores, starts_at > now) → read-only preview with
-///     an "Upcoming" indicator; no CTA (editing scheduled games is a
-///     web-app feature per client roadmap).
+///   • Played (scores set OR starts_at in past) → composer: editable
+///     score row + optional notes + Publish/Update Report CTA. Past-
+///     but-unscored games land here so the coach can fill in the
+///     result. Publish/Update wording flips based on whether `note`
+///     is already populated.
+///   • Upcoming (no scores AND starts_at > now) → read-only preview
+///     with an "Upcoming" indicator; no CTA (editing scheduled games
+///     is a web-app feature per client roadmap).
 ///
 /// Save flow follows the journal pattern (pessimistic): await server,
 /// then targeted local mutation via [GamesNotifier.replaceGame] + pop.
@@ -94,14 +98,23 @@ class _GameDetailsScaffold extends ConsumerWidget {
       );
     }
 
-    final isCompleted = game.teamScore != null && game.opponentScore != null;
+    // A game is ready for the composer once it's been played —
+    // either scores are already set (edit an existing report) OR
+    // the start time is in the past (enter scores for the first
+    // time). Only truly future unscored games render the read-only
+    // "upcoming" preview.
+    final scored = game.teamScore != null && game.opponentScore != null;
+    final startsAt = DateTime.tryParse(game.startsAt);
+    final startedInPast =
+        startsAt != null && !startsAt.isAfter(DateTime.now());
+    final showComposer = scored || startedInPast;
 
     return Scaffold(
       appBar: AppDetailAppBar(
         title: _titleFor(game, teamName),
         subtitle: _subtitleFor(game),
       ),
-      body: isCompleted
+      body: showComposer
           ? _ReportComposer(game: game, teamId: teamId, teamName: teamName)
           : _UpcomingPreview(game: game, teamName: teamName),
     );
@@ -150,6 +163,15 @@ class _ReportComposerState extends ConsumerState<_ReportComposer> {
   late final int? _initialTeamScore;
   late final int? _initialOpponentScore;
   late final String _initialNote;
+  late final Set<String> _initialStandouts;
+
+  /// Live standouts selection. Sets rather than lists — order doesn't
+  /// matter for the server (unranked) and lookup is faster.
+  late Set<String> _standoutIds;
+
+  /// Hard cap matches the design; server has no cap enforcement.
+  /// Bump here if the client wants more.
+  static const int _standoutsCap = 3;
 
   bool _saving = false;
   String? _error;
@@ -160,6 +182,8 @@ class _ReportComposerState extends ConsumerState<_ReportComposer> {
     _initialTeamScore = widget.game.teamScore;
     _initialOpponentScore = widget.game.opponentScore;
     _initialNote = widget.game.note ?? '';
+    _initialStandouts = widget.game.standoutAthleteIds.toSet();
+    _standoutIds = {..._initialStandouts};
     _teamScoreCtrl = TextEditingController(text: _initialTeamScore?.toString() ?? '');
     _opponentScoreCtrl = TextEditingController(text: _initialOpponentScore?.toString() ?? '');
     _noteCtrl = TextEditingController(text: _initialNote);
@@ -189,9 +213,75 @@ class _ReportComposerState extends ConsumerState<_ReportComposer> {
   bool get _teamScoreDirty => _currentTeamScore != _initialTeamScore;
   bool get _opponentScoreDirty => _currentOpponentScore != _initialOpponentScore;
   bool get _noteDirty => _currentNote.trim() != _initialNote.trim();
-  bool get _anyDirty => _teamScoreDirty || _opponentScoreDirty || _noteDirty;
+  bool get _standoutsDirty =>
+      _standoutIds.length != _initialStandouts.length ||
+      !_standoutIds.containsAll(_initialStandouts);
+  bool get _anyDirty =>
+      _teamScoreDirty || _opponentScoreDirty || _noteDirty || _standoutsDirty;
 
-  bool get _hasExistingNote => _initialNote.trim().isNotEmpty;
+  /// A report is "published" once the score is set. Note + standouts
+  /// are optional, so their presence doesn't affect the CTA label —
+  /// scoring is the publish action; everything else is enrichment.
+  bool get _hasExistingReport =>
+      _initialTeamScore != null && _initialOpponentScore != null;
+
+  /// Opens the athlete picker sheet with the current roster + selection.
+  /// Falls back to a small message if the roster hasn't loaded yet.
+  Future<void> _openStandoutsSheet() async {
+    final roster = ref.read(teamRosterProvider(widget.teamId)).value?.roster;
+    if (roster == null || roster.isEmpty) {
+      // No roster yet — either still loading or fetch failed. Silent
+      // no-op; the trigger is visible either way. Coach can retry.
+      return;
+    }
+    final items = [
+      for (final r in roster)
+        AthletePickerItem(
+          id: r.athlete.id,
+          firstName: r.athlete.firstName,
+          lastName: r.athlete.lastName,
+          avatarUrl: r.athlete.avatarUrl,
+        ),
+    ];
+    final picked = await showAthleteSelectionSheet(
+      context: context,
+      title: 'Stand-out Performers',
+      subtitle: 'Pick up to $_standoutsCap',
+      athletes: items,
+      initiallySelected: _standoutIds,
+      maxSelectable: _standoutsCap,
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _standoutIds = picked.toSet();
+    });
+  }
+
+  /// Human-readable summary of the current selection for the trigger's
+  /// value slot. Renders as first-initial-last-name comma list up to 2
+  /// names + "+N more" tail (matches the To-Do row style on Home).
+  String? _standoutsTriggerValue() {
+    if (_standoutIds.isEmpty) return null;
+    final roster = ref.read(teamRosterProvider(widget.teamId)).value?.roster;
+    if (roster == null) return '${_standoutIds.length} selected';
+    final selected = <String>[];
+    for (final r in roster) {
+      if (_standoutIds.contains(r.athlete.id)) {
+        selected.add(_formatShortName(r.athlete.firstName, r.athlete.lastName));
+      }
+    }
+    if (selected.isEmpty) return '${_standoutIds.length} selected';
+    if (selected.length <= 2) return selected.join(', ');
+    return '${selected.take(2).join(', ')} +${selected.length - 2} more';
+  }
+
+  static String _formatShortName(String first, String last) {
+    final f = first.trim();
+    final l = last.trim();
+    if (f.isEmpty) return l;
+    if (l.isEmpty) return f;
+    return '${f[0].toUpperCase()}. $l';
+  }
 
   Future<void> _publish() async {
     if (_saving || !_anyDirty) return;
@@ -216,6 +306,9 @@ class _ReportComposerState extends ConsumerState<_ReportComposer> {
           teamScore: _teamScoreDirty ? _currentTeamScore : GamesRepository.absent,
           opponentScore: _opponentScoreDirty ? _currentOpponentScore : GamesRepository.absent,
           note: _noteDirty ? _currentNote.trim() : GamesRepository.absent,
+          standoutAthleteIds: _standoutsDirty
+              ? _standoutIds.toList()
+              : GamesRepository.absent,
         );
 
     if (!mounted) return;
@@ -235,7 +328,7 @@ class _ReportComposerState extends ConsumerState<_ReportComposer> {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final ctaLabel = _hasExistingNote ? 'Update Report' : 'Publish Report';
+    final ctaLabel = _hasExistingReport ? 'Update Report' : 'Publish Report';
 
     // Body Column pattern (matches auth pages): scrollable content in
     // Expanded, AppScreenFooter as sibling below. Avoids the
@@ -265,12 +358,10 @@ class _ReportComposerState extends ConsumerState<_ReportComposer> {
                       style: AppTypography.boldMedium.copyWith(color: colors.primaryText),
                     ),
                     const SizedBox(height: AppSpacing.sm),
-                    // TODO: wire up the roster picker sheet + a game_standouts
-                    // link table when the standouts feature earns its own
-                    // conversation. Disabled placeholder for now.
-                    const AppSelectTrigger(
+                    AppSelectTrigger(
                       placeholder: 'Select stand out players',
-                      onTap: null,
+                      value: _standoutsTriggerValue(),
+                      onTap: _saving ? null : _openStandoutsSheet,
                     ),
                     const SizedBox(height: AppSpacing.lg),
                     Text(
@@ -432,6 +523,11 @@ class _ScoreBox extends StatelessWidget {
           filled: true,
           fillColor: colors.secondaryBackground,
           contentPadding: EdgeInsets.zero,
+          // Placeholder "0" so an unscored game reads as "0 - 0"
+          // visually before the coach types. Not an actual value —
+          // the coach still has to type to enable the CTA.
+          hintText: '0',
+          hintStyle: AppTypography.headlineSmall.copyWith(color: colors.secondaryText),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),
             borderSide: BorderSide(color: colors.alternate, width: 1),
