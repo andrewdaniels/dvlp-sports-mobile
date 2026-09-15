@@ -153,6 +153,7 @@ final profileAuthSyncProvider = Provider<void>((ref) {
           ref.invalidate(journalEntriesProvider);
           ref.invalidate(coachesProvider);
           ref.invalidate(coachFeedbackSummaryProvider);
+          ref.invalidate(composerSchemaProvider);
         default:
           break;
       }

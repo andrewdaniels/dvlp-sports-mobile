@@ -4,6 +4,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../../../core/routing/route_names.dart';
 import '../../../core/theme/theme.dart';
+import '../../../features/auth/controllers/profile_providers.dart';
 import '../../../features/coach_feedback/controllers/coach_feedback_providers.dart';
 import '../../../features/coach_feedback/ui/widgets/cadence_hero_card.dart';
 import '../../../features/coach_feedback/ui/widgets/feedback_request_row.dart';
@@ -54,6 +55,18 @@ class _Body extends ConsumerWidget {
     final requests = summary.quickFeedbackRequests;
     final completed = summary.recentCompleted;
 
+    // Coach's active team for composer route wiring. Same resolution
+    // as elsewhere (first coach-scope team_membership). Multi-team
+    // coaches get a switcher on a follow-up branch.
+    final coachTeamId = ref
+        .watch(currentProfileProvider)
+        .value
+        ?.teamMemberships
+        .where((m) => m.coachType != null)
+        .firstOrNull
+        ?.team
+        .id;
+
     return AppRefreshIndicator(
       onRefresh: () =>
           ref.read(coachFeedbackSummaryProvider.notifier).refresh(),
@@ -63,9 +76,19 @@ class _Body extends ConsumerWidget {
         children: [
           CadenceHeroCard(
             cadence: summary.formalCadence,
-            onAthleteTap: (entry) => context.push(
-              RouteNames.coachAthleteDetailsFor(entry.athlete.id),
-            ),
+            onAthleteTap: (entry) {
+              // Pending → formal composer route. Without team_id we
+              // can't seed the composer, so fall back to the athlete
+              // details page (Branch 1 stopgap).
+              if (coachTeamId == null) {
+                context.push(RouteNames.coachAthleteDetailsFor(entry.athlete.id));
+                return;
+              }
+              context.push(RouteNames.feedbackFormalNewFor(
+                athleteId: entry.athlete.id,
+                teamId: coachTeamId,
+              ));
+            },
           ),
           if (requests.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.xl),
@@ -74,9 +97,21 @@ class _Body extends ConsumerWidget {
             for (var i = 0; i < requests.length; i++) ...[
               FeedbackRequestRow(
                 entry: requests[i],
-                onTap: () => context.push(
-                  RouteNames.coachAthleteDetailsFor(requests[i].athlete.id),
-                ),
+                onTap: () {
+                  // Request → quick composer, linked to the request
+                  // so the server marks it completed on submit.
+                  if (coachTeamId == null) {
+                    context.push(
+                      RouteNames.coachAthleteDetailsFor(requests[i].athlete.id),
+                    );
+                    return;
+                  }
+                  context.push(RouteNames.feedbackQuickNewFor(
+                    athleteId: requests[i].athlete.id,
+                    teamId: coachTeamId,
+                    requestId: requests[i].requestId,
+                  ));
+                },
               ),
               if (i < requests.length - 1) const SizedBox(height: AppSpacing.sm),
             ],

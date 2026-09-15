@@ -20,6 +20,7 @@ import '../../shared/widgets/app_chip.dart';
 import '../../shared/widgets/app_radio_card.dart';
 import '../../shared/widgets/app_score_bar.dart';
 import '../../shared/widgets/app_tab_bar.dart';
+import '../../features/assessments/ui/sheets/skill_score_selector_sheet.dart';
 import '../../features/assessments/ui/widgets/app_feedback_list_item.dart';
 import '../../features/assessments/ui/widgets/score_gauge.dart';
 import '../../features/coach_feedback/ui/widgets/cadence_hero_card.dart';
@@ -199,6 +200,11 @@ class ComponentsPage extends StatelessWidget {
             name: 'FeedbackRequestRow (features/coach_feedback)',
             description: 'Coach Feedback Requests row. Avatar + name + "Submitted Xd ago" + chevron. Consumes one entry from quick_feedback_requests[].',
             child: _FeedbackRequestRowDemo(),
+          ),
+          _ComponentSection(
+            name: 'SkillScoreSelectorSheet (features/assessments)',
+            description: 'Bottom sheet for picking a formal score. 2-column grid of tinted score buttons (colored by band). Last row is single-item left-aligned when the option count is odd. Uses AppSheetShell + AppSheetHeader. Returns the picked value via callback.',
+            child: _SkillScoreSelectorSheetDemo(),
           ),
           _ComponentSection(
             name: 'RecentCompletionRow (features/coach_feedback)',
@@ -395,6 +401,7 @@ class _AppButtonDemo extends StatelessWidget {
             _Labeled(label: 'primary', child: AppButton(label: 'Press', onPressed: () {})),
             _Labeled(label: 'secondary', child: AppButton(label: 'Press', onPressed: () {}, variant: AppButtonVariant.secondary)),
             _Labeled(label: 'outline', child: AppButton(label: 'Press', onPressed: () {}, variant: AppButtonVariant.outline)),
+            _Labeled(label: 'alternate', child: AppButton(label: 'Press', onPressed: () {}, variant: AppButtonVariant.alternate)),
             _Labeled(label: 'text', child: AppButton(label: 'Press', onPressed: () {}, variant: AppButtonVariant.text)),
           ],
         ),
@@ -440,6 +447,7 @@ class _AppButtonDemo extends StatelessWidget {
             _Labeled(label: 'primary', child: AppButton(label: 'Press', onPressed: null, size: AppButtonSize.medium)),
             _Labeled(label: 'secondary', child: AppButton(label: 'Press', onPressed: null, variant: AppButtonVariant.secondary, size: AppButtonSize.medium)),
             _Labeled(label: 'outline', child: AppButton(label: 'Press', onPressed: null, variant: AppButtonVariant.outline, size: AppButtonSize.medium)),
+            _Labeled(label: 'alternate', child: AppButton(label: 'Press', onPressed: null, variant: AppButtonVariant.alternate, size: AppButtonSize.medium)),
             _Labeled(label: 'text', child: AppButton(label: 'Press', onPressed: null, variant: AppButtonVariant.text, size: AppButtonSize.medium)),
           ],
         ),
@@ -1875,6 +1883,32 @@ class _FeedbackRequestRowDemo extends StatelessWidget {
       ),
     );
     return FeedbackRequestRow(entry: entry, onTap: () {});
+  }
+}
+
+class _SkillScoreSelectorSheetDemo extends StatelessWidget {
+  const _SkillScoreSelectorSheetDemo();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppButton(
+      label: 'Open selector (Hockey: 0.5–10 · step 0.5)',
+      variant: AppButtonVariant.outline,
+      onPressed: () async {
+        final picked = await showSkillScoreSelectorSheet(
+          context: context,
+          skillName: 'Speed',
+          currentScore: 7.5,
+          min: 0.5,
+          max: 10,
+          step: 0.5,
+        );
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Picked: ${picked ?? 'dismissed'}')),
+        );
+      },
+    );
   }
 }
 

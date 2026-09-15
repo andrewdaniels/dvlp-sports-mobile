@@ -56,6 +56,28 @@ class RouteNames {
   static String feedbackQuickFor(String assessmentId) => '$feedbackQuick/$assessmentId';
   static String feedbackFormalFor(String assessmentId) => '$feedbackFormal/$assessmentId';
 
+  // Composer routes — coach creates a NEW assessment for an athlete.
+  // The composer sub-tree lives under the same feedback/* paths as
+  // the viewers so the two share the mode-aware page widget.
+  // team_id is required as a query param (server needs it for both
+  // authorization + score scale resolution). request_id is only
+  // meaningful for the quick composer (fulfilling a pending request).
+  static const feedbackFormalNew = '/feedback/formal/new';
+  static const feedbackQuickNew = '/feedback/quick/new';
+  static String feedbackFormalNewFor({
+    required String athleteId,
+    required String teamId,
+  }) =>
+      '$feedbackFormalNew/$athleteId?team_id=$teamId';
+  static String feedbackQuickNewFor({
+    required String athleteId,
+    required String teamId,
+    String? requestId,
+  }) {
+    final base = '$feedbackQuickNew/$athleteId?team_id=$teamId';
+    return requestId == null ? base : '$base&request_id=$requestId';
+  }
+
   // Profile → Settings (shared across shells)
   static const accountSettings = '/account-settings';
 

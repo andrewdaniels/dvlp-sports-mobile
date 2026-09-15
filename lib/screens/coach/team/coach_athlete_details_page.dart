@@ -76,11 +76,23 @@ class CoachAthleteDetailsPage extends ConsumerWidget {
           variant: AppButtonVariant.primary,
           onPressed: () {
             HapticFeedback.lightImpact();
-            // TODO: open the coach-authored Quick Feedback composer
-            // sheet (follow-up branch).
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Quick Feedback composer — coming soon')),
-            );
+            // Resolve the coach's team id (same lookup as other coach
+            // surfaces) — required by the composer for score-scale +
+            // authorization. If unavailable, silently no-op; the
+            // button shouldn't render in a coach-less shell.
+            final coachTeamId = ref
+                .read(currentProfileProvider)
+                .value
+                ?.teamMemberships
+                .where((m) => m.coachType != null)
+                .firstOrNull
+                ?.team
+                .id;
+            if (coachTeamId == null) return;
+            context.push(RouteNames.feedbackQuickNewFor(
+              athleteId: athleteId,
+              teamId: coachTeamId,
+            ));
           },
         ),
       ),

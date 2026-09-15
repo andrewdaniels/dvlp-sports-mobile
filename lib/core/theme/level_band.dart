@@ -10,6 +10,27 @@ import 'package:flutter/painting.dart';
 /// a package (or copy with tests).
 enum LevelBand { beginner, bronze, silver, gold, elite }
 
+/// Map a normalized fraction (score / max) to the band it falls into.
+///
+/// Thresholds per the design spec:
+///   Beginner  <40%
+///   Bronze    40–59%
+///   Silver    60–74%
+///   Gold      75–89%
+///   Elite     ≥90%
+///
+/// Percentage-based so it works for any score scale — sport-configured
+/// max (10, 20, whatever). Hoist to a shared util fed by
+/// `level_band_thresholds` when the aggregate scoring system needs
+/// authoritative bands.
+LevelBand levelBandForPct(double pct) {
+  if (pct < 0.40) return LevelBand.beginner;
+  if (pct < 0.60) return LevelBand.bronze;
+  if (pct < 0.75) return LevelBand.silver;
+  if (pct < 0.90) return LevelBand.gold;
+  return LevelBand.elite;
+}
+
 extension LevelBandDisplay on LevelBand {
   /// Brand color for this band. Single source of truth for every
   /// place that renders a band — ScoreGauge pointer/badge, "How it

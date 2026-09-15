@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../core/theme/theme.dart';
 import '../../../../shared/widgets/app_score_bar.dart';
 
-/// Numeric score visualization for the formal assessment detail view.
+/// Numeric score visualization for the formal assessment views.
 ///
 /// Layout:
 ///   ┌─────────────────────────────────┬────────┐
@@ -19,9 +20,12 @@ import '../../../../shared/widgets/app_score_bar.dart';
 /// percentage of [maxScore], so bumping the scale up (e.g. a sport
 /// with max=20) works with no widget changes.
 ///
-/// Feature-scoped (assessments). If a coach-side edit variant lands,
-/// extend this widget with an `editable` prop that swaps the display
-/// badge for a tap-to-rate action.
+/// Editable mode: pass `onTap` (and any composer callback that opens
+/// a picker sheet). The badge becomes a tappable button. When `score`
+/// is null, the badge label reads "Select" — signaling an unset value.
+/// The score bar stays visible in editable mode with the pointer at
+/// zero when unset, so the coach still sees the band ladder they're
+/// filling in against.
 class ScoreGauge extends StatelessWidget {
   const ScoreGauge({
     super.key,
@@ -30,19 +34,27 @@ class ScoreGauge extends StatelessWidget {
     required this.score,
     required this.maxScore,
     this.previousScore,
+    this.onTap,
   });
 
   final String title;
   final String? description;
-  final double score;
+  final double? score;
   final double maxScore;
   final double? previousScore;
+
+  /// When non-null, the badge becomes tappable and the caller can open
+  /// the score selector sheet. Read-only when null.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final pct = (score / maxScore).clamp(0.0, 1.0);
-    final band = _bandForPct(pct);
+    // Null score renders as an empty gauge (pointer at 0, badge shows
+    // "Select"). Non-null uses the actual value for band/pointer.
+    final effectiveScore = score ?? 0.0;
+    final pct = (effectiveScore / maxScore).clamp(0.0, 1.0);
+    final band = levelBandForPct(pct);
     final badgeColor = band.color;
     final hasDescription = (description ?? '').trim().isNotEmpty;
 
@@ -73,7 +85,11 @@ class ScoreGauge extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.md),
-            _ScoreBadge(score: score, color: badgeColor),
+            _ScoreBadge(
+              score: score,
+              color: badgeColor,
+              onTap: onTap,
+            ),
           ],
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -97,72 +113,86 @@ class ScoreGauge extends StatelessWidget {
     );
   }
 
-  /// Band thresholds per the design spec:
-  ///   Beginner  <40%
-  ///   Bronze    40–59%
-  ///   Silver    60–74%
-  ///   Gold      75–89%
-  ///   Elite     ≥90%
-  /// Percentage-based so it works for any [maxScore] (10, 20, whatever
-  /// the sport configures). Hoist to a shared util fed by
-  /// `level_band_thresholds` when the aggregate scoring system needs
-  /// authoritative bands.
-  static LevelBand _bandForPct(double pct) {
-    if (pct < 0.40) return LevelBand.beginner;
-    if (pct < 0.60) return LevelBand.bronze;
-    if (pct < 0.75) return LevelBand.silver;
-    if (pct < 0.90) return LevelBand.gold;
-    return LevelBand.elite;
-  }
-
   static String _formatScore(double v) {
     if (v == v.roundToDouble()) return v.toStringAsFixed(0);
     return v.toStringAsFixed(1);
   }
 }
 
-/// Colored pill showing the score. Fill is a subtle same-color linear
-/// gradient (light → deeper) so it reads dimensional. Text is dark
-/// (`persistDark`) for consistent contrast across themes.
+/// Colored pill showing the score. In read mode the fill is a subtle
+/// same-color linear gradient (light → deeper). In edit mode (onTap
+/// provided) the badge remains the same size but reacts to taps and
+/// swaps its label to "Select" when [score] is null.
 class _ScoreBadge extends StatelessWidget {
-  const _ScoreBadge({required this.score, required this.color});
+  const _ScoreBadge({
+    required this.score,
+    required this.color,
+    required this.onTap,
+  });
 
-  final double score;
+  final double? score;
   final Color color;
+  final VoidCallback? onTap;
 
   /// AppSizes only exposes small(36)/medium(48)/large(60), and no
   /// spacing token maps here either. 32 is the minimum comfortable tap
-  /// target for the coach-side edit variant of this badge. Raw for now
-  /// — hoist to a sizing token when a second element needs the same
-  /// height (breaks the +12 rhythm of the current scale if added
-  /// prematurely).
+  /// target for the coach-side edit variant of this badge.
   static const double _height = 32;
   static const double _minWidth = 64;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final hsl = HSLColor.fromColor(color);
-    final light = hsl.withLightness((hsl.lightness + 0.08).clamp(0.0, 1.0)).toColor();
-    final dark = hsl.withLightness((hsl.lightness - 0.06).clamp(0.0, 1.0)).toColor();
-    return Container(
+    final hasScore = score != null;
+    final label = hasScore ? ScoreGauge._formatScore(score!) : 'Select';
+
+    // Empty state ("Select") uses a neutral bordered treatment so a
+    // low-band color (blue for beginner) doesn't imply the coach
+    // already scored the skill in the beginner range.
+    final decoration = hasScore
+        ? _filledGradient(color)
+        : BoxDecoration(
+            color: Colors.transparent,
+            border: Border.all(color: colors.alternate, width: 1),
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          );
+
+    final textColor = hasScore ? colors.persistDark : colors.secondaryText;
+
+    final badge = Container(
       height: _height,
       constraints: const BoxConstraints(minWidth: _minWidth),
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [dark, light],
-        ),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
+      decoration: decoration,
       alignment: Alignment.center,
       child: Text(
-        ScoreGauge._formatScore(score),
-        style: AppTypography.titleMedium.copyWith(color: colors.persistDark),
+        label,
+        style: AppTypography.titleMedium.copyWith(color: textColor),
       ),
+    );
+
+    if (onTap == null) return badge;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap!();
+      },
+      child: badge,
+    );
+  }
+
+  static BoxDecoration _filledGradient(Color color) {
+    final hsl = HSLColor.fromColor(color);
+    final light = hsl.withLightness((hsl.lightness + 0.08).clamp(0.0, 1.0)).toColor();
+    final dark = hsl.withLightness((hsl.lightness - 0.06).clamp(0.0, 1.0)).toColor();
+    return BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [dark, light],
+      ),
+      borderRadius: BorderRadius.circular(AppRadius.md),
     );
   }
 }
-
