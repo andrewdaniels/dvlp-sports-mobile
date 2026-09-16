@@ -10,6 +10,7 @@ import '../../../features/coach_feedback/controllers/coach_feedback_providers.da
 import '../../../features/home/controllers/coach_home_providers.dart';
 import '../../../features/home/ui/widgets/skill_average_row.dart';
 import '../../../features/home/ui/widgets/team_health_hero_card.dart';
+import '../../../features/notifications/controllers/notifications_providers.dart';
 import '../../../features/team/controllers/games_providers.dart';
 import '../../../features/team/ui/widgets/todo_row.dart';
 import '../../../generated/api/get_games.dart';
@@ -17,6 +18,7 @@ import '../../../generated/api/get_profile.dart' as profile_api;
 import '../../../generated/api/get_team_aggregates.dart' as agg_api;
 import '../../../shared/widgets/app_icon.dart';
 import '../../../shared/widgets/app_icon_button.dart';
+import '../../../shared/widgets/app_indicator_badge.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/app_refresh_indicator.dart';
 
@@ -42,21 +44,23 @@ class CoachHomePage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(currentProfileProvider);
+    final unreadCount = ref.watch(unreadNotificationCountProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
         actions: [
-          AppIconButton(
-            icon: AppIcons.bell,
-            size: AppIconButtonSize.large,
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              // TODO: notifications screen (shared across coach + athlete
-              // shells once wired). Coach-relevant types today:
-              // assessment_requested_quick when an athlete requests
-              // feedback from this coach.
-            },
+          AppIndicatorBadge(
+            show: unreadCount > 0,
+            count: unreadCount,
+            child: AppIconButton(
+              icon: AppIcons.bell,
+              size: AppIconButtonSize.large,
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                context.push(RouteNames.notifications);
+              },
+            ),
           ),
           const SizedBox(width: AppSpacing.xs),
         ],
@@ -102,6 +106,10 @@ class _Body extends ConsumerWidget {
           ref.read(coachFeedbackSummaryProvider.notifier).refresh(),
           ref.read(gamesProvider(team.id).notifier).refresh(),
           ref.read(teamAggregatesProvider(team.id).notifier).refresh(),
+          // Bell dot on this page reflects notification freshness; if
+          // the coach is on Home, refresh the inbox too so
+          // pull-to-refresh here Just Works for the badge.
+          ref.read(notificationsProvider.notifier).refresh(),
         ]);
       },
       child: ListView(

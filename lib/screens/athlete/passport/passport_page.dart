@@ -11,11 +11,13 @@ import '../../../features/assessments/ui/widgets/app_feedback_list_item.dart';
 import '../../../features/auth/controllers/profile_providers.dart';
 import '../../../features/feedback_requests/ui/sheets/request_feedback_sheet.dart';
 import '../../../features/auth/util/profile_format.dart';
+import '../../../features/notifications/controllers/notifications_providers.dart';
 import '../../../generated/api/get_assessments.dart' as assessments_api;
 import '../../../generated/api/get_profile.dart';
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_icon.dart';
 import '../../../shared/widgets/app_icon_button.dart';
+import '../../../shared/widgets/app_indicator_badge.dart';
 import '../../../shared/widgets/app_level_badge.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/app_player_passport_card.dart';
@@ -28,17 +30,22 @@ class PassportPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(currentProfileProvider);
 
+    final unreadCount = ref.watch(unreadNotificationCountProvider);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Passport'),
         actions: [
-          AppIconButton(
-            icon: AppIcons.bell,
-            size: AppIconButtonSize.large,
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              // TODO: notifications screen
-            },
+          AppIndicatorBadge(
+            show: unreadCount > 0,
+            count: unreadCount,
+            child: AppIconButton(
+              icon: AppIcons.bell,
+              size: AppIconButtonSize.large,
+              onPressed: () {
+                HapticFeedback.lightImpact();
+                context.push(RouteNames.notifications);
+              },
+            ),
           ),
           const SizedBox(width: AppSpacing.xs),
         ],
@@ -83,6 +90,10 @@ class _PassportBody extends ConsumerWidget {
         await Future.wait([
           ref.read(currentProfileProvider.notifier).refresh(),
           ref.read(assessmentsProvider(profile.id).notifier).refresh(),
+          // Bell dot on this page reflects notification freshness; if
+          // the user is on the passport, refresh the inbox too so
+          // pull-to-refresh here Just Works for the badge.
+          ref.read(notificationsProvider.notifier).refresh(),
         ]);
       },
       child: ListView(

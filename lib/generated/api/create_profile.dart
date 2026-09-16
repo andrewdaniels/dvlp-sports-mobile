@@ -401,6 +401,7 @@ enum RoleTier {
     ADMIN,
     ATHLETE,
     COACH,
+    GUARDIAN,
     ORGANIZATION_MANAGER,
     TEAM_MANAGER
 }
@@ -409,6 +410,7 @@ final roleTierValues = EnumValues({
     "admin": RoleTier.ADMIN,
     "athlete": RoleTier.ATHLETE,
     "coach": RoleTier.COACH,
+    "guardian": RoleTier.GUARDIAN,
     "organization_manager": RoleTier.ORGANIZATION_MANAGER,
     "team_manager": RoleTier.TEAM_MANAGER
 });

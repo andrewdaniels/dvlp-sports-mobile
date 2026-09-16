@@ -9,6 +9,7 @@ import '../../coach_feedback/controllers/coach_feedback_providers.dart';
 import '../../feedback_requests/controllers/feedback_requests_providers.dart';
 import '../../home/controllers/coach_home_providers.dart';
 import '../../journal/controllers/journal_providers.dart';
+import '../../notifications/controllers/notifications_providers.dart';
 import '../../skills/controllers/skills_providers.dart';
 import '../../team/controllers/games_providers.dart';
 import '../../team/controllers/team_roster_providers.dart';
@@ -137,31 +138,47 @@ final profileAuthSyncProvider = Provider<void>((ref) {
       final notifier = ref.read(currentProfileProvider.notifier);
       switch (event) {
         case AuthChangeEvent.signedIn:
+          // Fresh identity — pull the profile AND nuke all user-scoped
+          // caches. Signing in can follow a sign-out (account switch)
+          // or happen on fresh app-start; either way we don't want to
+          // display the previous user's data until they pull to refresh.
+          notifier.refresh();
+          _invalidateUserScopedCaches(ref);
         case AuthChangeEvent.tokenRefreshed:
         case AuthChangeEvent.userUpdated:
-          // Fresh session — pull the latest profile.
+          // Same identity — just refresh the profile. Token rotation
+          // fires this every ~hour; nuking caches here would be a
+          // needless refetch storm.
           notifier.refresh();
         case AuthChangeEvent.signedOut:
           notifier.clear();
-          // Nuke all keyed caches — new session may belong to a
-          // different user with different data.
-          ref.invalidate(gamesProvider);
-          ref.invalidate(teamRosterProvider);
-          ref.invalidate(athleteProfileProvider);
-          ref.invalidate(assessmentsProvider);
-          ref.invalidate(skillProgressProvider);
-          ref.invalidate(skillHistoryProvider);
-          ref.invalidate(journalEntriesProvider);
-          ref.invalidate(coachesProvider);
-          ref.invalidate(coachFeedbackSummaryProvider);
-          ref.invalidate(composerSchemaProvider);
-          ref.invalidate(teamAggregatesProvider);
+          _invalidateUserScopedCaches(ref);
         default:
           break;
       }
     },
   );
 });
+
+/// Invalidates every provider that caches user-scoped data. Fired on
+/// both sign-in and sign-out so an account switch always shows the
+/// new user's data on first render — no stale display, no pull-to-
+/// refresh dance required.
+void _invalidateUserScopedCaches(Ref ref) {
+  ref.invalidate(gamesProvider);
+  ref.invalidate(teamRosterProvider);
+  ref.invalidate(athleteProfileProvider);
+  ref.invalidate(assessmentsProvider);
+  ref.invalidate(skillProgressProvider);
+  ref.invalidate(skillHistoryProvider);
+  ref.invalidate(journalEntriesProvider);
+  ref.invalidate(coachesProvider);
+  ref.invalidate(coachFeedbackSummaryProvider);
+  ref.invalidate(composerSchemaProvider);
+  ref.invalidate(teamAggregatesProvider);
+  ref.invalidate(notificationsProvider);
+  ref.invalidate(notificationsLastSeenProvider);
+}
 
 // Private mirror of the auth stream so profileAuthSyncProvider can listen
 // without pulling in auth_providers.dart and creating a cycle.

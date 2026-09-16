@@ -99,16 +99,14 @@ class _Body extends ConsumerWidget {
                 entry: requests[i],
                 onTap: () {
                   // Request → quick composer, linked to the request
-                  // so the server marks it completed on submit.
-                  if (coachTeamId == null) {
-                    context.push(
-                      RouteNames.coachAthleteDetailsFor(requests[i].athlete.id),
-                    );
-                    return;
-                  }
+                  // so the server marks it completed on submit. team_id
+                  // comes from the request itself — works for both
+                  // own-roster requests (coach's team) and external
+                  // requests (athlete's team). Was using the coach's
+                  // own team_id which 403'd on externals.
                   context.push(RouteNames.feedbackQuickNewFor(
                     athleteId: requests[i].athlete.id,
-                    teamId: coachTeamId,
+                    teamId: requests[i].teamId,
                     requestId: requests[i].requestId,
                   ));
                 },
