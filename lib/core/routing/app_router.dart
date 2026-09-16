@@ -28,6 +28,7 @@ import '../../screens/coach/team/coach_athlete_details_page.dart';
 import '../../screens/coach/team/coach_team_page.dart';
 import '../../screens/dev/components_page.dart';
 import '../../screens/dev/design_system_page.dart';
+import '../../screens/notifications/notifications_page.dart';
 import '../../screens/splash/splash_page.dart';
 import '../services/supabase_service.dart';
 import 'route_names.dart';
@@ -264,6 +265,14 @@ final appRouter = GoRouter(
       parentNavigatorKey: _rootNavKey,
       path: RouteNames.accountSettings,
       builder: (context, state) => const AccountSettingsPage(),
+    ),
+
+    // Notifications inbox (shared across shells — pushed from bell
+    // icons on athlete Passport and coach Home)
+    GoRoute(
+      parentNavigatorKey: _rootNavKey,
+      path: RouteNames.notifications,
+      builder: (context, state) => const NotificationsPage(),
     ),
 
     // Athlete → DVLP → Journal

@@ -217,34 +217,40 @@ class QuickFeedbackRequest {
     final QuickFeedbackRequestAthlete athlete;
     final String requestId;
     final String requestedAt;
+    final String teamId;
 
     QuickFeedbackRequest({
         required this.athlete,
         required this.requestId,
         required this.requestedAt,
+        required this.teamId,
     });
 
     QuickFeedbackRequest copyWith({
         QuickFeedbackRequestAthlete? athlete,
         String? requestId,
         String? requestedAt,
+        String? teamId,
     }) => 
         QuickFeedbackRequest(
             athlete: athlete ?? this.athlete,
             requestId: requestId ?? this.requestId,
             requestedAt: requestedAt ?? this.requestedAt,
+            teamId: teamId ?? this.teamId,
         );
 
     factory QuickFeedbackRequest.fromJson(Map<String, dynamic> json) => QuickFeedbackRequest(
         athlete: QuickFeedbackRequestAthlete.fromJson(json["athlete"]),
         requestId: json["request_id"],
         requestedAt: json["requested_at"],
+        teamId: json["team_id"],
     );
 
     Map<String, dynamic> toJson() => {
         "athlete": athlete.toJson(),
         "request_id": requestId,
         "requested_at": requestedAt,
+        "team_id": teamId,
     };
 }
 

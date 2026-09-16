@@ -76,8 +76,8 @@ class _SignupCodePageState extends ConsumerState<SignupCodePage> {
 
   /// Map the invite's TargetRole enum onto our string role ('athlete' /
   /// 'coach') for downstream screens. Non-athlete/coach roles (admin,
-  /// managers) don't sign up via mobile — treat as athlete for now and
-  /// let the server reject if needed.
+  /// managers, guardian) don't sign up via mobile — treat as athlete
+  /// for now and let the server reject if needed.
   String _roleFromInvite(TargetRole target) {
     switch (target) {
       case TargetRole.COACH:
@@ -86,6 +86,7 @@ class _SignupCodePageState extends ConsumerState<SignupCodePage> {
       case TargetRole.ADMIN:
       case TargetRole.ORGANIZATION_MANAGER:
       case TargetRole.TEAM_MANAGER:
+      case TargetRole.GUARDIAN:
         return 'athlete';
     }
   }

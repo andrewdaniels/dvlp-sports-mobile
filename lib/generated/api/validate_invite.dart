@@ -115,6 +115,7 @@ enum TargetRole {
     ADMIN,
     ATHLETE,
     COACH,
+    GUARDIAN,
     ORGANIZATION_MANAGER,
     TEAM_MANAGER
 }
@@ -123,6 +124,7 @@ final targetRoleValues = EnumValues({
     "admin": TargetRole.ADMIN,
     "athlete": TargetRole.ATHLETE,
     "coach": TargetRole.COACH,
+    "guardian": TargetRole.GUARDIAN,
     "organization_manager": TargetRole.ORGANIZATION_MANAGER,
     "team_manager": TargetRole.TEAM_MANAGER
 });

@@ -81,6 +81,10 @@ class RouteNames {
   // Profile → Settings (shared across shells)
   static const accountSettings = '/account-settings';
 
+  // Notifications inbox — pushed on root nav from athlete Passport /
+  // coach Home bell icons. Shared across both shells.
+  static const notifications = '/notifications';
+
   // Dev tools (debug mode only)
   static const designSystem = '/dev/design-system';
   static const components = '/dev/components';
