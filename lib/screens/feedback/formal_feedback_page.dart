@@ -12,6 +12,7 @@ import '../../features/auth/controllers/profile_providers.dart';
 import '../../features/help/ui/how_it_works_sheet.dart';
 import '../../features/auth/data/api_result.dart';
 import '../../generated/api/get_assessment_detail.dart' as detail_api;
+import '../../generated/api/get_assessment_schema.dart' as schema_api;
 import '../../generated/api/get_profile.dart' as profile_api;
 import '../../shared/widgets/app_audio_note.dart';
 import '../../shared/widgets/app_avatar.dart';
@@ -205,8 +206,18 @@ class _CreateBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
-    final schemaAsync = ref.watch(composerSchemaProvider(teamId));
+    // Fetch the athlete first so we know their position, then key the
+    // composer schema by (team, position) — the returned skills are
+    // scoped to that position server-side (a goalie doesn't get
+    // scored on shooting, etc.). If athlete isn't loaded yet the key
+    // has a null positionId and we defer the schema fetch until it is.
     final athleteAsync = ref.watch(athleteProfileProvider(athleteId));
+    final positionId = athleteAsync.value?.athleteDetails?.position?.id;
+    final schemaAsync = athleteAsync.isLoading
+        ? const AsyncLoading<schema_api.GetAssessmentSchemaData?>()
+        : ref.watch(composerSchemaProvider(
+            (teamId: teamId, positionId: positionId),
+          ));
 
     if (schemaAsync.isLoading || athleteAsync.isLoading) {
       return const Center(child: AppLoadingIndicator());

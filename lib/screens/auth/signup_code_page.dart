@@ -74,19 +74,21 @@ class _SignupCodePageState extends ConsumerState<SignupCodePage> {
     }
   }
 
-  /// Map the invite's TargetRole enum onto our string role ('athlete' /
-  /// 'coach') for downstream screens. Non-athlete/coach roles (admin,
-  /// managers, guardian) don't sign up via mobile — treat as athlete
-  /// for now and let the server reject if needed.
+  /// Map the invite's TargetRole enum onto our string role for
+  /// downstream screens. Guardian invites are their own signup path
+  /// (fires from an athlete's onboarding flow). Manager/admin roles
+  /// don't sign up via mobile — treat as athlete and let the server
+  /// reject if a signup ever gets that far.
   String _roleFromInvite(TargetRole target) {
     switch (target) {
       case TargetRole.COACH:
         return 'coach';
+      case TargetRole.GUARDIAN:
+        return 'guardian';
       case TargetRole.ATHLETE:
       case TargetRole.ADMIN:
       case TargetRole.ORGANIZATION_MANAGER:
       case TargetRole.TEAM_MANAGER:
-      case TargetRole.GUARDIAN:
         return 'athlete';
     }
   }

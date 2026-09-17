@@ -9,11 +9,13 @@ import '../../screens/feedback/quick_feedback_page.dart';
 import '../../screens/athlete/journal/journal_page.dart';
 import '../../screens/athlete/passport/passport_page.dart';
 import '../../screens/athlete/profile/profile_page.dart';
+import '../../features/auth/ui/widgets/guardian_gate.dart';
 import '../../screens/athlete/shell/athlete_shell.dart';
 import '../../screens/athlete/team/team_page.dart';
 import '../../screens/auth/coach_account_page.dart';
 import '../../screens/auth/credentials_page.dart';
 import '../../screens/auth/entry_page.dart';
+import '../../screens/auth/guardian_account_page.dart';
 import '../../screens/auth/login_page.dart';
 import '../../screens/auth/player_account_page.dart';
 import '../../screens/auth/signup_code_page.dart';
@@ -44,6 +46,7 @@ const _publicRoutes = <String>{
   RouteNames.signupCredentials,
   RouteNames.signupPlayerDetails,
   RouteNames.signupCoachDetails,
+  RouteNames.signupGuardianDetails,
 };
 
 final appRouter = GoRouter(
@@ -84,31 +87,34 @@ final appRouter = GoRouter(
     ),
 
     // ── Athlete shell ────────────────────────────────────────────
+    // Guardians share this shell temporarily — each tab is wrapped in
+    // GuardianGate which renders a "coming soon" placeholder for
+    // guardian sessions. Unwrap when guardian→athlete access ships.
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) => AthleteShell(navigationShell: navigationShell),
       branches: [
         StatefulShellBranch(routes: [
           GoRoute(
             path: RouteNames.athletePassport,
-            builder: (context, state) => const PassportPage(),
+            builder: (context, state) => const GuardianGate(child: PassportPage()),
           ),
         ]),
         StatefulShellBranch(routes: [
           GoRoute(
             path: RouteNames.athleteDvlp,
-            builder: (context, state) => const DvlpPage(),
+            builder: (context, state) => const GuardianGate(child: DvlpPage()),
           ),
         ]),
         StatefulShellBranch(routes: [
           GoRoute(
             path: RouteNames.athleteTeam,
-            builder: (context, state) => const TeamPage(),
+            builder: (context, state) => const GuardianGate(child: TeamPage()),
           ),
         ]),
         StatefulShellBranch(routes: [
           GoRoute(
             path: RouteNames.athleteProfile,
-            builder: (context, state) => const ProfilePage(),
+            builder: (context, state) => const GuardianGate(child: ProfilePage()),
           ),
         ]),
       ],
@@ -181,6 +187,11 @@ final appRouter = GoRouter(
       parentNavigatorKey: _rootNavKey,
       path: RouteNames.signupCoachDetails,
       builder: (context, state) => const CoachAccountPage(),
+    ),
+    GoRoute(
+      parentNavigatorKey: _rootNavKey,
+      path: RouteNames.signupGuardianDetails,
+      builder: (context, state) => const GuardianAccountPage(),
     ),
 
     // Assessment composer — coach creates a NEW assessment. Listed

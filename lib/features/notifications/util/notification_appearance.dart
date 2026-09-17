@@ -44,5 +44,13 @@ NotificationAppearance appearanceFor(gen.Type type, BuildContext context) {
         icon: AppIcons.star,
         color: colors.error,
       );
+    // Guardian sign-up completion — fires to the athlete once their
+    // guardian links. Reuse the profile-nav icon in the link color
+    // (blue) as a neutral "relationship established" cue.
+    case gen.Type.GUARDIAN_LINKED:
+      return NotificationAppearance(
+        icon: AppIcons.navProfile,
+        color: colors.link,
+      );
   }
 }

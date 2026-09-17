@@ -6,6 +6,7 @@
 //
 //     final createAthleteRequest = createAthleteRequestFromJson(jsonString);
 //     final createCoachRequest = createCoachRequestFromJson(jsonString);
+//     final createGuardianRequest = createGuardianRequestFromJson(jsonString);
 //     final createProfileData = createProfileDataFromJson(jsonString);
 //     final createProfileRequest = createProfileRequestFromJson(jsonString);
 
@@ -18,6 +19,10 @@ String createAthleteRequestToJson(CreateAthleteRequest data) => json.encode(data
 CreateCoachRequest createCoachRequestFromJson(String str) => CreateCoachRequest.fromJson(json.decode(str));
 
 String createCoachRequestToJson(CreateCoachRequest data) => json.encode(data.toJson());
+
+CreateGuardianRequest createGuardianRequestFromJson(String str) => CreateGuardianRequest.fromJson(json.decode(str));
+
+String createGuardianRequestToJson(CreateGuardianRequest data) => json.encode(data.toJson());
 
 CreateProfileData createProfileDataFromJson(String str) => CreateProfileData.fromJson(json.decode(str));
 
@@ -32,6 +37,7 @@ class CreateAthleteRequest {
     final String dateOfBirth;
     final String email;
     final String firstName;
+    final String? guardianEmail;
     final String? inviteId;
     final String lastName;
     final String password;
@@ -42,6 +48,7 @@ class CreateAthleteRequest {
         required this.dateOfBirth,
         required this.email,
         required this.firstName,
+        this.guardianEmail,
         this.inviteId,
         required this.lastName,
         required this.password,
@@ -53,6 +60,7 @@ class CreateAthleteRequest {
         String? dateOfBirth,
         String? email,
         String? firstName,
+        String? guardianEmail,
         String? inviteId,
         String? lastName,
         String? password,
@@ -63,6 +71,7 @@ class CreateAthleteRequest {
             dateOfBirth: dateOfBirth ?? this.dateOfBirth,
             email: email ?? this.email,
             firstName: firstName ?? this.firstName,
+            guardianEmail: guardianEmail ?? this.guardianEmail,
             inviteId: inviteId ?? this.inviteId,
             lastName: lastName ?? this.lastName,
             password: password ?? this.password,
@@ -74,6 +83,7 @@ class CreateAthleteRequest {
         dateOfBirth: json["date_of_birth"],
         email: json["email"],
         firstName: json["first_name"],
+        guardianEmail: json["guardian_email"],
         inviteId: json["invite_id"],
         lastName: json["last_name"],
         password: json["password"],
@@ -85,6 +95,7 @@ class CreateAthleteRequest {
         "date_of_birth": dateOfBirth,
         "email": email,
         "first_name": firstName,
+        "guardian_email": guardianEmail,
         "invite_id": inviteId,
         "last_name": lastName,
         "password": password,
@@ -218,6 +229,79 @@ enum CreateCoachRequestRole {
 
 final createCoachRequestRoleValues = EnumValues({
     "coach": CreateCoachRequestRole.COACH
+});
+
+class CreateGuardianRequest {
+    final String dateOfBirth;
+    final String email;
+    final String firstName;
+    final String inviteId;
+    final String? lastName;
+    final String password;
+    final String? phone;
+    final CreateGuardianRequestRole role;
+
+    CreateGuardianRequest({
+        required this.dateOfBirth,
+        required this.email,
+        required this.firstName,
+        required this.inviteId,
+        this.lastName,
+        required this.password,
+        this.phone,
+        required this.role,
+    });
+
+    CreateGuardianRequest copyWith({
+        String? dateOfBirth,
+        String? email,
+        String? firstName,
+        String? inviteId,
+        String? lastName,
+        String? password,
+        String? phone,
+        CreateGuardianRequestRole? role,
+    }) => 
+        CreateGuardianRequest(
+            dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+            email: email ?? this.email,
+            firstName: firstName ?? this.firstName,
+            inviteId: inviteId ?? this.inviteId,
+            lastName: lastName ?? this.lastName,
+            password: password ?? this.password,
+            phone: phone ?? this.phone,
+            role: role ?? this.role,
+        );
+
+    factory CreateGuardianRequest.fromJson(Map<String, dynamic> json) => CreateGuardianRequest(
+        dateOfBirth: json["date_of_birth"],
+        email: json["email"],
+        firstName: json["first_name"],
+        inviteId: json["invite_id"],
+        lastName: json["last_name"],
+        password: json["password"],
+        phone: json["phone"],
+        role: createGuardianRequestRoleValues.map[json["role"]]!,
+    );
+
+    Map<String, dynamic> toJson() => {
+        "date_of_birth": dateOfBirth,
+        "email": email,
+        "first_name": firstName,
+        "invite_id": inviteId,
+        "last_name": lastName,
+        "password": password,
+        "phone": phone,
+        "role": createGuardianRequestRoleValues.reverse[role],
+    };
+}
+
+enum CreateGuardianRequestRole {
+    GUARDIAN
+}
+
+final createGuardianRequestRoleValues = EnumValues({
+    "guardian": CreateGuardianRequestRole.GUARDIAN
 });
 
 class CreateProfileData {
@@ -577,20 +661,24 @@ class CreateProfileRequest {
     final String? dateOfBirth;
     final String email;
     final String firstName;
+    final String? guardianEmail;
     final String? inviteId;
-    final String lastName;
+    final String? lastName;
     final String password;
     final CreateProfileRequestRole role;
+    final String? phone;
 
     CreateProfileRequest({
         this.athleteDetails,
         this.dateOfBirth,
         required this.email,
         required this.firstName,
+        this.guardianEmail,
         this.inviteId,
-        required this.lastName,
+        this.lastName,
         required this.password,
         required this.role,
+        this.phone,
     });
 
     CreateProfileRequest copyWith({
@@ -598,20 +686,24 @@ class CreateProfileRequest {
         String? dateOfBirth,
         String? email,
         String? firstName,
+        String? guardianEmail,
         String? inviteId,
         String? lastName,
         String? password,
         CreateProfileRequestRole? role,
+        String? phone,
     }) => 
         CreateProfileRequest(
             athleteDetails: athleteDetails ?? this.athleteDetails,
             dateOfBirth: dateOfBirth ?? this.dateOfBirth,
             email: email ?? this.email,
             firstName: firstName ?? this.firstName,
+            guardianEmail: guardianEmail ?? this.guardianEmail,
             inviteId: inviteId ?? this.inviteId,
             lastName: lastName ?? this.lastName,
             password: password ?? this.password,
             role: role ?? this.role,
+            phone: phone ?? this.phone,
         );
 
     factory CreateProfileRequest.fromJson(Map<String, dynamic> json) => CreateProfileRequest(
@@ -619,10 +711,12 @@ class CreateProfileRequest {
         dateOfBirth: json["date_of_birth"],
         email: json["email"],
         firstName: json["first_name"],
+        guardianEmail: json["guardian_email"],
         inviteId: json["invite_id"],
         lastName: json["last_name"],
         password: json["password"],
         role: createProfileRequestRoleValues.map[json["role"]]!,
+        phone: json["phone"],
     );
 
     Map<String, dynamic> toJson() => {
@@ -630,10 +724,12 @@ class CreateProfileRequest {
         "date_of_birth": dateOfBirth,
         "email": email,
         "first_name": firstName,
+        "guardian_email": guardianEmail,
         "invite_id": inviteId,
         "last_name": lastName,
         "password": password,
         "role": createProfileRequestRoleValues.reverse[role],
+        "phone": phone,
     };
 }
 
@@ -680,12 +776,14 @@ class CreateProfileRequestAthleteDetails {
 
 enum CreateProfileRequestRole {
     ATHLETE,
-    COACH
+    COACH,
+    GUARDIAN
 }
 
 final createProfileRequestRoleValues = EnumValues({
     "athlete": CreateProfileRequestRole.ATHLETE,
-    "coach": CreateProfileRequestRole.COACH
+    "coach": CreateProfileRequestRole.COACH,
+    "guardian": CreateProfileRequestRole.GUARDIAN
 });
 
 class EnumValues<T> {

@@ -117,6 +117,11 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
         return () => context.push(RouteNames.feedbackFormalFor(resourceId));
       case gen.Type.ASSESSMENT_REQUESTED_QUICK:
         return () => _openQuickRequestComposer(context, resourceId);
+      // Guardian link — no deep-link target yet (guardian views ship
+      // later). Tap is a no-op for now; the row still renders with
+      // title/subtitle so the athlete knows the guardian arrived.
+      case gen.Type.GUARDIAN_LINKED:
+        return null;
     }
   }
 

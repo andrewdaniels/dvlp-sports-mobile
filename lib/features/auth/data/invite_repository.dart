@@ -20,9 +20,9 @@ class InviteRepository {
         'validate-invite',
         body: {
           'code': code,
-          // Mobile only completes coach/athlete signups; other roles
-          // route to the web platform.
-          'allowed_roles': ['coach', 'athlete'],
+          // Mobile completes athlete, coach, and guardian signups.
+          // Manager/admin invites route to the web platform.
+          'allowed_roles': ['coach', 'athlete', 'guardian'],
         },
       );
       return _parseOk(response.data);

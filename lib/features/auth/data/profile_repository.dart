@@ -27,6 +27,31 @@ class ProfileRepository {
     );
   }
 
+  Future<ApiResult<CreateProfileData>> createGuardian({
+    required String email,
+    required String password,
+    required String firstName,
+    required String? lastName,
+    required String? phone,
+    required String dateOfBirth,
+    required String inviteId,
+  }) {
+    return _invoke<CreateProfileData>(
+      name: 'create-profile',
+      body: {
+        'role': 'guardian',
+        'email': email,
+        'password': password,
+        'first_name': firstName,
+        if (lastName != null) 'last_name': lastName,
+        if (phone != null) 'phone': phone,
+        'date_of_birth': dateOfBirth,
+        'invite_id': inviteId,
+      },
+      fromJson: CreateProfileData.fromJson,
+    );
+  }
+
   Future<ApiResult<CreateProfileData>> createAthlete({
     required String email,
     required String password,
@@ -38,6 +63,11 @@ class ProfileRepository {
     required int? weightKg,
     required String? dominantSide,
     required String? positionId,
+    /// Under-18 athletes must supply a guardian's email; the server
+    /// fires a guardian invite as a fire-and-log side effect after
+    /// the profile is created. Server also enforces the age gate —
+    /// this stays optional here so 18+ callers can omit it.
+    String? guardianEmail,
   }) {
     return _invoke<CreateProfileData>(
       name: 'create-profile',
@@ -49,6 +79,7 @@ class ProfileRepository {
         'last_name': lastName,
         'date_of_birth': dateOfBirth,
         if (inviteId != null) 'invite_id': inviteId,
+        if (guardianEmail != null) 'guardian_email': guardianEmail,
         'athlete_details': {
           'height_cm': heightCm,
           'weight_kg': weightKg,

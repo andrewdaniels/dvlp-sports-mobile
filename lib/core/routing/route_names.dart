@@ -19,6 +19,7 @@ class RouteNames {
   static const signupCredentials = '/signup/credentials';
   static const signupPlayerDetails = '/signup/details/player';
   static const signupCoachDetails = '/signup/details/coach';
+  static const signupGuardianDetails = '/signup/details/guardian';
 
   // Athlete shell tabs
   static const athletePassport = '/athlete/passport';

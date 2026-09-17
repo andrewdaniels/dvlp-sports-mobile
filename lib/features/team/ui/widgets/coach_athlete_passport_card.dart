@@ -260,7 +260,7 @@ class _StatsRow extends StatelessWidget {
       ('AGE', age),
       ('HEIGHT', height),
       ('WEIGHT', weight),
-      ('HAND', hand),
+      ('SHOT', hand),
       ('VERIFIED', verified),
     ];
     return Padding(

@@ -178,14 +178,17 @@ class _AppScreenFooterState extends State<AppScreenFooter>
               top: false,
               // Bottom SafeArea alone is enough vertical space below
               // the button — matches iOS convention. The keyboard-up
-              // case is handled by the collapse above, so no extra
-              // bottom padding is needed for keyboard breathing room.
+              // case usually gets handled by the collapse above, but
+              // when hideOnKeyboard=false we need to add breathing
+              // room manually since SafeArea's bottom padding
+              // collapses to 0 while the keyboard is consuming the
+              // safe area (viewInsets swallow it).
               child: Padding(
                 padding: EdgeInsets.fromLTRB(
                   hPad,
                   AppSpacing.md,
                   hPad,
-                  0,
+                  _keyboardVisible ? AppSpacing.md : 0,
                 ),
                 child: widget.child,
               ),

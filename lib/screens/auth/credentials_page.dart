@@ -90,6 +90,8 @@ class _CredentialsPageState extends ConsumerState<CredentialsPage> {
         context.push(RouteNames.signupPlayerDetails);
       case 'coach':
         context.push(RouteNames.signupCoachDetails);
+      case 'guardian':
+        context.push(RouteNames.signupGuardianDetails);
     }
   }
 

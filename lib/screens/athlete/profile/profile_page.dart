@@ -168,11 +168,11 @@ class _ProfileInfoCard extends ConsumerWidget {
       _RowSpec(label: 'Age', value: formatAge(profile.dateOfBirth)),
       _RowSpec(label: 'Weight', value: formatWeight(athlete?.weightKg)),
       _RowSpec(label: 'Height', value: formatHeight(athlete?.heightCm)),
-      // Backend stores this as `dominant_side`; the mobile label uses
-      // "Dominant Hand" per client preference. Applies to hand-based
-      // sports; if we add a kicking sport later we'll want to make
-      // this label per-sport instead of hardcoded.
-      _RowSpec(label: 'Dominant Hand', value: formatDominantSide(athlete?.dominantSide)),
+      // Backend stores this as `dominant_side`; hockey uses "Shot"
+      // (shoots left / shoots right) as the natural term. When we add
+      // sports where "Hand" or "Foot" reads better, promote this label
+      // to per-sport lookup instead of hardcoded.
+      _RowSpec(label: 'Shot', value: formatDominantSide(athlete?.dominantSide)),
     ];
 
     return AppCard(
