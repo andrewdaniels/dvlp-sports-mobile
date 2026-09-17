@@ -96,13 +96,15 @@ class NotificationElement {
 enum Type {
     ASSESSMENT_REQUESTED_QUICK,
     ASSESSMENT_SUBMITTED_FORMAL,
-    ASSESSMENT_SUBMITTED_QUICK
+    ASSESSMENT_SUBMITTED_QUICK,
+    GUARDIAN_LINKED
 }
 
 final typeValues = EnumValues({
     "assessment_requested_quick": Type.ASSESSMENT_REQUESTED_QUICK,
     "assessment_submitted_formal": Type.ASSESSMENT_SUBMITTED_FORMAL,
-    "assessment_submitted_quick": Type.ASSESSMENT_SUBMITTED_QUICK
+    "assessment_submitted_quick": Type.ASSESSMENT_SUBMITTED_QUICK,
+    "guardian_linked": Type.GUARDIAN_LINKED
 });
 
 class Notification {

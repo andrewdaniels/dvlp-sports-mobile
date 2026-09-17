@@ -84,7 +84,7 @@ class AppPlayerPassportCard extends StatelessWidget {
                 (label: 'AGE', value: age),
                 (label: 'HEIGHT', value: height),
                 (label: 'WEIGHT', value: weight),
-                (label: 'HAND', value: hand),
+                (label: 'SHOT', value: hand),
                 (label: 'VERIFIED', value: verified),
               ],
             ),

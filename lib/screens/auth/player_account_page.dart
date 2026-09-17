@@ -9,6 +9,7 @@ import '../../features/auth/controllers/auth_providers.dart';
 import '../../features/auth/controllers/profile_providers.dart';
 import '../../features/auth/controllers/signup_flow_provider.dart';
 import '../../features/auth/data/api_result.dart';
+import '../../features/auth/ui/sheets/guardian_email_sheet.dart';
 import '../../features/reference/controllers/reference_providers.dart';
 import '../../generated/api/get_positions.dart';
 import '../../generated/api/get_profile.dart';
@@ -21,7 +22,12 @@ import '../../shared/widgets/app_text_field.dart';
 import '../../shared/widgets/app_wheel_picker.dart';
 
 /// Local for now — hoist to shared enum if a second screen needs it.
-enum _DominantSide { left, right, ambidextrous }
+///
+/// Hockey uses "shoots left" / "shoots right"; the DB enum still
+/// includes `ambidextrous` but we intentionally don't surface it here
+/// (product decision — no meaningful shooting-side ambiguity in hockey).
+/// Add back if we introduce a sport where it applies.
+enum _DominantSide { left, right }
 
 extension on _DominantSide {
   String get label {
@@ -30,8 +36,6 @@ extension on _DominantSide {
         return 'Left';
       case _DominantSide.right:
         return 'Right';
-      case _DominantSide.ambidextrous:
-        return 'Ambidextrous';
     }
   }
 }
@@ -141,7 +145,7 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
   Future<void> _pickDominantSide() async {
     final result = await showAppWheelPicker<_DominantSide>(
       context: context,
-      title: 'Dominant Side',
+      title: 'Shot',
       items: _DominantSide.values,
       itemLabel: (v) => v.label,
       initialItem: _dominantSide ?? _DominantSide.right,
@@ -202,6 +206,21 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
       return;
     }
 
+    // Age gate: if the athlete is under 18, collect a guardian email
+    // before creating the account. Sheet-on-submit (rather than an
+    // inline field on the form) keeps the form clean for 18+ users
+    // and gives us room for explanatory copy about why it's needed.
+    // Server enforces the same gate — this is UX, not security.
+    String? guardianEmail;
+    if (_computeAgeYears(_dob!) < 18) {
+      guardianEmail = await showGuardianEmailSheet(context: context);
+      if (!mounted) return;
+      if (guardianEmail == null) {
+        // Athlete dismissed the sheet — bail silently, no error.
+        return;
+      }
+    }
+
     HapticFeedback.mediumImpact();
     setState(() {
       _submitting = true;
@@ -225,6 +244,7 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
           weightKg: weightKg,
           dominantSide: _dominantSide?.name, // 'left' | 'right' | 'ambidextrous'
           positionId: _position?.id,
+          guardianEmail: guardianEmail,
         );
 
     if (!mounted) return;
@@ -286,10 +306,23 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
     return '${d.year}-$mm-$dd';
   }
 
+  /// Whole-years age at today's date — used to decide whether to
+  /// collect a guardian email before signup. Mirrors the server's
+  /// same helper in create-profile/index.ts so client and server
+  /// stay aligned on the cutoff.
+  static int _computeAgeYears(DateTime dob) {
+    final now = DateTime.now();
+    var age = now.year - dob.year;
+    final beforeBirthday = now.month < dob.month ||
+        (now.month == dob.month && now.day < dob.day);
+    if (beforeBirthday) age--;
+    return age < 0 ? 0 : age;
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final primaryLabel = widget.isEdit ? 'Save' : 'Next';
+    final primaryLabel = widget.isEdit ? 'Save' : 'Submit';
     final secondaryLabel = widget.isEdit ? 'Cancel' : 'Back';
 
     // Fields coming from an invite are locked — the invite is the source
@@ -400,7 +433,7 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
                             ),
                             const SizedBox(height: AppSpacing.md),
                             AppSelectTrigger(
-                              label: 'Dominant Side',
+                              label: 'Shot',
                               placeholder: 'Select side',
                               value: _dominantSide?.label,
                               onTap: _pickDominantSide,

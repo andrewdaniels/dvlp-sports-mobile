@@ -117,24 +117,30 @@ class Skill {
 }
 
 class GetAssessmentSchemaRequest {
+    final String? positionId;
     final String teamId;
 
     GetAssessmentSchemaRequest({
+        this.positionId,
         required this.teamId,
     });
 
     GetAssessmentSchemaRequest copyWith({
+        String? positionId,
         String? teamId,
     }) => 
         GetAssessmentSchemaRequest(
+            positionId: positionId ?? this.positionId,
             teamId: teamId ?? this.teamId,
         );
 
     factory GetAssessmentSchemaRequest.fromJson(Map<String, dynamic> json) => GetAssessmentSchemaRequest(
+        positionId: json["position_id"],
         teamId: json["team_id"],
     );
 
     Map<String, dynamic> toJson() => {
+        "position_id": positionId,
         "team_id": teamId,
     };
 }

@@ -49,58 +49,70 @@ class SendEmailRequest {
     final String code;
     final String? expiresAt;
     final String? inviterName;
-    final String? recipientName;
-    final Role role;
+    final String? organizationName;
+    final Role? role;
+    final String? teamName;
     final String to;
     final EmailType type;
+    final String? athleteName;
 
     SendEmailRequest({
         required this.code,
         this.expiresAt,
         this.inviterName,
-        this.recipientName,
-        required this.role,
+        this.organizationName,
+        this.role,
+        this.teamName,
         required this.to,
         required this.type,
+        this.athleteName,
     });
 
     SendEmailRequest copyWith({
         String? code,
         String? expiresAt,
         String? inviterName,
-        String? recipientName,
+        String? organizationName,
         Role? role,
+        String? teamName,
         String? to,
         EmailType? type,
+        String? athleteName,
     }) => 
         SendEmailRequest(
             code: code ?? this.code,
             expiresAt: expiresAt ?? this.expiresAt,
             inviterName: inviterName ?? this.inviterName,
-            recipientName: recipientName ?? this.recipientName,
+            organizationName: organizationName ?? this.organizationName,
             role: role ?? this.role,
+            teamName: teamName ?? this.teamName,
             to: to ?? this.to,
             type: type ?? this.type,
+            athleteName: athleteName ?? this.athleteName,
         );
 
     factory SendEmailRequest.fromJson(Map<String, dynamic> json) => SendEmailRequest(
         code: json["code"],
         expiresAt: json["expires_at"],
         inviterName: json["inviter_name"],
-        recipientName: json["recipient_name"],
-        role: roleValues.map[json["role"]]!,
+        organizationName: json["organization_name"],
+        role: roleValues.map[json["role"]],
+        teamName: json["team_name"],
         to: json["to"],
         type: emailTypeValues.map[json["type"]]!,
+        athleteName: json["athlete_name"],
     );
 
     Map<String, dynamic> toJson() => {
         "code": code,
         "expires_at": expiresAt,
         "inviter_name": inviterName,
-        "recipient_name": recipientName,
+        "organization_name": organizationName,
         "role": roleValues.reverse[role],
+        "team_name": teamName,
         "to": to,
         "type": emailTypeValues.reverse[type],
+        "athlete_name": athleteName,
     };
 }
 
@@ -123,10 +135,12 @@ final roleValues = EnumValues({
 });
 
 enum EmailType {
+    GUARDIAN_INVITE,
     INVITE_CODE
 }
 
 final emailTypeValues = EnumValues({
+    "guardian_invite": EmailType.GUARDIAN_INVITE,
     "invite_code": EmailType.INVITE_CODE
 });
 

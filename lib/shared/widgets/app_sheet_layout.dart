@@ -25,6 +25,7 @@ class AppSheetLayout extends StatelessWidget {
     this.subtitle,
     this.footer,
     this.bodyPadding = AppSheetInsets.padding,
+    this.footerStaysWithKeyboard = false,
   });
 
   final String title;
@@ -40,16 +41,30 @@ class AppSheetLayout extends StatelessWidget {
 
   final EdgeInsetsGeometry bodyPadding;
 
+  /// Set to true when the sheet's footer uses
+  /// `AppScreenFooter(hideOnKeyboard: false)`. Skips the extra
+  /// keyboard-up body padding (which is meant to compensate for a
+  /// hidden footer) so the last input sits close to the persistent
+  /// footer instead of being separated by a large gap.
+  final bool footerStaysWithKeyboard;
+
   @override
   Widget build(BuildContext context) {
     // Bottom body padding accounts for keyboard visibility so the last
     // input isn't hidden under it when the footer is present (footer
     // collapses on keyboard-up, so body needs its own bottom breathing
     // room in that state). Footer owns its own SafeArea + keyboard-hide.
+    //
+    // When the footer opts out of the hide behavior
+    // (footerStaysWithKeyboard), skip the extra padding — the footer
+    // is still there taking up space, so doubling up creates a huge
+    // gap between the last field and the CTA.
     final media = MediaQuery.of(context);
     final safeBottom = media.padding.bottom;
     final keyboardVisible = media.viewInsets.bottom > 0;
-    final bodyBottomPad = footer != null && !keyboardVisible
+    final footerVisibleAtBottom =
+        footer != null && (!keyboardVisible || footerStaysWithKeyboard);
+    final bodyBottomPad = footerVisibleAtBottom
         ? AppSpacing.md
         : safeBottom + AppSpacing.xl;
 

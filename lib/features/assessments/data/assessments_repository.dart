@@ -41,12 +41,20 @@ class AssessmentsRepository {
   /// scale. Powers the coach's create-assessment composer for both
   /// quick and formal (quick ignores score_scale — it's a client-side
   /// constant of 1–5 stars).
+  ///
+  /// [positionId] optional. When provided the returned skills are
+  /// filtered to only those mapped to that position (so a goalie
+  /// doesn't get scored on shooting). Omit for the sport-wide list.
   Future<ApiResult<GetAssessmentSchemaData>> getAssessmentSchema({
     required String teamId,
+    String? positionId,
   }) {
     return _invoke<GetAssessmentSchemaData>(
       name: 'get-assessment-schema',
-      body: {'team_id': teamId},
+      body: {
+        'team_id': teamId,
+        if (positionId != null) 'position_id': positionId,
+      },
       fromJson: GetAssessmentSchemaData.fromJson,
     );
   }

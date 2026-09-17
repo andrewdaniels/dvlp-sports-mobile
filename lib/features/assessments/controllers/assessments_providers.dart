@@ -189,24 +189,34 @@ class AssessmentDetailNotifier
   }
 }
 
-/// Composer schema (skills + score_scale) for a team. Keyed by
-/// `teamId` so multi-team coaches get separate caches. Lazy fetch;
-/// session-lifetime; sign-out invalidation via profileAuthSyncProvider.
+/// Composite key for [composerSchemaProvider]. `positionId` scopes the
+/// skill list — the server filters skills via `position_skills` when
+/// provided (e.g. a goalie doesn't get scored on shooting). null →
+/// sport-wide fallback. Two athletes on the same team with the same
+/// position share a cache; different positions get separate caches.
+typedef ComposerSchemaKey = ({String teamId, String? positionId});
+
+/// Composer schema (skills + score_scale) for a team + position. Lazy
+/// fetch; session-lifetime; sign-out invalidation via
+/// profileAuthSyncProvider (nukes all family instances).
 final composerSchemaProvider = AsyncNotifierProvider.family<
-    ComposerSchemaNotifier, schema_api.GetAssessmentSchemaData?, String>(
+    ComposerSchemaNotifier,
+    schema_api.GetAssessmentSchemaData?,
+    ComposerSchemaKey>(
   ComposerSchemaNotifier.new,
 );
 
-class ComposerSchemaNotifier
-    extends FamilyAsyncNotifier<schema_api.GetAssessmentSchemaData?, String> {
+class ComposerSchemaNotifier extends FamilyAsyncNotifier<
+    schema_api.GetAssessmentSchemaData?, ComposerSchemaKey> {
   @override
-  Future<schema_api.GetAssessmentSchemaData?> build(String teamId) async {
+  Future<schema_api.GetAssessmentSchemaData?> build(ComposerSchemaKey key) async {
     final session = SupabaseService.client.auth.currentSession;
     if (session == null) return null;
 
-    final result = await ref
-        .read(assessmentsRepositoryProvider)
-        .getAssessmentSchema(teamId: teamId);
+    final result = await ref.read(assessmentsRepositoryProvider).getAssessmentSchema(
+          teamId: key.teamId,
+          positionId: key.positionId,
+        );
     return switch (result) {
       Success(:final data) => data,
       Failure() => null,
@@ -216,9 +226,10 @@ class ComposerSchemaNotifier
   Future<void> refresh() async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      final result = await ref
-          .read(assessmentsRepositoryProvider)
-          .getAssessmentSchema(teamId: arg);
+      final result = await ref.read(assessmentsRepositoryProvider).getAssessmentSchema(
+            teamId: arg.teamId,
+            positionId: arg.positionId,
+          );
       return switch (result) {
         Success(:final data) => data,
         Failure(:final message) => throw Exception(message),
