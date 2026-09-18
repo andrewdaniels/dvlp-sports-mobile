@@ -7,7 +7,33 @@ import '../../../generated/api/create_profile.dart';
 import '../../../generated/api/get_linked_athletes.dart';
 import '../../../generated/api/get_profile.dart';
 import '../../../generated/api/link_guardian_athlete.dart';
+import '../../../generated/api/update_profile.dart';
 import 'api_result.dart';
+
+/// Client-side patch payload for the athlete_details block on
+/// update-profile. Fields omitted (or left null) are unchanged. Kept
+/// separate from the generated request type so callers don't need to
+/// touch quicktype-shaped objects.
+class UpdateProfileAthleteDetailsPatch {
+  const UpdateProfileAthleteDetailsPatch({
+    this.heightCm,
+    this.weightKg,
+    this.dominantSide,
+    this.positionId,
+  });
+
+  final int? heightCm;
+  final int? weightKg;
+  final String? dominantSide;
+  final String? positionId;
+
+  Map<String, dynamic> toJson() => {
+        if (heightCm != null) 'height_cm': heightCm,
+        if (weightKg != null) 'weight_kg': weightKg,
+        if (dominantSide != null) 'dominant_side': dominantSide,
+        if (positionId != null) 'position_id': positionId,
+      };
+}
 
 /// Wraps profile-related edge functions. Pure I/O — no caching happens
 /// here; providers own that.
@@ -62,6 +88,7 @@ class ProfileRepository {
     required String? phone,
     required String dateOfBirth,
     required String inviteId,
+    String? avatarBase64,
   }) {
     return _invoke<CreateProfileData>(
       name: 'create-profile',
@@ -70,10 +97,11 @@ class ProfileRepository {
         'email': email,
         'password': password,
         'first_name': firstName,
-        if (lastName != null) 'last_name': lastName,
-        if (phone != null) 'phone': phone,
+        'last_name': ?lastName,
+        'phone': ?phone,
         'date_of_birth': dateOfBirth,
         'invite_id': inviteId,
+        'avatar_base64': ?avatarBase64,
       },
       fromJson: CreateProfileData.fromJson,
     );
@@ -95,6 +123,7 @@ class ProfileRepository {
     /// the profile is created. Server also enforces the age gate —
     /// this stays optional here so 18+ callers can omit it.
     String? guardianEmail,
+    String? avatarBase64,
   }) {
     return _invoke<CreateProfileData>(
       name: 'create-profile',
@@ -105,8 +134,9 @@ class ProfileRepository {
         'first_name': firstName,
         'last_name': lastName,
         'date_of_birth': dateOfBirth,
-        if (inviteId != null) 'invite_id': inviteId,
-        if (guardianEmail != null) 'guardian_email': guardianEmail,
+        'invite_id': ?inviteId,
+        'guardian_email': ?guardianEmail,
+        'avatar_base64': ?avatarBase64,
         'athlete_details': {
           'height_cm': heightCm,
           'weight_kg': weightKg,
@@ -115,6 +145,30 @@ class ProfileRepository {
         },
       },
       fromJson: CreateProfileData.fromJson,
+    );
+  }
+
+  /// PATCH the caller's own profile. Undefined fields = unchanged;
+  /// see backend/update-profile/schema.ts for role-aware acceptance.
+  Future<ApiResult<UpdateProfileData>> updateProfile({
+    String? firstName,
+    String? lastName,
+    String? phone,
+    String? dateOfBirth,
+    UpdateProfileAthleteDetailsPatch? athleteDetails,
+    String? avatarBase64,
+  }) {
+    return _invoke<UpdateProfileData>(
+      name: 'update-profile',
+      body: {
+        'first_name': ?firstName,
+        'last_name': ?lastName,
+        'phone': ?phone,
+        'date_of_birth': ?dateOfBirth,
+        'athlete_details': ?athleteDetails?.toJson(),
+        'avatar_base64': ?avatarBase64,
+      },
+      fromJson: UpdateProfileData.fromJson,
     );
   }
 

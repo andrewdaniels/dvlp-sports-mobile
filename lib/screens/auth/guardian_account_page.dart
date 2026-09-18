@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,6 +13,7 @@ import '../../features/auth/controllers/profile_providers.dart';
 import '../../features/auth/controllers/signup_flow_provider.dart';
 import '../../features/auth/data/api_result.dart';
 import '../../generated/api/get_profile.dart';
+import '../../shared/util/avatar_picker.dart';
 import '../../shared/widgets/app_avatar.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_icon.dart';
@@ -21,15 +24,16 @@ import '../../shared/widgets/app_snack_bar.dart';
 import '../../shared/widgets/app_text_field.dart';
 import '../../shared/widgets/app_wheel_picker.dart';
 
-/// Guardian signup form. Reached from the credentials screen when the
-/// invite's target_role is `guardian` (routed there by signup_code_page).
+/// Guardian account form. Two modes:
 ///
-/// Fields kept intentionally minimal — guardians link to an athlete
-/// they didn't need to fill out sport-specific data for. last_name and
-/// phone are optional; DOB is required for the server-side adult
-/// (18+) gate.
+///  - Signup ([isEdit] false): fields blank (or invite-prefilled),
+///    submit calls create-profile + signs in + routes to landing.
+///  - Edit ([isEdit] true): fields seeded from currentProfileProvider,
+///    submit calls update-profile + pops. ToS checkbox is signup-only.
 class GuardianAccountPage extends ConsumerStatefulWidget {
-  const GuardianAccountPage({super.key});
+  const GuardianAccountPage({super.key, this.isEdit = false});
+
+  final bool isEdit;
 
   @override
   ConsumerState<GuardianAccountPage> createState() => _GuardianAccountPageState();
@@ -44,6 +48,9 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
   bool _agreed = false;
   bool _submitting = false;
   String? _errorText;
+  File? _avatarFile;
+  String? _avatarBase64;
+  String? _existingAvatarUrl;
 
   static const _monthLabels = [
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -53,14 +60,30 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
   @override
   void initState() {
     super.initState();
-    // Seed name fields from the invite if we have them. Invite may
-    // carry a first_name/last_name the athlete filled in, but for
-    // guardian invites those are usually null — safe to no-op.
-    final ctx = ref.read(signupFlowProvider);
-    if (ctx != null) {
-      if (ctx.firstName != null) _first.text = ctx.firstName!;
-      if (ctx.lastName != null) _last.text = ctx.lastName!;
+    if (widget.isEdit) {
+      _seedFromProfile();
+    } else {
+      _seedFromSignupContext();
     }
+  }
+
+  void _seedFromSignupContext() {
+    final ctx = ref.read(signupFlowProvider);
+    if (ctx == null) return;
+    if (ctx.firstName != null) _first.text = ctx.firstName!;
+    if (ctx.lastName != null) _last.text = ctx.lastName!;
+  }
+
+  void _seedFromProfile() {
+    final profile = ref.read(currentProfileProvider).value;
+    if (profile == null) return;
+    _first.text = profile.firstName;
+    _last.text = profile.lastName;
+    _phone.text = profile.phone ?? '';
+    if (profile.dateOfBirth != null) {
+      _dob = DateTime.tryParse(profile.dateOfBirth!);
+    }
+    _existingAvatarUrl = profile.avatarUrl;
   }
 
   @override
@@ -73,9 +96,6 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
 
   Future<void> _pickDob() async {
     final now = DateTime.now();
-    // Guardians are adults — DOB picker capped so the wheel can't
-    // land on a value that would fail the server's 18+ gate. Default
-    // starts at 40yo — arbitrary common-case for guardians.
     final result = await showAppDatePicker(
       context: context,
       title: 'Date of Birth',
@@ -88,9 +108,14 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
 
   String _formatDob(DateTime d) => '${_monthLabels[d.month - 1]} ${d.day}, ${d.year}';
 
-  void _uploadPhoto() {
+  Future<void> _uploadPhoto() async {
     HapticFeedback.lightImpact();
-    AppSnackBar.show(context, message: 'Photo upload — coming later');
+    final picked = await pickAvatarFromLibrary(context);
+    if (picked == null || !mounted) return;
+    setState(() {
+      _avatarFile = picked.file;
+      _avatarBase64 = picked.base64;
+    });
   }
 
   void _back() {
@@ -100,18 +125,10 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
 
   Future<void> _submit() async {
     if (_submitting) return;
-    final ctx = ref.read(signupFlowProvider);
-    if (ctx == null) {
-      context.go(RouteNames.entry);
-      return;
-    }
 
     final firstName = _first.text.trim();
     final lastName = _last.text.trim();
     final phone = _phone.text.trim();
-    // All profile fields required for guardian accounts (avatar is
-    // still deferred). Server also validates first_name non-empty
-    // via zod, so this is a UX guard.
     if (firstName.isEmpty || lastName.isEmpty || phone.isEmpty) {
       setState(() => _errorText = 'Please fill in all fields.');
       return;
@@ -120,9 +137,51 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
       setState(() => _errorText = 'Please select your date of birth.');
       return;
     }
+
+    if (widget.isEdit) {
+      await _submitEdit(firstName, lastName, phone);
+    } else {
+      await _submitSignup(firstName, lastName, phone);
+    }
+  }
+
+  Future<void> _submitEdit(String firstName, String lastName, String phone) async {
+    HapticFeedback.mediumImpact();
+    setState(() {
+      _submitting = true;
+      _errorText = null;
+    });
+
+    final result = await ref.read(profileRepositoryProvider).updateProfile(
+          firstName: firstName,
+          lastName: lastName,
+          phone: phone,
+          dateOfBirth: _formatIsoDate(_dob!),
+          avatarBase64: _avatarBase64,
+        );
+
+    if (!mounted) return;
+
+    switch (result) {
+      case Success(:final data):
+        ref.read(currentProfileProvider.notifier).optimisticSetFromUpdate(data);
+        AppSnackBar.show(context, message: 'Profile updated.');
+        context.pop();
+      case Failure(:final message):
+        setState(() {
+          _submitting = false;
+          _errorText = message;
+        });
+    }
+  }
+
+  Future<void> _submitSignup(String firstName, String lastName, String phone) async {
+    final ctx = ref.read(signupFlowProvider);
+    if (ctx == null) {
+      context.go(RouteNames.entry);
+      return;
+    }
     if (!_agreed) {
-      // Should never trigger — Submit is disabled until _agreed —
-      // but guard anyway.
       setState(() => _errorText = 'Please agree to the Terms of Service and Privacy Policy.');
       return;
     }
@@ -145,6 +204,7 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
           phone: phone,
           dateOfBirth: _formatIsoDate(_dob!),
           inviteId: ctx.inviteId!,
+          avatarBase64: _avatarBase64,
         );
 
     if (!mounted) return;
@@ -153,8 +213,6 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
       case Success(:final data):
         ref.read(currentProfileProvider.notifier).optimisticSetFromCreate(data);
 
-        // create-profile ran under service_role — no mobile session
-        // yet. Sign in with the credentials we just collected.
         try {
           await ref.read(authRepositoryProvider).signInWithPassword(
                 email: ctx.email!,
@@ -185,9 +243,6 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
     }
   }
 
-  /// Guardians land in the athlete shell (with a _GuardianGate on each
-  /// tab rendering a "coming soon" placeholder). Falls back to splash
-  /// on unknown role — the splash gate will resolve or bounce.
   static String _landingFor(RoleTier? role) => switch (role) {
         RoleTier.COACH => RouteNames.coachHome,
         null => RouteNames.splash,
@@ -200,10 +255,6 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
     return '${d.year}-$mm-$dd';
   }
 
-  /// Placeholder for the Terms / Privacy links. Real URLs haven't
-  /// been provided yet — swap to `url_launcher` (add the dep + import)
-  /// once the docs are hosted. Snackbar avoids adding a new dep for a
-  /// placeholder that would immediately churn.
   void _openLegal(BuildContext context, String docName) {
     AppSnackBar.show(context, message: '$docName — coming soon');
   }
@@ -211,6 +262,12 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    final primaryLabel = widget.isEdit ? 'Save' : 'Submit';
+    final secondaryLabel = widget.isEdit ? 'Cancel' : 'Back';
+    final headerTitle = widget.isEdit ? 'Edit Profile' : 'Your Account';
+    final headerSubtitle = widget.isEdit
+        ? 'Update your account details below.'
+        : 'A few details to set up your guardian account.';
 
     return Scaffold(
       backgroundColor: colors.primaryBackground,
@@ -222,17 +279,12 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                 child: Column(
-                  // Stretch so AppOnboardingHeader (MainAxisSize.min
-                  // internally) fills width instead of shrinking to
-                  // its subtitle length and getting centered by the
-                  // Column's default crossAxisAlignment. Otherwise
-                  // shorter-subtitle pages read as "inset."
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: AppSpacing.lg),
-                    const AppOnboardingHeader(
-                      title: 'Your Account',
-                      subtitle: 'A few details to set up your guardian account.',
+                    AppOnboardingHeader(
+                      title: headerTitle,
+                      subtitle: headerSubtitle,
                     ),
                     const SizedBox(height: AppSpacing.xl),
                     Expanded(
@@ -243,6 +295,8 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
                             _PhotoRow(
                               firstName: _first.text,
                               lastName: _last.text,
+                              imageFile: _avatarFile,
+                              imageUrl: _existingAvatarUrl,
                               onUpload: _uploadPhoto,
                             ),
                             const SizedBox(height: AppSpacing.lg),
@@ -271,13 +325,15 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
                               value: _dob == null ? null : _formatDob(_dob!),
                               onTap: _pickDob,
                             ),
-                            const SizedBox(height: AppSpacing.lg),
-                            _ConsentCheckbox(
-                              value: _agreed,
-                              onChanged: (v) => setState(() => _agreed = v),
-                              onTermsTap: () => _openLegal(context, 'Terms of Service'),
-                              onPrivacyTap: () => _openLegal(context, 'Privacy Policy'),
-                            ),
+                            if (!widget.isEdit) ...[
+                              const SizedBox(height: AppSpacing.lg),
+                              _ConsentCheckbox(
+                                value: _agreed,
+                                onChanged: (v) => setState(() => _agreed = v),
+                                onTermsTap: () => _openLegal(context, 'Terms of Service'),
+                                onPrivacyTap: () => _openLegal(context, 'Privacy Policy'),
+                              ),
+                            ],
                             if (_errorText != null) ...[
                               const SizedBox(height: AppSpacing.md),
                               Text(
@@ -297,19 +353,18 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
             AppScreenFooter.row(
               horizontalPadding: AppSpacing.xl,
               secondary: AppButton(
-                label: 'Back',
+                label: secondaryLabel,
                 variant: AppButtonVariant.outline,
                 onPressed: _submitting ? null : _back,
               ),
               primary: AppButton(
-                label: 'Submit',
+                label: primaryLabel,
                 variant: AppButtonVariant.primary,
                 loading: _submitting,
-                // Gate: consent required. Field-level required checks
-                // fire in _submit() itself with useful error messages
-                // (rather than a silent-disabled button that doesn't
-                // tell the user WHY).
-                onPressed: _agreed ? _submit : null,
+                // Signup: gated by ToS consent. Edit: always enabled —
+                // per-field required checks fire in _submit with useful
+                // error messages rather than a silent-disabled button.
+                onPressed: (widget.isEdit || _agreed) ? _submit : null,
               ),
             ),
           ],
@@ -355,9 +410,6 @@ class _ConsentCheckbox extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Toggle target — the box alone. Text spans have their own
-        // TapGestureRecognizers so tapping "Terms of Service" opens
-        // the doc without toggling the checkbox.
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () {
@@ -412,27 +464,34 @@ class _PhotoRow extends StatelessWidget {
   const _PhotoRow({
     required this.firstName,
     required this.lastName,
+    required this.imageFile,
+    required this.imageUrl,
     required this.onUpload,
   });
 
   final String firstName;
   final String lastName;
+  final File? imageFile;
+  final String? imageUrl;
   final VoidCallback onUpload;
 
   @override
   Widget build(BuildContext context) {
+    final hasPhoto = imageFile != null || (imageUrl != null && imageUrl!.isNotEmpty);
     return Row(
       children: [
         AppAvatar(
           firstName: firstName,
           lastName: lastName,
+          imageFile: imageFile,
+          imageUrl: imageUrl,
           size: AppAvatarSize.large,
           onTap: onUpload,
         ),
         const SizedBox(width: AppSpacing.md),
         Expanded(
           child: AppButton(
-            label: 'Upload Profile Picture',
+            label: hasPhoto ? 'Change Profile Picture' : 'Upload Profile Picture',
             variant: AppButtonVariant.outline,
             size: AppButtonSize.medium,
             expand: true,

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -9,10 +11,12 @@ import '../../features/auth/controllers/auth_providers.dart';
 import '../../features/auth/controllers/profile_providers.dart';
 import '../../features/auth/controllers/signup_flow_provider.dart';
 import '../../features/auth/data/api_result.dart';
+import '../../features/auth/data/profile_repository.dart';
 import '../../features/auth/ui/sheets/guardian_email_sheet.dart';
 import '../../features/reference/controllers/reference_providers.dart';
 import '../../generated/api/get_positions.dart';
-import '../../generated/api/get_profile.dart';
+import '../../generated/api/get_profile.dart' as gp;
+import '../../shared/util/avatar_picker.dart';
 import '../../shared/widgets/app_avatar.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_onboarding_header.dart';
@@ -41,11 +45,13 @@ extension on _DominantSide {
   }
 }
 
-/// Player account creation form.
+/// Player (athlete) account form. Two modes:
 ///
-/// [isEdit] flips the footer button labels (Back/Next → Cancel/Save) so
-/// the same page can be reused in-app once we wire up profile editing.
-/// Data loading + submission is left unwired for now.
+///  - Signup ([isEdit] false): fields blank / invite-prefilled, submit
+///    calls create-profile + signs in + routes to landing.
+///  - Edit ([isEdit] true): fields seeded from currentProfileProvider,
+///    submit calls update-profile + pops. The under-18 guardian-email
+///    sheet is signup-only (age gate is only meaningful at signup).
 class PlayerAccountPage extends ConsumerStatefulWidget {
   const PlayerAccountPage({super.key, this.isEdit = false});
 
@@ -67,6 +73,9 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
   DateTime? _dob;
   bool _submitting = false;
   String? _errorText;
+  File? _avatarFile;
+  String? _avatarBase64;
+  String? _existingAvatarUrl;
   static const _monthLabels = [
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
@@ -75,12 +84,51 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
   @override
   void initState() {
     super.initState();
-    // Seed name fields from invite/signup context if we have them.
-    // initState runs once per widget lifecycle, so no guard needed.
+    if (widget.isEdit) {
+      _seedFromProfile();
+    } else {
+      _seedFromSignupContext();
+    }
+  }
+
+  void _seedFromSignupContext() {
     final ctx = ref.read(signupFlowProvider);
-    if (ctx != null) {
-      if (ctx.firstName != null) _first.text = ctx.firstName!;
-      if (ctx.lastName != null) _last.text = ctx.lastName!;
+    if (ctx == null) return;
+    if (ctx.firstName != null) _first.text = ctx.firstName!;
+    if (ctx.lastName != null) _last.text = ctx.lastName!;
+  }
+
+  void _seedFromProfile() {
+    final profile = ref.read(currentProfileProvider).value;
+    if (profile == null) return;
+    _first.text = profile.firstName;
+    _last.text = profile.lastName;
+    if (profile.dateOfBirth != null) {
+      _dob = DateTime.tryParse(profile.dateOfBirth!);
+    }
+    _existingAvatarUrl = profile.avatarUrl;
+
+    final details = profile.athleteDetails;
+    if (details != null) {
+      final h = details.heightCm;
+      if (h != null) {
+        // cm → total inches (rounded) → ft/in
+        final totalIn = (h / 2.54).round();
+        _heightFt = totalIn ~/ 12;
+        _heightIn = totalIn % 12;
+      }
+      final w = details.weightKg;
+      if (w != null) _weightLbs = (w / 0.453592).round();
+      switch (details.dominantSide) {
+        case gp.DominantSide.LEFT:
+          _dominantSide = _DominantSide.left;
+        case gp.DominantSide.RIGHT:
+          _dominantSide = _DominantSide.right;
+        case _:
+          _dominantSide = null;
+      }
+      // Position is matched from the positions list once it loads —
+      // see build() below.
     }
   }
 
@@ -169,9 +217,14 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
 
   String _formatDob(DateTime d) => '${_monthLabels[d.month - 1]} ${d.day}, ${d.year}';
 
-  void _uploadPhoto() {
+  Future<void> _uploadPhoto() async {
     HapticFeedback.lightImpact();
-    AppSnackBar.show(context, message: 'Photo upload — coming later');
+    final picked = await pickAvatarFromLibrary(context);
+    if (picked == null || !mounted) return;
+    setState(() {
+      _avatarFile = picked.file;
+      _avatarBase64 = picked.base64;
+    });
   }
 
   void _back() {
@@ -179,18 +232,9 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
     context.pop();
   }
 
-  /// Convert form data → create-profile payload → sign in → passport.
   Future<void> _submit() async {
     if (_submitting) return;
 
-    final ctx = ref.read(signupFlowProvider);
-    if (ctx == null) {
-      // Landed here without going through the flow — bounce home.
-      context.go(RouteNames.entry);
-      return;
-    }
-
-    // Local validation: required fields not covered by input widgets.
     final firstName = _first.text.trim();
     final lastName = _last.text.trim();
     if (firstName.isEmpty || lastName.isEmpty) {
@@ -201,22 +245,76 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
       setState(() => _errorText = 'Please select your date of birth.');
       return;
     }
+
+    if (widget.isEdit) {
+      await _submitEdit(firstName, lastName);
+    } else {
+      await _submitSignup(firstName, lastName);
+    }
+  }
+
+  int? _heightCmFromInputs() {
+    if (_heightFt == null && _heightIn == null) return null;
+    return (((_heightFt ?? 0) * 12 + (_heightIn ?? 0)) * 2.54).round();
+  }
+
+  int? _weightKgFromInputs() =>
+      _weightLbs == null ? null : (_weightLbs! * 0.453592).round();
+
+  Future<void> _submitEdit(String firstName, String lastName) async {
+    HapticFeedback.mediumImpact();
+    setState(() {
+      _submitting = true;
+      _errorText = null;
+    });
+
+    final result = await ref.read(profileRepositoryProvider).updateProfile(
+          firstName: firstName,
+          lastName: lastName,
+          dateOfBirth: _formatIsoDate(_dob!),
+          avatarBase64: _avatarBase64,
+          athleteDetails: UpdateProfileAthleteDetailsPatch(
+            heightCm: _heightCmFromInputs(),
+            weightKg: _weightKgFromInputs(),
+            dominantSide: _dominantSide?.name,
+            positionId: _position?.id,
+          ),
+        );
+
+    if (!mounted) return;
+
+    switch (result) {
+      case Success(:final data):
+        ref.read(currentProfileProvider.notifier).optimisticSetFromUpdate(data);
+        AppSnackBar.show(context, message: 'Profile updated.');
+        context.pop();
+      case Failure(:final message):
+        setState(() {
+          _submitting = false;
+          _errorText = message;
+        });
+    }
+  }
+
+  Future<void> _submitSignup(String firstName, String lastName) async {
+    final ctx = ref.read(signupFlowProvider);
+    if (ctx == null) {
+      context.go(RouteNames.entry);
+      return;
+    }
     if (ctx.email == null || ctx.password == null) {
       setState(() => _errorText = 'Credentials missing — please go back and try again.');
       return;
     }
 
-    // Age gate: if the athlete is under 18, collect a guardian email
-    // before creating the account. Sheet-on-submit (rather than an
-    // inline field on the form) keeps the form clean for 18+ users
-    // and gives us room for explanatory copy about why it's needed.
-    // Server enforces the same gate — this is UX, not security.
+    // Age gate: under-18 athletes must supply a guardian email before
+    // signup. Server enforces the same gate — this is UX.
     String? guardianEmail;
     if (_computeAgeYears(_dob!) < 18) {
       guardianEmail = await showGuardianEmailSheet(context: context);
       if (!mounted) return;
       if (guardianEmail == null) {
-        // Athlete dismissed the sheet — bail silently, no error.
+        // Athlete dismissed the sheet — bail silently.
         return;
       }
     }
@@ -227,12 +325,6 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
       _errorText = null;
     });
 
-    // ft/in → cm, lbs → kg. Nulls preserved so backend stores as null.
-    final heightCm = (_heightFt == null && _heightIn == null)
-        ? null
-        : (((_heightFt ?? 0) * 12 + (_heightIn ?? 0)) * 2.54).round();
-    final weightKg = _weightLbs == null ? null : (_weightLbs! * 0.453592).round();
-
     final result = await ref.read(profileRepositoryProvider).createAthlete(
           email: ctx.email!,
           password: ctx.password!,
@@ -240,29 +332,26 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
           lastName: lastName,
           dateOfBirth: _formatIsoDate(_dob!),
           inviteId: ctx.inviteId,
-          heightCm: heightCm,
-          weightKg: weightKg,
-          dominantSide: _dominantSide?.name, // 'left' | 'right' | 'ambidextrous'
+          heightCm: _heightCmFromInputs(),
+          weightKg: _weightKgFromInputs(),
+          dominantSide: _dominantSide?.name,
           positionId: _position?.id,
           guardianEmail: guardianEmail,
+          avatarBase64: _avatarBase64,
         );
 
     if (!mounted) return;
 
     switch (result) {
       case Success(:final data):
-        // Store the freshly-created profile so downstream screens skip a fetch.
         ref.read(currentProfileProvider.notifier).optimisticSetFromCreate(data);
 
-        // create-profile ran under service_role (admin) — mobile has no
-        // session yet. Sign in with the credentials we just collected.
         try {
           await ref.read(authRepositoryProvider).signInWithPassword(
                 email: ctx.email!,
                 password: ctx.password!,
               );
         } catch (_) {
-          // Profile exists but sign-in failed. Rare — user can log in manually.
           if (!mounted) return;
           setState(() {
             _submitting = false;
@@ -271,13 +360,9 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
           return;
         }
 
-        // Clear the signup context now that we're done with it.
         ref.read(signupFlowProvider.notifier).state = null;
 
         if (!mounted) return;
-        // Chain profile fetch onto the same loading state so signup
-        // → shell is one seamless transition. Falls back to splash if
-        // the fetch fails so the user isn't stranded mid-loading.
         await ref.read(currentProfileProvider.notifier).refresh();
         if (!mounted) return;
         final profile = ref.read(currentProfileProvider).value;
@@ -291,11 +376,8 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
     }
   }
 
-  /// Mirrors [SplashPage._landingFor] — kept in sync with login_page so
-  /// post-auth direct-nav and cold-boot splash agree per role. Null
-  /// role falls back to splash to retry / show an error.
-  static String _landingFor(RoleTier? role) => switch (role) {
-        RoleTier.COACH => RouteNames.coachHome,
+  static String _landingFor(gp.RoleTier? role) => switch (role) {
+        gp.RoleTier.COACH => RouteNames.coachHome,
         null => RouteNames.splash,
         _ => RouteNames.athletePassport,
       };
@@ -306,10 +388,9 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
     return '${d.year}-$mm-$dd';
   }
 
-  /// Whole-years age at today's date — used to decide whether to
-  /// collect a guardian email before signup. Mirrors the server's
-  /// same helper in create-profile/index.ts so client and server
-  /// stay aligned on the cutoff.
+  /// Whole-years age at today's date. Mirrors the server's helper in
+  /// create-profile/index.ts so client + server agree on the under-18
+  /// cutoff.
   static int _computeAgeYears(DateTime dob) {
     final now = DateTime.now();
     var age = now.year - dob.year;
@@ -324,23 +405,47 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
     final colors = context.colors;
     final primaryLabel = widget.isEdit ? 'Save' : 'Submit';
     final secondaryLabel = widget.isEdit ? 'Cancel' : 'Back';
+    final headerTitle = widget.isEdit ? 'Edit Profile' : 'Your Account';
+    final headerSubtitle = widget.isEdit
+        ? 'Update your account details below.'
+        : 'Enter the information below to create your account';
 
-    // Fields coming from an invite are locked — the invite is the source
-    // of truth for the invited person's name; user shouldn't retype it.
     final ctx = ref.watch(signupFlowProvider);
     final lockedFromInvite = ctx?.fromInvite ?? false;
-    final lockFirst = lockedFromInvite && (ctx?.firstName?.isNotEmpty ?? false);
-    final lockLast = lockedFromInvite && (ctx?.lastName?.isNotEmpty ?? false);
+    // Only lock invite-prefilled fields during signup — in edit mode
+    // the user can freely rename themselves.
+    final lockFirst = !widget.isEdit &&
+        lockedFromInvite &&
+        (ctx?.firstName?.isNotEmpty ?? false);
+    final lockLast = !widget.isEdit &&
+        lockedFromInvite &&
+        (ctx?.lastName?.isNotEmpty ?? false);
 
-    // Trigger positions fetch on mount + track loading state. Riverpod
-    // caches the result for the session; navigating away and back is free.
     final positionsAsync = ref.watch(positionsProvider);
     final positionsLoading = positionsAsync.isLoading;
 
+    // Edit mode: once positions load, seed the picker from the
+    // profile's stored position id.
+    if (widget.isEdit && _position == null) {
+      final positions = positionsAsync.valueOrNull?.positions ?? const [];
+      final profilePositionId = ref
+          .read(currentProfileProvider)
+          .value
+          ?.athleteDetails
+          ?.position
+          ?.id;
+      if (profilePositionId != null) {
+        for (final p in positions) {
+          if (p.id == profilePositionId) {
+            _position = p;
+            break;
+          }
+        }
+      }
+    }
+
     return Scaffold(
       backgroundColor: colors.primaryBackground,
-      // Outer SafeArea handles top; footer owns bottom SafeArea +
-      // horizontal padding + keyboard-hide.
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -351,9 +456,9 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
                 child: Column(
                   children: [
                     const SizedBox(height: AppSpacing.lg),
-                    const AppOnboardingHeader(
-                      title: 'Your Account',
-                      subtitle: 'Enter the information below to create your account',
+                    AppOnboardingHeader(
+                      title: headerTitle,
+                      subtitle: headerSubtitle,
                     ),
                     const SizedBox(height: AppSpacing.xl),
                     Expanded(
@@ -364,6 +469,8 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
                             _PhotoRow(
                               firstName: _first.text,
                               lastName: _last.text,
+                              imageFile: _avatarFile,
+                              imageUrl: _existingAvatarUrl,
                               onUpload: _uploadPhoto,
                             ),
                             const SizedBox(height: AppSpacing.lg),
@@ -495,30 +602,34 @@ class _PhotoRow extends StatelessWidget {
   const _PhotoRow({
     required this.firstName,
     required this.lastName,
+    required this.imageFile,
+    required this.imageUrl,
     required this.onUpload,
   });
 
   final String firstName;
   final String lastName;
+  final File? imageFile;
+  final String? imageUrl;
   final VoidCallback onUpload;
 
   @override
   Widget build(BuildContext context) {
+    final hasPhoto = imageFile != null || (imageUrl != null && imageUrl!.isNotEmpty);
     return Row(
       children: [
-        // Falls back to initials from invite-prefilled name, or the
-        // userFallback icon when nothing's typed yet. Both avatar and
-        // button trigger upload — wider tap target.
         AppAvatar(
           firstName: firstName,
           lastName: lastName,
+          imageFile: imageFile,
+          imageUrl: imageUrl,
           size: AppAvatarSize.large,
           onTap: onUpload,
         ),
         const SizedBox(width: AppSpacing.md),
         Expanded(
           child: AppButton(
-            label: 'Upload Profile Picture',
+            label: hasPhoto ? 'Change Profile Picture' : 'Upload Profile Picture',
             variant: AppButtonVariant.outline,
             size: AppButtonSize.medium,
             expand: true,
@@ -529,4 +640,3 @@ class _PhotoRow extends StatelessWidget {
     );
   }
 }
-

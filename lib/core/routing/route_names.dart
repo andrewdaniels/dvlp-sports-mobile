@@ -79,6 +79,10 @@ class RouteNames {
     return requestId == null ? base : '$base&request_id=$requestId';
   }
 
+  // Profile → Edit (pencil icon on the profile page).
+  // Dispatches by role to the matching account form in edit mode.
+  static const editProfile = '/edit-profile';
+
   // Profile → Settings (shared across shells)
   static const accountSettings = '/account-settings';
 

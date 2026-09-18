@@ -34,6 +34,8 @@ String createProfileRequestToJson(CreateProfileRequest data) => json.encode(data
 
 class CreateAthleteRequest {
     final CreateAthleteRequestAthleteDetails athleteDetails;
+    final String? avatarBase64;
+    final String? avatarMime;
     final String dateOfBirth;
     final String email;
     final String firstName;
@@ -45,6 +47,8 @@ class CreateAthleteRequest {
 
     CreateAthleteRequest({
         required this.athleteDetails,
+        this.avatarBase64,
+        this.avatarMime,
         required this.dateOfBirth,
         required this.email,
         required this.firstName,
@@ -57,6 +61,8 @@ class CreateAthleteRequest {
 
     CreateAthleteRequest copyWith({
         CreateAthleteRequestAthleteDetails? athleteDetails,
+        String? avatarBase64,
+        String? avatarMime,
         String? dateOfBirth,
         String? email,
         String? firstName,
@@ -68,6 +74,8 @@ class CreateAthleteRequest {
     }) => 
         CreateAthleteRequest(
             athleteDetails: athleteDetails ?? this.athleteDetails,
+            avatarBase64: avatarBase64 ?? this.avatarBase64,
+            avatarMime: avatarMime ?? this.avatarMime,
             dateOfBirth: dateOfBirth ?? this.dateOfBirth,
             email: email ?? this.email,
             firstName: firstName ?? this.firstName,
@@ -80,6 +88,8 @@ class CreateAthleteRequest {
 
     factory CreateAthleteRequest.fromJson(Map<String, dynamic> json) => CreateAthleteRequest(
         athleteDetails: CreateAthleteRequestAthleteDetails.fromJson(json["athlete_details"]),
+        avatarBase64: json["avatar_base64"],
+        avatarMime: json["avatar_mime"],
         dateOfBirth: json["date_of_birth"],
         email: json["email"],
         firstName: json["first_name"],
@@ -92,6 +102,8 @@ class CreateAthleteRequest {
 
     Map<String, dynamic> toJson() => {
         "athlete_details": athleteDetails.toJson(),
+        "avatar_base64": avatarBase64,
+        "avatar_mime": avatarMime,
         "date_of_birth": dateOfBirth,
         "email": email,
         "first_name": firstName,
@@ -165,6 +177,8 @@ final createAthleteRequestRoleValues = EnumValues({
 });
 
 class CreateCoachRequest {
+    final String? avatarBase64;
+    final String? avatarMime;
     final String? dateOfBirth;
     final String email;
     final String firstName;
@@ -174,6 +188,8 @@ class CreateCoachRequest {
     final CreateCoachRequestRole role;
 
     CreateCoachRequest({
+        this.avatarBase64,
+        this.avatarMime,
         this.dateOfBirth,
         required this.email,
         required this.firstName,
@@ -184,6 +200,8 @@ class CreateCoachRequest {
     });
 
     CreateCoachRequest copyWith({
+        String? avatarBase64,
+        String? avatarMime,
         String? dateOfBirth,
         String? email,
         String? firstName,
@@ -193,6 +211,8 @@ class CreateCoachRequest {
         CreateCoachRequestRole? role,
     }) => 
         CreateCoachRequest(
+            avatarBase64: avatarBase64 ?? this.avatarBase64,
+            avatarMime: avatarMime ?? this.avatarMime,
             dateOfBirth: dateOfBirth ?? this.dateOfBirth,
             email: email ?? this.email,
             firstName: firstName ?? this.firstName,
@@ -203,6 +223,8 @@ class CreateCoachRequest {
         );
 
     factory CreateCoachRequest.fromJson(Map<String, dynamic> json) => CreateCoachRequest(
+        avatarBase64: json["avatar_base64"],
+        avatarMime: json["avatar_mime"],
         dateOfBirth: json["date_of_birth"],
         email: json["email"],
         firstName: json["first_name"],
@@ -213,6 +235,8 @@ class CreateCoachRequest {
     );
 
     Map<String, dynamic> toJson() => {
+        "avatar_base64": avatarBase64,
+        "avatar_mime": avatarMime,
         "date_of_birth": dateOfBirth,
         "email": email,
         "first_name": firstName,
@@ -232,6 +256,8 @@ final createCoachRequestRoleValues = EnumValues({
 });
 
 class CreateGuardianRequest {
+    final String? avatarBase64;
+    final String? avatarMime;
     final String dateOfBirth;
     final String email;
     final String firstName;
@@ -242,6 +268,8 @@ class CreateGuardianRequest {
     final CreateGuardianRequestRole role;
 
     CreateGuardianRequest({
+        this.avatarBase64,
+        this.avatarMime,
         required this.dateOfBirth,
         required this.email,
         required this.firstName,
@@ -253,6 +281,8 @@ class CreateGuardianRequest {
     });
 
     CreateGuardianRequest copyWith({
+        String? avatarBase64,
+        String? avatarMime,
         String? dateOfBirth,
         String? email,
         String? firstName,
@@ -263,6 +293,8 @@ class CreateGuardianRequest {
         CreateGuardianRequestRole? role,
     }) => 
         CreateGuardianRequest(
+            avatarBase64: avatarBase64 ?? this.avatarBase64,
+            avatarMime: avatarMime ?? this.avatarMime,
             dateOfBirth: dateOfBirth ?? this.dateOfBirth,
             email: email ?? this.email,
             firstName: firstName ?? this.firstName,
@@ -274,6 +306,8 @@ class CreateGuardianRequest {
         );
 
     factory CreateGuardianRequest.fromJson(Map<String, dynamic> json) => CreateGuardianRequest(
+        avatarBase64: json["avatar_base64"],
+        avatarMime: json["avatar_mime"],
         dateOfBirth: json["date_of_birth"],
         email: json["email"],
         firstName: json["first_name"],
@@ -285,6 +319,8 @@ class CreateGuardianRequest {
     );
 
     Map<String, dynamic> toJson() => {
+        "avatar_base64": avatarBase64,
+        "avatar_mime": avatarMime,
         "date_of_birth": dateOfBirth,
         "email": email,
         "first_name": firstName,
@@ -658,6 +694,8 @@ final assessmentCadenceValues = EnumValues({
 
 class CreateProfileRequest {
     final CreateProfileRequestAthleteDetails? athleteDetails;
+    final String? avatarBase64;
+    final String? avatarMime;
     final String? dateOfBirth;
     final String email;
     final String firstName;
@@ -670,6 +708,8 @@ class CreateProfileRequest {
 
     CreateProfileRequest({
         this.athleteDetails,
+        this.avatarBase64,
+        this.avatarMime,
         this.dateOfBirth,
         required this.email,
         required this.firstName,
@@ -683,6 +723,8 @@ class CreateProfileRequest {
 
     CreateProfileRequest copyWith({
         CreateProfileRequestAthleteDetails? athleteDetails,
+        String? avatarBase64,
+        String? avatarMime,
         String? dateOfBirth,
         String? email,
         String? firstName,
@@ -695,6 +737,8 @@ class CreateProfileRequest {
     }) => 
         CreateProfileRequest(
             athleteDetails: athleteDetails ?? this.athleteDetails,
+            avatarBase64: avatarBase64 ?? this.avatarBase64,
+            avatarMime: avatarMime ?? this.avatarMime,
             dateOfBirth: dateOfBirth ?? this.dateOfBirth,
             email: email ?? this.email,
             firstName: firstName ?? this.firstName,
@@ -708,6 +752,8 @@ class CreateProfileRequest {
 
     factory CreateProfileRequest.fromJson(Map<String, dynamic> json) => CreateProfileRequest(
         athleteDetails: json["athlete_details"] == null ? null : CreateProfileRequestAthleteDetails.fromJson(json["athlete_details"]),
+        avatarBase64: json["avatar_base64"],
+        avatarMime: json["avatar_mime"],
         dateOfBirth: json["date_of_birth"],
         email: json["email"],
         firstName: json["first_name"],
@@ -721,6 +767,8 @@ class CreateProfileRequest {
 
     Map<String, dynamic> toJson() => {
         "athlete_details": athleteDetails?.toJson(),
+        "avatar_base64": avatarBase64,
+        "avatar_mime": avatarMime,
         "date_of_birth": dateOfBirth,
         "email": email,
         "first_name": firstName,
