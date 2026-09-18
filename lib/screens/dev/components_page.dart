@@ -44,6 +44,7 @@ import '../../generated/api/get_team_roster.dart' as roster;
 import '../../shared/widgets/app_select_trigger.dart';
 import '../../shared/widgets/app_sheet_layout.dart';
 import '../../shared/widgets/app_sheet_shell.dart';
+import '../../shared/widgets/app_snack_bar.dart';
 import '../../shared/widgets/app_star_rating.dart';
 import '../../shared/widgets/app_text_badge.dart';
 import '../../shared/widgets/app_text_field.dart';
@@ -1955,9 +1956,7 @@ class _SkillScoreSelectorSheetDemo extends StatelessWidget {
           step: 0.5,
         );
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Picked: ${picked ?? 'dismissed'}')),
-        );
+        AppSnackBar.show(context, message: 'Picked: ${picked ?? 'dismissed'}');
       },
     );
   }

@@ -10,6 +10,7 @@ import '../../features/auth/data/auth_repository.dart';
 import '../../generated/api/get_profile.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_screen_footer.dart';
+import '../../shared/widgets/app_snack_bar.dart';
 import '../../shared/widgets/app_text_field.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -130,8 +131,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       child: GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Forgot password — coming later')),
+                          AppSnackBar.show(
+                            context,
+                            message: 'Forgot password — coming later',
                           );
                         },
                         child: Text(

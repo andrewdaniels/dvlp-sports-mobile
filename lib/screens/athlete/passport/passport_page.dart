@@ -13,8 +13,9 @@ import '../../../features/feedback_requests/ui/sheets/request_feedback_sheet.dar
 import '../../../features/auth/util/profile_format.dart';
 import '../../../features/notifications/controllers/notifications_providers.dart';
 import '../../../generated/api/get_assessments.dart' as assessments_api;
-import '../../../generated/api/get_profile.dart';
+import '../../../generated/api/get_profile.dart' show GetProfileData, RoleTier;
 import '../../../shared/widgets/app_button.dart';
+import '../../../shared/widgets/app_empty_state.dart';
 import '../../../shared/widgets/app_icon.dart';
 import '../../../shared/widgets/app_icon_button.dart';
 import '../../../shared/widgets/app_indicator_badge.dart';
@@ -28,7 +29,10 @@ class PassportPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final profileAsync = ref.watch(currentProfileProvider);
+    // Passport renders the athlete's own data (for an athlete session)
+    // OR the linked athlete's data (for a guardian session). Both
+    // paths funnel through viewingAthleteProvider.
+    final profileAsync = ref.watch(viewingAthleteProvider);
 
     final unreadCount = ref.watch(unreadNotificationCountProvider);
     return Scaffold(
@@ -87,8 +91,16 @@ class _PassportBody extends ConsumerWidget {
 
     return AppRefreshIndicator(
       onRefresh: () async {
+        // Refresh the viewing-athlete's profile — for an athlete
+        // session that's currentProfileProvider (identity), for a
+        // guardian session it's athleteProfileProvider(viewingId).
+        final caller = ref.read(currentProfileProvider).value;
+        final isGuardianViewingOther =
+            caller?.roleTier == RoleTier.GUARDIAN && profile.id != caller?.id;
         await Future.wait([
           ref.read(currentProfileProvider.notifier).refresh(),
+          if (isGuardianViewingOther)
+            ref.read(athleteProfileProvider(profile.id).notifier).refresh(),
           ref.read(assessmentsProvider(profile.id).notifier).refresh(),
           // Bell dot on this page reflects notification freshness; if
           // the user is on the passport, refresh the inbox too so
@@ -123,11 +135,22 @@ class _PassportBody extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          AppButton(
-            label: 'Request Quick Feedback',
-            variant: AppButtonVariant.outline,
-            expand: true,
-            onPressed: () => showRequestFeedbackSheet(context, athleteId: profile.id),
+          // Guardians view read-only — the athlete is the one who
+          // requests feedback from their own coaches. Disabled state
+          // makes the affordance visible but non-actionable.
+          Builder(
+            builder: (context) {
+              final caller = ref.watch(currentProfileProvider).value;
+              final isGuardian = caller?.roleTier == RoleTier.GUARDIAN;
+              return AppButton(
+                label: 'Request Quick Feedback',
+                variant: AppButtonVariant.outline,
+                expand: true,
+                onPressed: isGuardian
+                    ? null
+                    : () => showRequestFeedbackSheet(context, athleteId: profile.id),
+              );
+            },
           ),
           const SizedBox(height: AppSpacing.xl),
           _RecentFeedbackSection(athleteId: profile.id),
@@ -168,11 +191,23 @@ class _RecentFeedbackSection extends ConsumerWidget {
     final items = async.value?.assessments ?? const <assessments_api.Assessment>[];
     final loading = async.isLoading && items.isEmpty;
 
-    // On the first-mount loading pass, show the header + a spinner so
-    // the user sees the section is fetching rather than a mysteriously
-    // empty page. Once loaded with no rows, hide the whole section.
+    // First-mount loading pass shows the header + spinner so the
+    // section is visibly fetching rather than empty. On no-data,
+    // render a centered AppEmptyState (same visual grammar as the
+    // request-feedback sheet's no-coaches state) rather than hiding
+    // the section entirely — a stable empty state reads better than
+    // a disappearing card.
     if (!loading && items.isEmpty) {
-      return const SizedBox.shrink();
+      return Padding(
+        padding: const EdgeInsets.only(top: AppSpacing.xl),
+        child: AppEmptyState(
+          icon: AppIcons.coachNavFeedback,
+          iconColor: colors.secondaryText,
+          title: 'No feedback yet',
+          subtitle:
+              'Assessments from coaches will appear here once they’re submitted.',
+        ),
+      );
     }
 
     return Column(

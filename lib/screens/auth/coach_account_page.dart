@@ -8,6 +8,7 @@ import '../../shared/widgets/app_avatar.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_onboarding_header.dart';
 import '../../shared/widgets/app_screen_footer.dart';
+import '../../shared/widgets/app_snack_bar.dart';
 import '../../shared/widgets/app_text_field.dart';
 
 /// Coach account creation form.
@@ -57,9 +58,7 @@ class _CoachAccountPageState extends ConsumerState<CoachAccountPage> {
 
   /// Placeholder until image_picker + storage upload lands.
   void _uploadPhoto() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Photo upload — coming later')),
-    );
+    AppSnackBar.show(context, message: 'Photo upload — coming later');
   }
 
   @override

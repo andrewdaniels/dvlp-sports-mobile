@@ -71,6 +71,7 @@ class AppIcons {
   static const String plus = '$_base/plus.svg';
   static const String arrowRight = '$_base/arrow-right.svg';
   static const String arrowLeft = '$_base/arrow-left.svg';
+  static const String refreshCw = '$_base/refresh-cw-02.svg';
   static const String close = '$_base/x-close.svg';
   static const String bell = '$_base/bell-03.svg';
   static const String messageQuestionSquare = '$_base/message-question-square.svg';

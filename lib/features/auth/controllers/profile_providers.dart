@@ -2,7 +2,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/services/supabase_service.dart';
-import '../../../generated/api/create_profile.dart';
+import '../../../generated/api/create_profile.dart' hide RoleTier;
+import '../../../generated/api/get_linked_athletes.dart';
 import '../../../generated/api/get_profile.dart';
 import '../../assessments/controllers/assessments_providers.dart';
 import '../../coach_feedback/controllers/coach_feedback_providers.dart';
@@ -126,6 +127,108 @@ class AthleteProfileNotifier
   }
 }
 
+/// Athletes linked to the caller via `athlete_guardians`. Only meaningful
+/// for guardian sessions — the provider short-circuits and returns an
+/// empty list for any other role so the endpoint isn't called at all.
+///
+/// Session-lifetime, no TTL. Invalidated on sign-in/out via
+/// [profileAuthSyncProvider]. Also invalidate manually after a new
+/// athlete-link is created (e.g. via a future "Add from invite code"
+/// affordance on the guardian profile) so the picker list refreshes.
+final linkedAthletesProvider =
+    AsyncNotifierProvider<LinkedAthletesNotifier, List<Athlete>>(
+  LinkedAthletesNotifier.new,
+);
+
+class LinkedAthletesNotifier extends AsyncNotifier<List<Athlete>> {
+  @override
+  Future<List<Athlete>> build() async {
+    final session = SupabaseService.client.auth.currentSession;
+    if (session == null) return const [];
+    // Only guardians have linked athletes — skip the fetch otherwise.
+    final profile = await ref.watch(currentProfileProvider.future);
+    if (profile?.roleTier != RoleTier.GUARDIAN) return const [];
+
+    final result = await ref.read(profileRepositoryProvider).getLinkedAthletes();
+    return switch (result) {
+      Success(:final data) => data.athletes,
+      Failure() => const [],
+    };
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final profile = await ref.read(currentProfileProvider.future);
+      if (profile?.roleTier != RoleTier.GUARDIAN) return const <Athlete>[];
+      final result = await ref.read(profileRepositoryProvider).getLinkedAthletes();
+      return switch (result) {
+        Success(:final data) => data.athletes,
+        Failure(:final message) => throw Exception(message),
+      };
+    });
+  }
+}
+
+/// The athlete id whose data the athlete-shell tabs should display for
+/// the current session.
+///   - Athlete session → their own id.
+///   - Guardian session → the currently-selected linked athlete's id
+///     (defaults to the first linked athlete; mutable via
+///     `.state = newId` when a future picker ships).
+///   - Coach / unknown / not-signed-in → null; the athlete shell
+///     shouldn't render for these roles anyway.
+///
+/// A StateProvider (not derived) so a future "switch athlete" UI can
+/// mutate the selection without any provider redesign — downstream
+/// family providers (assessmentsProvider(id), etc.) auto-refetch when
+/// this changes because Riverpod treats a new family key as a fresh
+/// cache slot.
+final viewingAthleteIdProvider = StateProvider<String?>((ref) {
+  final profile = ref.watch(currentProfileProvider).value;
+  if (profile == null) return null;
+  if (profile.roleTier == RoleTier.ATHLETE) return profile.id;
+  if (profile.roleTier == RoleTier.GUARDIAN) {
+    final linked = ref.watch(linkedAthletesProvider).value ?? const [];
+    return linked.isEmpty ? null : linked.first.id;
+  }
+  return null;
+});
+
+/// The full Profile of the athlete the shell is currently viewing.
+///   - Athlete → passes through `currentProfileProvider` (no extra fetch).
+///   - Guardian → fetches via `athleteProfileProvider(linkedAthleteId)`
+///     (already used by coach flows; server permits guardians via the
+///     `can_view_athlete` helper).
+///
+/// Athlete-shell tabs should watch this instead of `currentProfileProvider`
+/// so the same code path renders the right athlete's data regardless
+/// of whether the caller is the athlete themselves or a linked guardian.
+final viewingAthleteProvider = Provider<AsyncValue<GetProfileData?>>((ref) {
+  final currentAsync = ref.watch(currentProfileProvider);
+  final currentProfile = currentAsync.value;
+  if (currentAsync.isLoading || currentProfile == null) return currentAsync;
+
+  if (currentProfile.roleTier == RoleTier.ATHLETE) {
+    return AsyncData(currentProfile);
+  }
+
+  if (currentProfile.roleTier == RoleTier.GUARDIAN) {
+    final viewingId = ref.watch(viewingAthleteIdProvider);
+    if (viewingId == null) {
+      // Guardian with no linked athletes yet — surface as null so the
+      // UI can render an empty state. Shouldn't happen today (guardians
+      // are only created as the counterparty of an athlete signup) but
+      // defensive against future edge cases.
+      return const AsyncData(null);
+    }
+    return ref.watch(athleteProfileProvider(viewingId));
+  }
+
+  // Non-athlete / non-guardian roles shouldn't hit the athlete shell.
+  return const AsyncData(null);
+});
+
 /// Watches auth state; refreshes/clears the profile cache as the user
 /// signs in or out. Consumed once at app startup (see `main.dart` / the
 /// root widget) so it lives for the app's lifetime.
@@ -168,6 +271,7 @@ void _invalidateUserScopedCaches(Ref ref) {
   ref.invalidate(gamesProvider);
   ref.invalidate(teamRosterProvider);
   ref.invalidate(athleteProfileProvider);
+  ref.invalidate(linkedAthletesProvider);
   ref.invalidate(assessmentsProvider);
   ref.invalidate(skillProgressProvider);
   ref.invalidate(skillHistoryProvider);

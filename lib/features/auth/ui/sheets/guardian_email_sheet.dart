@@ -77,7 +77,8 @@ class _GuardianEmailSheetState extends State<_GuardianEmailSheet> {
       subtitle:
           'A parent or guardian will need to approve your account '
           'before you can gain access to certain features. '
-          'Enter their email address below.',
+          'Enter their email address below. If they already have a '
+          'DVLP Sports guardian account, use the same email.',
       footerStaysWithKeyboard: true,
       footer: AppScreenFooter.single(
         // Keep the CTA visible above the keyboard — this sheet is

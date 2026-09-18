@@ -6,7 +6,9 @@ import '../../../generated/api/get_profile.dart';
 /// values return `-` so callers can pass whatever the API gives them
 /// without having to null-check first.
 
-/// "M. Thompson" — first initial + `. ` + last name.
+/// "M. Thompson" — first initial + `. ` + last name. Compact form used
+/// on passport cards where vertical space is tight and the header
+/// treatment reads better with an initial.
 String formatDisplayName(String? first, String? last) {
   final f = (first ?? '').trim();
   final l = (last ?? '').trim();
@@ -14,6 +16,18 @@ String formatDisplayName(String? first, String? last) {
   if (f.isEmpty) return l;
   if (l.isEmpty) return f;
   return '${f[0].toUpperCase()}. $l';
+}
+
+/// "Marcus Thompson" — first + space + last. Used on profile pages
+/// (both athlete + coach) and any row rendering the current user's
+/// full identity where horizontal space isn't a concern.
+String formatFullName(String? first, String? last) {
+  final f = (first ?? '').trim();
+  final l = (last ?? '').trim();
+  if (f.isEmpty && l.isEmpty) return '';
+  if (f.isEmpty) return l;
+  if (l.isEmpty) return f;
+  return '$f $l';
 }
 
 /// "14 yo" from an ISO-8601 date-of-birth string.

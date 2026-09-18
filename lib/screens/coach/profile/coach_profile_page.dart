@@ -87,7 +87,7 @@ class _CoachProfileBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final displayName = formatDisplayName(profile.firstName, profile.lastName);
+    final displayName = formatFullName(profile.firstName, profile.lastName);
     // Coach may hold multiple team_memberships across teams — for MVP
     // we surface the first coach-scope membership as the "primary
     // team" (athlete-scope shouldn't exist for a coach profile but

@@ -19,7 +19,9 @@ class TeamPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final profileAsync = ref.watch(currentProfileProvider);
+    // Team shows the viewing-athlete's team info (their own for an
+    // athlete session, the linked athlete's for a guardian session).
+    final profileAsync = ref.watch(viewingAthleteProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Team')),

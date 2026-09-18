@@ -8,8 +8,10 @@ import '../../../features/journal/ui/sheets/journal_entry_detail_sheet.dart';
 import '../../../features/journal/ui/sheets/journal_entry_form_sheet.dart';
 import '../../../features/journal/ui/widgets/journal_entry_row.dart';
 import '../../../generated/api/get_journal_entries.dart';
+import '../../../generated/api/get_profile.dart' show RoleTier;
 import '../../../shared/widgets/app_button.dart';
 import '../../../shared/widgets/app_detail_app_bar.dart';
+import '../../../shared/widgets/app_empty_state.dart';
 import '../../../shared/widgets/app_icon.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
 import '../../../shared/widgets/app_refresh_indicator.dart';
@@ -25,7 +27,10 @@ class JournalPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
-    final profileAsync = ref.watch(currentProfileProvider);
+    // Show the viewing-athlete's journal (own for an athlete session,
+    // linked athlete's for a guardian). New Entry stays gated on
+    // caller role below — only athletes can create entries.
+    final profileAsync = ref.watch(viewingAthleteProvider);
 
     return Scaffold(
       appBar: const AppDetailAppBar(title: 'My Journal'),
@@ -60,13 +65,23 @@ class _JournalBody extends ConsumerWidget {
       child: ListView(
         padding: AppPageInsets.padding,
         children: [
-          // Full-width primary CTA. Wiring deferred until we have a
-          // create-journal-entry endpoint + the New Entry form sheet.
-          AppButton(
-            label: 'New Entry',
-            leadingIcon: AppIcons.plus,
-            expand: true,
-            onPressed: () => showJournalEntryFormSheet(context, athleteId: athleteId),
+          // Full-width primary CTA. Journal is athlete-authored —
+          // guardians view the entries but can't create them. Server
+          // also ownership-checks on create-journal-entry; the
+          // disabled state is UX to match.
+          Builder(
+            builder: (context) {
+              final caller = ref.watch(currentProfileProvider).value;
+              final isAthlete = caller?.roleTier == RoleTier.ATHLETE;
+              return AppButton(
+                label: 'New Entry',
+                leadingIcon: AppIcons.plus,
+                expand: true,
+                onPressed: isAthlete
+                    ? () => showJournalEntryFormSheet(context, athleteId: athleteId)
+                    : null,
+              );
+            },
           ),
           const SizedBox(height: AppSpacing.md),
           ...async.when(
@@ -76,9 +91,12 @@ class _JournalBody extends ConsumerWidget {
                 return [
                   Padding(
                     padding: const EdgeInsets.only(top: AppSpacing.xl),
-                    child: Text(
-                      'No journal entries yet. Tap New Entry to add your first.',
-                      style: AppTypography.bodyMedium.copyWith(color: colors.secondaryText),
+                    child: AppEmptyState(
+                      icon: AppIcons.edit05,
+                      iconColor: colors.secondaryText,
+                      title: 'No journal entries yet',
+                      subtitle:
+                          'Reflections and takeaways from practice and games will appear here.',
                     ),
                   ),
                 ];
