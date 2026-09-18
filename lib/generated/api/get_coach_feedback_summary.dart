@@ -14,34 +14,40 @@ String getCoachFeedbackSummaryDataToJson(GetCoachFeedbackSummaryData data) => js
 
 class GetCoachFeedbackSummaryData {
     final FormalCadence formalCadence;
+    final List<FormalNeededExternal> formalNeededExternals;
     final List<QuickFeedbackRequest> quickFeedbackRequests;
     final List<RecentCompleted> recentCompleted;
 
     GetCoachFeedbackSummaryData({
         required this.formalCadence,
+        required this.formalNeededExternals,
         required this.quickFeedbackRequests,
         required this.recentCompleted,
     });
 
     GetCoachFeedbackSummaryData copyWith({
         FormalCadence? formalCadence,
+        List<FormalNeededExternal>? formalNeededExternals,
         List<QuickFeedbackRequest>? quickFeedbackRequests,
         List<RecentCompleted>? recentCompleted,
     }) => 
         GetCoachFeedbackSummaryData(
             formalCadence: formalCadence ?? this.formalCadence,
+            formalNeededExternals: formalNeededExternals ?? this.formalNeededExternals,
             quickFeedbackRequests: quickFeedbackRequests ?? this.quickFeedbackRequests,
             recentCompleted: recentCompleted ?? this.recentCompleted,
         );
 
     factory GetCoachFeedbackSummaryData.fromJson(Map<String, dynamic> json) => GetCoachFeedbackSummaryData(
         formalCadence: FormalCadence.fromJson(json["formal_cadence"]),
+        formalNeededExternals: List<FormalNeededExternal>.from(json["formal_needed_externals"].map((x) => FormalNeededExternal.fromJson(x))),
         quickFeedbackRequests: List<QuickFeedbackRequest>.from(json["quick_feedback_requests"].map((x) => QuickFeedbackRequest.fromJson(x))),
         recentCompleted: List<RecentCompleted>.from(json["recent_completed"].map((x) => RecentCompleted.fromJson(x))),
     );
 
     Map<String, dynamic> toJson() => {
         "formal_cadence": formalCadence.toJson(),
+        "formal_needed_externals": List<dynamic>.from(formalNeededExternals.map((x) => x.toJson())),
         "quick_feedback_requests": List<dynamic>.from(quickFeedbackRequests.map((x) => x.toJson())),
         "recent_completed": List<dynamic>.from(recentCompleted.map((x) => x.toJson())),
     };
@@ -212,6 +218,82 @@ final cadenceValues = EnumValues({
     "semi_annual": Cadence.SEMI_ANNUAL,
     "weekly": Cadence.WEEKLY
 });
+
+class FormalNeededExternal {
+    final FormalNeededExternalAthlete athlete;
+    final String teamId;
+    final String teamName;
+
+    FormalNeededExternal({
+        required this.athlete,
+        required this.teamId,
+        required this.teamName,
+    });
+
+    FormalNeededExternal copyWith({
+        FormalNeededExternalAthlete? athlete,
+        String? teamId,
+        String? teamName,
+    }) => 
+        FormalNeededExternal(
+            athlete: athlete ?? this.athlete,
+            teamId: teamId ?? this.teamId,
+            teamName: teamName ?? this.teamName,
+        );
+
+    factory FormalNeededExternal.fromJson(Map<String, dynamic> json) => FormalNeededExternal(
+        athlete: FormalNeededExternalAthlete.fromJson(json["athlete"]),
+        teamId: json["team_id"],
+        teamName: json["team_name"],
+    );
+
+    Map<String, dynamic> toJson() => {
+        "athlete": athlete.toJson(),
+        "team_id": teamId,
+        "team_name": teamName,
+    };
+}
+
+class FormalNeededExternalAthlete {
+    final String? avatarUrl;
+    final String firstName;
+    final String id;
+    final String lastName;
+
+    FormalNeededExternalAthlete({
+        required this.avatarUrl,
+        required this.firstName,
+        required this.id,
+        required this.lastName,
+    });
+
+    FormalNeededExternalAthlete copyWith({
+        String? avatarUrl,
+        String? firstName,
+        String? id,
+        String? lastName,
+    }) => 
+        FormalNeededExternalAthlete(
+            avatarUrl: avatarUrl ?? this.avatarUrl,
+            firstName: firstName ?? this.firstName,
+            id: id ?? this.id,
+            lastName: lastName ?? this.lastName,
+        );
+
+    factory FormalNeededExternalAthlete.fromJson(Map<String, dynamic> json) => FormalNeededExternalAthlete(
+        avatarUrl: json["avatar_url"],
+        firstName: json["first_name"],
+        id: json["id"],
+        lastName: json["last_name"],
+    );
+
+    Map<String, dynamic> toJson() => {
+        "avatar_url": avatarUrl,
+        "first_name": firstName,
+        "id": id,
+        "last_name": lastName,
+    };
+}
 
 class QuickFeedbackRequest {
     final QuickFeedbackRequestAthlete athlete;

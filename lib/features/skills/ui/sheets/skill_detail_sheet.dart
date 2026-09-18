@@ -45,7 +45,9 @@ class SkillDetailSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
-    final historyAsync = ref.watch(skillHistoryProvider(skill.skillId));
+    final historyAsync = ref.watch(
+      skillHistoryProvider((skillId: skill.skillId, athleteId: athleteId)),
+    );
     final assessmentsAsync = ref.watch(assessmentsProvider(athleteId));
     final formals = (assessmentsAsync.value?.assessments ?? const [])
         .where((a) => a.assessmentType == assessments_api.AssessmentType.FORMAL)
