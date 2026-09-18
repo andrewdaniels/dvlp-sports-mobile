@@ -7,6 +7,7 @@ import 'package:pinput/pinput.dart';
 import '../../core/routing/route_names.dart';
 import '../../core/theme/theme.dart';
 import '../../features/auth/controllers/invite_providers.dart';
+import '../../features/auth/controllers/profile_providers.dart';
 import '../../features/auth/controllers/signup_flow_provider.dart';
 import '../../features/auth/data/api_result.dart';
 import '../../features/auth/data/signup_context.dart';
@@ -14,13 +15,27 @@ import '../../generated/api/validate_invite.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_onboarding_header.dart';
 import '../../shared/widgets/app_screen_footer.dart';
+import '../../shared/widgets/app_snack_bar.dart';
 
 /// First step after tapping "Create Account" on the entry screen.
 ///
 /// Invite-only for MVP — no escape hatch for users without a code.
 /// If they don't have one, they can't sign up here.
+///
+/// Two modes, driven by [linkMode]:
+///   - **Signup mode (default)** — validate → push credentials → form.
+///     Used for brand-new signups (athlete, coach, guardian).
+///   - **Link mode** — authenticated guardian entering an additional
+///     athlete's guardian invite code. Validate → skip signup screens
+///     → call link-guardian-athlete → pop back with a success snackbar.
 class SignupCodePage extends ConsumerStatefulWidget {
-  const SignupCodePage({super.key});
+  const SignupCodePage({super.key, this.linkMode = false});
+
+  /// When true, on successful validation of a guardian invite the page
+  /// links the athlete to the caller's existing guardian account
+  /// instead of pushing the signup flow. Any other invite target_role
+  /// in link mode is rejected with an explanatory error.
+  final bool linkMode;
 
   @override
   ConsumerState<SignupCodePage> createState() => _SignupCodePageState();
@@ -56,6 +71,21 @@ class _SignupCodePageState extends ConsumerState<SignupCodePage> {
 
     switch (result) {
       case Success(:final data):
+        if (widget.linkMode) {
+          // Returning-guardian flow: skip signup screens, insert the
+          // link directly. Guardian-only in link mode — reject non-
+          // guardian invites here rather than dead-ending downstream.
+          if (data.targetRole != TargetRole.GUARDIAN) {
+            setState(() {
+              _submitting = false;
+              _errorText = 'This code is not a guardian invite.';
+            });
+            return;
+          }
+          await _linkAsExistingGuardian(inviteId: data.inviteId);
+          return;
+        }
+
         setState(() => _submitting = false);
         ref.read(signupFlowProvider.notifier).state = SignupContext(
           role: _roleFromInvite(data.targetRole),
@@ -72,6 +102,51 @@ class _SignupCodePageState extends ConsumerState<SignupCodePage> {
           _errorText = message;
         });
     }
+  }
+
+  /// Link-mode success path: hit `link-guardian-athlete`, refresh the
+  /// guardian's linked-athlete cache, move the viewing selection to
+  /// the newly-added athlete, pop back to the profile page, toast.
+  Future<void> _linkAsExistingGuardian({required String inviteId}) async {
+    final result = await ref.read(profileRepositoryProvider).linkGuardianAthlete(
+          inviteId: inviteId,
+        );
+    if (!mounted) return;
+
+    switch (result) {
+      case Success(:final data):
+        // Refresh the picker's source list so the new athlete appears.
+        await ref.read(linkedAthletesProvider.notifier).refresh();
+        if (!mounted) return;
+
+        // Move the viewing selection to the just-added athlete so the
+        // shell renders their data on return.
+        ref.read(viewingAthleteIdProvider.notifier).state = data.athlete.id;
+
+        final name = _fullName(data.athlete.firstName, data.athlete.lastName);
+        setState(() => _submitting = false);
+        // Pop back to whatever pushed us (the profile page).
+        context.pop();
+        AppSnackBar.show(
+          context,
+          message: name.isEmpty ? 'Athlete added.' : '$name added.',
+          variant: AppSnackBarVariant.success,
+        );
+      case Failure(:final message):
+        setState(() {
+          _submitting = false;
+          _errorText = message;
+        });
+    }
+  }
+
+  static String _fullName(String first, String last) {
+    final f = first.trim();
+    final l = last.trim();
+    if (f.isEmpty && l.isEmpty) return '';
+    if (f.isEmpty) return l;
+    if (l.isEmpty) return f;
+    return '$f $l';
   }
 
   /// Map the invite's TargetRole enum onto our string role for
@@ -142,8 +217,13 @@ class _SignupCodePageState extends ConsumerState<SignupCodePage> {
                 ),
               ),
             ),
-            AppScreenFooter.single(
+            AppScreenFooter.row(
               horizontalPadding: AppSpacing.xl,
+              secondary: AppButton(
+                label: 'Back',
+                variant: AppButtonVariant.outline,
+                onPressed: _submitting ? null : () => context.pop(),
+              ),
               primary: AppButton(
                 label: 'Continue',
                 variant: AppButtonVariant.primary,

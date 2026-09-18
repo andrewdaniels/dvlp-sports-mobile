@@ -9,7 +9,6 @@ import '../../screens/feedback/quick_feedback_page.dart';
 import '../../screens/athlete/journal/journal_page.dart';
 import '../../screens/athlete/passport/passport_page.dart';
 import '../../screens/athlete/profile/profile_page.dart';
-import '../../features/auth/ui/widgets/guardian_gate.dart';
 import '../../screens/athlete/shell/athlete_shell.dart';
 import '../../screens/athlete/team/team_page.dart';
 import '../../screens/auth/coach_account_page.dart';
@@ -87,34 +86,34 @@ final appRouter = GoRouter(
     ),
 
     // ── Athlete shell ────────────────────────────────────────────
-    // Guardians share this shell temporarily — each tab is wrapped in
-    // GuardianGate which renders a "coming soon" placeholder for
-    // guardian sessions. Unwrap when guardian→athlete access ships.
+    // Guardians share this shell — each tab resolves the athlete-to-
+    // display via viewingAthleteProvider (their linked athlete),
+    // while athletes see their own data. Same code path either way.
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) => AthleteShell(navigationShell: navigationShell),
       branches: [
         StatefulShellBranch(routes: [
           GoRoute(
             path: RouteNames.athletePassport,
-            builder: (context, state) => const GuardianGate(child: PassportPage()),
+            builder: (context, state) => const PassportPage(),
           ),
         ]),
         StatefulShellBranch(routes: [
           GoRoute(
             path: RouteNames.athleteDvlp,
-            builder: (context, state) => const GuardianGate(child: DvlpPage()),
+            builder: (context, state) => const DvlpPage(),
           ),
         ]),
         StatefulShellBranch(routes: [
           GoRoute(
             path: RouteNames.athleteTeam,
-            builder: (context, state) => const GuardianGate(child: TeamPage()),
+            builder: (context, state) => const TeamPage(),
           ),
         ]),
         StatefulShellBranch(routes: [
           GoRoute(
             path: RouteNames.athleteProfile,
-            builder: (context, state) => const GuardianGate(child: ProfilePage()),
+            builder: (context, state) => const ProfilePage(),
           ),
         ]),
       ],
@@ -171,7 +170,13 @@ final appRouter = GoRouter(
     GoRoute(
       parentNavigatorKey: _rootNavKey,
       path: RouteNames.signupCode,
-      builder: (context, state) => const SignupCodePage(),
+      builder: (context, state) {
+        // `?mode=link` puts the page in link-athlete mode for an
+        // authenticated guardian entering an additional invite code.
+        // Default (no query) is the normal signup flow.
+        final linkMode = state.uri.queryParameters['mode'] == 'link';
+        return SignupCodePage(linkMode: linkMode);
+      },
     ),
     GoRoute(
       parentNavigatorKey: _rootNavKey,

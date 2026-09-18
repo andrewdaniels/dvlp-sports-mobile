@@ -8,6 +8,7 @@ import '../../../core/theme/theme.dart';
 import '../../../features/assessments/controllers/assessments_providers.dart';
 import '../../../features/auth/controllers/auth_providers.dart';
 import '../../../features/auth/controllers/profile_providers.dart';
+import '../../../features/auth/ui/sheets/athlete_selection_sheet.dart';
 import '../../../features/auth/util/profile_format.dart';
 import '../../../generated/api/get_profile.dart';
 import '../../../shared/widgets/app_button.dart';
@@ -25,6 +26,11 @@ class ProfilePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Header renders the CALLER's own profile — athletes see themselves,
+    // guardians see themselves. Info card below still shows athlete-
+    // scoped data (position, verified coaches, height, etc.) resolved
+    // via viewingAthleteProvider, prefixed with a "Viewing" switcher
+    // row for guardians so the athlete-in-view is explicit + swappable.
     final profileAsync = ref.watch(currentProfileProvider);
 
     return Scaffold(
@@ -63,7 +69,7 @@ class ProfilePage extends ConsumerWidget {
           profileAsync.when(
             data: (profile) => profile == null
                 ? const SizedBox.shrink()
-                : _ProfileBody(profile: profile),
+                : _ProfileBody(caller: profile),
             loading: () => const Center(child: AppLoadingIndicator()),
             error: (_, _) => const SizedBox.shrink(),
           ),
@@ -74,20 +80,45 @@ class ProfilePage extends ConsumerWidget {
 }
 
 class _ProfileBody extends ConsumerWidget {
-  const _ProfileBody({required this.profile});
-  final GetProfileData profile;
+  const _ProfileBody({required this.caller});
+
+  /// The signed-in user's own profile. Drives the top identity card
+  /// for both athletes and guardians.
+  final GetProfileData caller;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final displayName = formatDisplayName(profile.firstName, profile.lastName);
-    final team = profile.teamMemberships.isNotEmpty ? profile.teamMemberships.first.team : null;
-    final subtitle = team == null
-        ? null
-        : [
-            team.name.trim(),
-            (team.ageGroup ?? '').trim(),
-            (team.levelClassification ?? '').trim(),
-          ].where((s) => s.isNotEmpty).join(' ');
+    final isGuardian = caller.roleTier == RoleTier.GUARDIAN;
+
+    // Athletes: the info card renders THEIR data (they're the viewing
+    // athlete). Guardians: the info card renders the LINKED athlete's
+    // data, with a switcher row prepended. Skip the info card entirely
+    // if the linked athlete hasn't loaded yet (or a guardian has no
+    // link, which shouldn't happen today but is defensive).
+    final viewing = isGuardian
+        ? ref.watch(viewingAthleteProvider).value
+        : caller;
+
+    final displayName = formatFullName(caller.firstName, caller.lastName);
+    // Guardians have no team affiliation of their own — use the
+    // literal role label as the subtitle so the header line always
+    // has secondary text (empty subtitles read as a data gap).
+    // Athletes get the standard "Club Age Level" line.
+    final String? subtitle;
+    if (isGuardian) {
+      subtitle = 'Guardian';
+    } else {
+      final team = caller.teamMemberships.isNotEmpty
+          ? caller.teamMemberships.first.team
+          : null;
+      subtitle = team == null
+          ? null
+          : [
+              team.name.trim(),
+              (team.ageGroup ?? '').trim(),
+              (team.levelClassification ?? '').trim(),
+            ].where((s) => s.isNotEmpty).join(' ');
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -95,10 +126,11 @@ class _ProfileBody extends ConsumerWidget {
         AppProfileHeader(
           title: displayName,
           subtitle: subtitle,
-          avatarUrl: profile.avatarUrl,
+          avatarUrl: caller.avatarUrl,
         ),
         const SizedBox(height: AppSpacing.md),
-        _ProfileInfoCard(profile: profile),
+        if (viewing != null)
+          _ProfileInfoCard(profile: viewing, isGuardianView: isGuardian),
         const SizedBox(height: AppSpacing.lg),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -122,8 +154,20 @@ class _ProfileBody extends ConsumerWidget {
 }
 
 class _ProfileInfoCard extends ConsumerWidget {
-  const _ProfileInfoCard({required this.profile});
+  const _ProfileInfoCard({
+    required this.profile,
+    required this.isGuardianView,
+  });
+
+  /// The athlete profile whose stats are rendered in this card. For
+  /// athlete sessions this is the caller; for guardian sessions it's
+  /// the currently-viewing linked athlete (via viewingAthleteProvider).
   final GetProfileData profile;
+
+  /// True when the caller is a guardian viewing a linked athlete —
+  /// prepends a "Viewing" row at the top of the card with the athlete's
+  /// name + the switcher icon.
+  final bool isGuardianView;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -160,11 +204,32 @@ class _ProfileInfoCard extends ConsumerWidget {
         : () => showVerifiedCoachesSheet(context, rows: coachRows);
 
     final rows = <_RowSpec>[
-      _RowSpec(label: 'Team', value: teamValue.isEmpty ? '-' : teamValue, accent: true),
+      // Guardian-only: "Viewing" row at the top. Reads like the
+      // Verified Coaches row — tappable, chevron trailing — so the
+      // affordance matches other pickers in the card. Tap opens the
+      // athlete selection sheet.
+      if (isGuardianView)
+        _RowSpec(
+          label: 'Viewing',
+          value: formatFullName(profile.firstName, profile.lastName),
+          accent: true,
+          onTap: () => showAthleteSelectionSheet(context),
+        ),
+      _RowSpec(
+        label: 'Team',
+        value: teamValue.isEmpty ? '-' : teamValue,
+        accent: true,
+      ),
       _RowSpec(label: 'Position', value: athlete?.position?.name ?? '-'),
       _RowSpec(label: 'Verified Coaches', value: verifiedValue, onTap: verifiedOnTap),
-      // Guardian: pending guardian-consent surfacing.
-      _RowSpec(label: 'Guardian', value: '-', accent: true),
+      // Guardian row: only meaningful on the athlete's own view (who
+      // is my guardian). Redundant when the caller IS the guardian —
+      // they already see the athlete they're linked to via the
+      // "Viewing" row above + they wouldn't be shown as their own
+      // guardian. Placeholder value pending the guardian-consent
+      // surface on the athlete side.
+      if (!isGuardianView)
+        _RowSpec(label: 'Guardian', value: '-', accent: true),
       _RowSpec(label: 'Age', value: formatAge(profile.dateOfBirth)),
       _RowSpec(label: 'Weight', value: formatWeight(athlete?.weightKg)),
       _RowSpec(label: 'Height', value: formatHeight(athlete?.heightCm)),

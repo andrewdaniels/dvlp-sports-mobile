@@ -17,6 +17,7 @@ import '../../shared/widgets/app_icon.dart';
 import '../../shared/widgets/app_onboarding_header.dart';
 import '../../shared/widgets/app_screen_footer.dart';
 import '../../shared/widgets/app_select_trigger.dart';
+import '../../shared/widgets/app_snack_bar.dart';
 import '../../shared/widgets/app_text_field.dart';
 import '../../shared/widgets/app_wheel_picker.dart';
 
@@ -89,9 +90,7 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
 
   void _uploadPhoto() {
     HapticFeedback.lightImpact();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Photo upload — coming later')),
-    );
+    AppSnackBar.show(context, message: 'Photo upload — coming later');
   }
 
   void _back() {
@@ -206,9 +205,7 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
   /// once the docs are hosted. Snackbar avoids adding a new dep for a
   /// placeholder that would immediately churn.
   void _openLegal(BuildContext context, String docName) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$docName — coming soon')),
-    );
+    AppSnackBar.show(context, message: '$docName — coming soon');
   }
 
   @override

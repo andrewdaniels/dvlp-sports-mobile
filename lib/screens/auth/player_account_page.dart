@@ -18,6 +18,7 @@ import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_onboarding_header.dart';
 import '../../shared/widgets/app_screen_footer.dart';
 import '../../shared/widgets/app_select_trigger.dart';
+import '../../shared/widgets/app_snack_bar.dart';
 import '../../shared/widgets/app_text_field.dart';
 import '../../shared/widgets/app_wheel_picker.dart';
 
@@ -127,8 +128,9 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
     final async = ref.read(positionsProvider);
     final positionsData = async.valueOrNull;
     if (positionsData == null || positionsData.positions.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Positions still loading — try again in a moment.')),
+      AppSnackBar.show(
+        context,
+        message: 'Positions still loading — try again in a moment.',
       );
       return;
     }
@@ -169,9 +171,7 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
 
   void _uploadPhoto() {
     HapticFeedback.lightImpact();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Photo upload — coming later')),
-    );
+    AppSnackBar.show(context, message: 'Photo upload — coming later');
   }
 
   void _back() {

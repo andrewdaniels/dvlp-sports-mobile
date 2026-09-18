@@ -4,7 +4,9 @@ import 'dart:developer' as developer;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../generated/api/create_profile.dart';
+import '../../../generated/api/get_linked_athletes.dart';
 import '../../../generated/api/get_profile.dart';
+import '../../../generated/api/link_guardian_athlete.dart';
 import 'api_result.dart';
 
 /// Wraps profile-related edge functions. Pure I/O — no caching happens
@@ -14,8 +16,8 @@ class ProfileRepository {
   final SupabaseClient _client;
 
   /// Fetch a profile. Defaults to the current authenticated user;
-  /// pass `athleteId` to fetch another athlete (coach flows, family
-  /// flows). Server enforces `coach_can_access_athlete` when
+  /// pass `athleteId` to fetch another athlete (coach flows, guardian
+  /// flows). Server enforces `can_view_athlete` when
   /// `athleteId != caller` and returns 403 on unauthorized access.
   Future<ApiResult<GetProfileData>> getProfile({String? athleteId}) {
     return _invoke<GetProfileData>(
@@ -24,6 +26,31 @@ class ProfileRepository {
         'athlete_id': ?athleteId,
       },
       fromJson: GetProfileData.fromJson,
+    );
+  }
+
+  /// Athletes linked to the caller via `athlete_guardians` (i.e. the
+  /// caller is the guardian). Non-guardian sessions get an empty list
+  /// server-side, but the mobile provider only invokes this on guardian
+  /// sessions to save the roundtrip.
+  Future<ApiResult<GetLinkedAthletesData>> getLinkedAthletes() {
+    return _invoke<GetLinkedAthletesData>(
+      name: 'get-linked-athletes',
+      body: const {},
+      fromJson: GetLinkedAthletesData.fromJson,
+    );
+  }
+
+  /// Link an ADDITIONAL athlete to the calling guardian's existing
+  /// account via a pending guardian invite. Server enforces email
+  /// match + duplicate-link guard + expiry.
+  Future<ApiResult<LinkGuardianAthleteData>> linkGuardianAthlete({
+    required String inviteId,
+  }) {
+    return _invoke<LinkGuardianAthleteData>(
+      name: 'link-guardian-athlete',
+      body: {'invite_id': inviteId},
+      fromJson: LinkGuardianAthleteData.fromJson,
     );
   }
 

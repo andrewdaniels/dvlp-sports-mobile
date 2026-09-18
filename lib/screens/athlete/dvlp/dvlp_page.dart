@@ -8,6 +8,7 @@ import '../../../features/journal/ui/widgets/journal_summary_card.dart';
 import '../../../features/skills/controllers/skills_providers.dart';
 import '../../../features/skills/ui/sheets/skill_detail_sheet.dart';
 import '../../../features/skills/ui/widgets/skill_row.dart';
+import '../../../shared/widgets/app_empty_state.dart';
 import '../../../shared/widgets/app_icon.dart';
 import '../../../shared/widgets/app_icon_button.dart';
 import '../../../shared/widgets/app_loading_indicator.dart';
@@ -31,7 +32,10 @@ class DvlpPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = context.colors;
-    final profileAsync = ref.watch(currentProfileProvider);
+    // DVLP shows the athlete's own data (athlete session) or the
+    // linked athlete's data (guardian session) — both funnel through
+    // viewingAthleteProvider.
+    final profileAsync = ref.watch(viewingAthleteProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -95,10 +99,13 @@ class _DvlpBody extends ConsumerWidget {
               if (data == null || data.skills.isEmpty) {
                 return [
                   Padding(
-                    padding: const EdgeInsets.only(top: AppSpacing.md),
-                    child: Text(
-                      'No skill scores yet. Come back after your first formal assessment.',
-                      style: AppTypography.bodyMedium.copyWith(color: colors.secondaryText),
+                    padding: const EdgeInsets.only(top: AppSpacing.xl),
+                    child: AppEmptyState(
+                      icon: AppIcons.navDvlp,
+                      iconColor: colors.secondaryText,
+                      title: 'No skill scores yet',
+                      subtitle:
+                          'Skill progress appears here after the first formal assessment.',
                     ),
                   ),
                 ];
