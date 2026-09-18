@@ -53,25 +53,31 @@ class SkillProgressNotifier
   }
 }
 
-/// Skill-history cache — keyed by `skillId` (the current caller is
-/// derived from the JWT server-side, so no athlete key needed for the
-/// self-view case). Fetched lazily on first watch; the detail sheet
-/// is the only subscriber today. Invalidated on sign-out.
+/// Skill-history cache — keyed by (skillId, athleteId). athleteId is
+/// nullable: null = "self view" (server falls back to the caller's own
+/// id via JWT). Coach flows viewing another athlete's drill-in must
+/// pass the athlete's id so the record identity survives and the
+/// endpoint runs its coach_can_access_athlete check on the right pair.
+///
+/// Fetched lazily on first watch; the detail sheet is the only
+/// subscriber today. Invalidated on sign-out.
+typedef SkillHistoryKey = ({String skillId, String? athleteId});
+
 final skillHistoryProvider = AsyncNotifierProvider.family<
-    SkillHistoryNotifier, GetSkillHistoryData?, String>(
+    SkillHistoryNotifier, GetSkillHistoryData?, SkillHistoryKey>(
   SkillHistoryNotifier.new,
 );
 
 class SkillHistoryNotifier
-    extends FamilyAsyncNotifier<GetSkillHistoryData?, String> {
+    extends FamilyAsyncNotifier<GetSkillHistoryData?, SkillHistoryKey> {
   @override
-  Future<GetSkillHistoryData?> build(String skillId) async {
+  Future<GetSkillHistoryData?> build(SkillHistoryKey key) async {
     final session = SupabaseService.client.auth.currentSession;
     if (session == null) return null;
 
     final result = await ref
         .read(skillsRepositoryProvider)
-        .getSkillHistory(skillId: skillId);
+        .getSkillHistory(skillId: key.skillId, athleteId: key.athleteId);
     return switch (result) {
       Success(:final data) => data,
       Failure() => null,
@@ -81,9 +87,10 @@ class SkillHistoryNotifier
   Future<void> refresh() async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      final result = await ref
-          .read(skillsRepositoryProvider)
-          .getSkillHistory(skillId: arg);
+      final result = await ref.read(skillsRepositoryProvider).getSkillHistory(
+            skillId: arg.skillId,
+            athleteId: arg.athleteId,
+          );
       return switch (result) {
         Success(:final data) => data,
         Failure(:final message) => throw Exception(message),
