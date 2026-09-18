@@ -35,6 +35,11 @@ dependencies:
   # Local key-value storage (notifications last-seen state)
   shared_preferences: ^2.3.2
 
+  # Avatar upload — pick from camera roll + resize/compress client-side
+  # to a ~50–80 KB JPEG before base64-encoding for the edge fn.
+  image_picker: ^1.1.2
+  image: ^4.2.0
+
   cupertino_icons: ^1.0.8
 
 dev_dependencies:

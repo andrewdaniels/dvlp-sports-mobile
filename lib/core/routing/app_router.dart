@@ -30,6 +30,7 @@ import '../../screens/coach/team/coach_team_page.dart';
 import '../../screens/dev/components_page.dart';
 import '../../screens/dev/design_system_page.dart';
 import '../../screens/notifications/notifications_page.dart';
+import '../../screens/settings/edit_profile_page.dart';
 import '../../screens/splash/splash_page.dart';
 import '../services/supabase_service.dart';
 import 'route_names.dart';
@@ -274,6 +275,14 @@ final appRouter = GoRouter(
             ? state.extra as AthletePassportRanking
             : null,
       ),
+    ),
+
+    // Profile → Edit (pencil icon). Dispatches to the role-appropriate
+    // account form in edit mode.
+    GoRoute(
+      parentNavigatorKey: _rootNavKey,
+      path: RouteNames.editProfile,
+      builder: (context, state) => const EditProfilePage(),
     ),
 
     // Profile → Settings (shared across shells)

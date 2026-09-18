@@ -5,6 +5,7 @@ import '../../../core/services/supabase_service.dart';
 import '../../../generated/api/create_profile.dart' hide RoleTier;
 import '../../../generated/api/get_linked_athletes.dart';
 import '../../../generated/api/get_profile.dart';
+import '../../../generated/api/update_profile.dart' as up;
 import '../../assessments/controllers/assessments_providers.dart';
 import '../../coach_feedback/controllers/coach_feedback_providers.dart';
 import '../../feedback_requests/controllers/feedback_requests_providers.dart';
@@ -60,6 +61,12 @@ class CurrentProfileNotifier extends AsyncNotifier<GetProfileData?> {
   /// so the cache is one type across the app.
   void optimisticSetFromCreate(CreateProfileData created) {
     state = AsyncData(GetProfileData.fromJson(created.toJson()));
+  }
+
+  /// Same bridge as [optimisticSetFromCreate] but for the update-profile
+  /// response — the response schema is identical to Profile.
+  void optimisticSetFromUpdate(up.UpdateProfileData updated) {
+    state = AsyncData(GetProfileData.fromJson(updated.toJson()));
   }
 
   /// Force a network refetch (pull-to-refresh, or after external changes

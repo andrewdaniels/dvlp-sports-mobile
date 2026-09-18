@@ -50,9 +50,7 @@ class CoachProfilePage extends ConsumerWidget {
                 AppIconButton(
                   icon: AppIcons.edit,
                   size: AppIconButtonSize.large,
-                  onPressed: () {
-                    // TODO: open coach edit-profile flow.
-                  },
+                  onPressed: () => context.push(RouteNames.editProfile),
                 ),
                 const SizedBox(width: AppSpacing.xxs),
                 AppIconButton(

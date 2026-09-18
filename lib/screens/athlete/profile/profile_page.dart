@@ -48,9 +48,7 @@ class ProfilePage extends ConsumerWidget {
                 AppIconButton(
                   icon: AppIcons.edit,
                   size: AppIconButtonSize.large,
-                  onPressed: () {
-                    // TODO: open edit-profile flow.
-                  },
+                  onPressed: () => context.push(RouteNames.editProfile),
                 ),
                 const SizedBox(width: AppSpacing.xxs),
                 AppIconButton(
