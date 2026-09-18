@@ -80,6 +80,36 @@ class ProfileRepository {
     );
   }
 
+  /// Coach signup — invite-only for MVP. The invite carries the
+  /// team_id + coach_type; the server-side RPC uses both to insert the
+  /// team_coaches row. Coaches don't self-classify at signup.
+  Future<ApiResult<CreateProfileData>> createCoach({
+    required String email,
+    required String password,
+    required String firstName,
+    required String lastName,
+    required String inviteId,
+    String? phone,
+    String? dateOfBirth,
+    String? avatarBase64,
+  }) {
+    return _invoke<CreateProfileData>(
+      name: 'create-profile',
+      body: {
+        'role': 'coach',
+        'email': email,
+        'password': password,
+        'first_name': firstName,
+        'last_name': lastName,
+        'phone': ?phone,
+        'date_of_birth': ?dateOfBirth,
+        'invite_id': inviteId,
+        'avatar_base64': ?avatarBase64,
+      },
+      fromJson: CreateProfileData.fromJson,
+    );
+  }
+
   Future<ApiResult<CreateProfileData>> createGuardian({
     required String email,
     required String password,

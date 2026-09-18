@@ -4,11 +4,16 @@
 
 // To parse this JSON data, do
 //
+//     final coachType = coachTypeFromJson(jsonString);
 //     final createInviteData = createInviteDataFromJson(jsonString);
 //     final createInviteRequest = createInviteRequestFromJson(jsonString);
 //     final inviteTargetRole = inviteTargetRoleFromJson(jsonString);
 
 import 'dart:convert';
+
+CoachType coachTypeFromJson(String str) => coachTypeValues.map[json.decode(str)]!;
+
+String coachTypeToJson(CoachType data) => json.encode(coachTypeValues.reverse[data]);
 
 CreateInviteData createInviteDataFromJson(String str) => CreateInviteData.fromJson(json.decode(str));
 
@@ -64,6 +69,7 @@ class CreateInviteData {
 }
 
 class CreateInviteRequest {
+    final CoachType? coachType;
     final String email;
     final String? firstName;
     final String? lastName;
@@ -73,6 +79,7 @@ class CreateInviteRequest {
     final String? teamId;
 
     CreateInviteRequest({
+        this.coachType,
         required this.email,
         this.firstName,
         this.lastName,
@@ -83,6 +90,7 @@ class CreateInviteRequest {
     });
 
     CreateInviteRequest copyWith({
+        CoachType? coachType,
         String? email,
         String? firstName,
         String? lastName,
@@ -92,6 +100,7 @@ class CreateInviteRequest {
         String? teamId,
     }) => 
         CreateInviteRequest(
+            coachType: coachType ?? this.coachType,
             email: email ?? this.email,
             firstName: firstName ?? this.firstName,
             lastName: lastName ?? this.lastName,
@@ -102,6 +111,7 @@ class CreateInviteRequest {
         );
 
     factory CreateInviteRequest.fromJson(Map<String, dynamic> json) => CreateInviteRequest(
+        coachType: coachTypeValues.map[json["coach_type"]],
         email: json["email"],
         firstName: json["first_name"],
         lastName: json["last_name"],
@@ -112,6 +122,7 @@ class CreateInviteRequest {
     );
 
     Map<String, dynamic> toJson() => {
+        "coach_type": coachTypeValues.reverse[coachType],
         "email": email,
         "first_name": firstName,
         "last_name": lastName,
@@ -121,6 +132,20 @@ class CreateInviteRequest {
         "team_id": teamId,
     };
 }
+
+enum CoachType {
+    ASSISTANT_COACH,
+    HEAD_COACH,
+    OFFSEASON_COACH,
+    SKILLS_COACH
+}
+
+final coachTypeValues = EnumValues({
+    "assistant_coach": CoachType.ASSISTANT_COACH,
+    "head_coach": CoachType.HEAD_COACH,
+    "offseason_coach": CoachType.OFFSEASON_COACH,
+    "skills_coach": CoachType.SKILLS_COACH
+});
 
 enum InviteTargetRole {
     ATHLETE,

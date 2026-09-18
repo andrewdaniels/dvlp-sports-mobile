@@ -5,7 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import '../../core/routing/route_names.dart';
 import '../../core/theme/theme.dart';
+import '../../features/auth/controllers/auth_providers.dart';
 import '../../features/auth/controllers/profile_providers.dart';
 import '../../features/auth/controllers/signup_flow_provider.dart';
 import '../../features/auth/data/api_result.dart';
@@ -19,9 +21,10 @@ import '../../shared/widgets/app_text_field.dart';
 
 /// Coach account form.
 ///
-///  - Signup ([isEdit] false): coach signup is invite-only. The Submit
-///    button remains disabled today — coach create-profile path isn't
-///    wired yet (see follow-up task).
+///  - Signup ([isEdit] false): invite-only. Submit calls create-profile,
+///    signs in with the credentials collected upstream, and lands the
+///    coach on their home shell. team_id + coach_type come from the
+///    invite (backend RPC reads both); the form doesn't expose them.
 ///  - Edit ([isEdit] true): seeded from currentProfileProvider, Save
 ///    calls update-profile and pops.
 class CoachAccountPage extends ConsumerStatefulWidget {
@@ -88,6 +91,78 @@ class _CoachAccountPageState extends ConsumerState<CoachAccountPage> {
     });
   }
 
+  Future<void> _submitSignup() async {
+    if (_submitting) return;
+    final ctx = ref.read(signupFlowProvider);
+    if (ctx == null) {
+      context.go(RouteNames.entry);
+      return;
+    }
+    final firstName = _first.text.trim();
+    final lastName = _last.text.trim();
+    final phone = _phone.text.trim();
+    if (firstName.isEmpty || lastName.isEmpty) {
+      setState(() => _errorText = 'Please enter your first and last name.');
+      return;
+    }
+    if (ctx.email == null || ctx.password == null || ctx.inviteId == null) {
+      setState(() => _errorText = 'Signup context missing — please go back and try again.');
+      return;
+    }
+
+    HapticFeedback.mediumImpact();
+    setState(() {
+      _submitting = true;
+      _errorText = null;
+    });
+
+    final result = await ref.read(profileRepositoryProvider).createCoach(
+          email: ctx.email!,
+          password: ctx.password!,
+          firstName: firstName,
+          lastName: lastName,
+          inviteId: ctx.inviteId!,
+          phone: phone.isEmpty ? null : phone,
+          avatarBase64: _avatarBase64,
+        );
+
+    if (!mounted) return;
+
+    switch (result) {
+      case Success(:final data):
+        ref.read(currentProfileProvider.notifier).optimisticSetFromCreate(data);
+
+        // create-profile ran under service_role — no mobile session
+        // yet. Sign in with the credentials collected upstream.
+        try {
+          await ref.read(authRepositoryProvider).signInWithPassword(
+                email: ctx.email!,
+                password: ctx.password!,
+              );
+        } catch (_) {
+          if (!mounted) return;
+          setState(() {
+            _submitting = false;
+            _errorText = 'Account created. Please sign in.';
+          });
+          return;
+        }
+
+        ref.read(signupFlowProvider.notifier).state = null;
+
+        if (!mounted) return;
+        await ref.read(currentProfileProvider.notifier).refresh();
+        if (!mounted) return;
+        context.go(RouteNames.coachHome);
+
+      case Failure(:final message):
+        setState(() {
+          _submitting = false;
+          _errorText = message;
+        });
+    }
+  }
+
   Future<void> _submitEdit() async {
     if (_submitting) return;
     final firstName = _first.text.trim();
@@ -129,7 +204,7 @@ class _CoachAccountPageState extends ConsumerState<CoachAccountPage> {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final primaryLabel = widget.isEdit ? 'Save' : 'Next';
+    final primaryLabel = widget.isEdit ? 'Save' : 'Submit';
     final secondaryLabel = widget.isEdit ? 'Cancel' : 'Back';
     final headerTitle = widget.isEdit ? 'Edit Profile' : 'Your Account';
     final headerSubtitle = widget.isEdit
@@ -194,7 +269,7 @@ class _CoachAccountPageState extends ConsumerState<CoachAccountPage> {
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppTextField(
-                      label: 'Phone Number',
+                      label: widget.isEdit ? 'Phone Number' : 'Phone Number (optional)',
                       placeholder: 'Enter phone number',
                       controller: _phone,
                       keyboardType: TextInputType.phone,
@@ -219,13 +294,11 @@ class _CoachAccountPageState extends ConsumerState<CoachAccountPage> {
                 variant: AppButtonVariant.outline,
                 onPressed: _submitting ? null : () => context.pop(),
               ),
-              // Signup coach path isn't wired yet — the primary button
-              // stays disabled in that mode. Edit mode is fully wired.
               primary: AppButton(
                 label: primaryLabel,
                 variant: AppButtonVariant.primary,
                 loading: _submitting,
-                onPressed: widget.isEdit ? _submitEdit : null,
+                onPressed: widget.isEdit ? _submitEdit : _submitSignup,
               ),
             ),
           ],

@@ -182,9 +182,10 @@ class CreateCoachRequest {
     final String? dateOfBirth;
     final String email;
     final String firstName;
-    final String? inviteId;
+    final String inviteId;
     final String lastName;
     final String password;
+    final String? phone;
     final CreateCoachRequestRole role;
 
     CreateCoachRequest({
@@ -193,9 +194,10 @@ class CreateCoachRequest {
         this.dateOfBirth,
         required this.email,
         required this.firstName,
-        this.inviteId,
+        required this.inviteId,
         required this.lastName,
         required this.password,
+        this.phone,
         required this.role,
     });
 
@@ -208,6 +210,7 @@ class CreateCoachRequest {
         String? inviteId,
         String? lastName,
         String? password,
+        String? phone,
         CreateCoachRequestRole? role,
     }) => 
         CreateCoachRequest(
@@ -219,6 +222,7 @@ class CreateCoachRequest {
             inviteId: inviteId ?? this.inviteId,
             lastName: lastName ?? this.lastName,
             password: password ?? this.password,
+            phone: phone ?? this.phone,
             role: role ?? this.role,
         );
 
@@ -231,6 +235,7 @@ class CreateCoachRequest {
         inviteId: json["invite_id"],
         lastName: json["last_name"],
         password: json["password"],
+        phone: json["phone"],
         role: createCoachRequestRoleValues.map[json["role"]]!,
     );
 
@@ -243,6 +248,7 @@ class CreateCoachRequest {
         "invite_id": inviteId,
         "last_name": lastName,
         "password": password,
+        "phone": phone,
         "role": createCoachRequestRoleValues.reverse[role],
     };
 }
