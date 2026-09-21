@@ -76,7 +76,8 @@ class CreateAssessmentRequest {
     final List<Score>? scores;
     final Status status;
     final String teamId;
-    final String? voiceNoteUrl;
+    final String? voiceNoteBase64;
+    final String? voiceNoteMime;
 
     CreateAssessmentRequest({
         required this.assessmentType,
@@ -86,7 +87,8 @@ class CreateAssessmentRequest {
         this.scores,
         required this.status,
         required this.teamId,
-        this.voiceNoteUrl,
+        this.voiceNoteBase64,
+        this.voiceNoteMime,
     });
 
     CreateAssessmentRequest copyWith({
@@ -97,7 +99,8 @@ class CreateAssessmentRequest {
         List<Score>? scores,
         Status? status,
         String? teamId,
-        String? voiceNoteUrl,
+        String? voiceNoteBase64,
+        String? voiceNoteMime,
     }) => 
         CreateAssessmentRequest(
             assessmentType: assessmentType ?? this.assessmentType,
@@ -107,7 +110,8 @@ class CreateAssessmentRequest {
             scores: scores ?? this.scores,
             status: status ?? this.status,
             teamId: teamId ?? this.teamId,
-            voiceNoteUrl: voiceNoteUrl ?? this.voiceNoteUrl,
+            voiceNoteBase64: voiceNoteBase64 ?? this.voiceNoteBase64,
+            voiceNoteMime: voiceNoteMime ?? this.voiceNoteMime,
         );
 
     factory CreateAssessmentRequest.fromJson(Map<String, dynamic> json) => CreateAssessmentRequest(
@@ -118,7 +122,8 @@ class CreateAssessmentRequest {
         scores: json["scores"] == null ? [] : List<Score>.from(json["scores"]!.map((x) => Score.fromJson(x))),
         status: statusValues.map[json["status"]]!,
         teamId: json["team_id"],
-        voiceNoteUrl: json["voice_note_url"],
+        voiceNoteBase64: json["voice_note_base64"],
+        voiceNoteMime: json["voice_note_mime"],
     );
 
     Map<String, dynamic> toJson() => {
@@ -129,7 +134,8 @@ class CreateAssessmentRequest {
         "scores": scores == null ? [] : List<dynamic>.from(scores!.map((x) => x.toJson())),
         "status": statusValues.reverse[status],
         "team_id": teamId,
-        "voice_note_url": voiceNoteUrl,
+        "voice_note_base64": voiceNoteBase64,
+        "voice_note_mime": voiceNoteMime,
     };
 }
 

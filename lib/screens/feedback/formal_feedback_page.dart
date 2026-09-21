@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -23,6 +26,7 @@ import '../../shared/widgets/app_icon_button.dart';
 import '../../shared/widgets/app_loading_indicator.dart';
 import '../../shared/widgets/app_refresh_indicator.dart';
 import '../../shared/widgets/app_screen_footer.dart';
+import '../../shared/widgets/app_snack_bar.dart';
 import '../../shared/widgets/app_text_area.dart';
 import '../../shared/widgets/keyboard_dismissible.dart';
 
@@ -177,18 +181,25 @@ class _ReadonlyBody extends StatelessWidget {
           if (i < detail.scores.length - 1) const SizedBox(height: AppSpacing.xl),
         ],
         const SizedBox(height: AppSpacing.xxl),
-        Text(
-          "Coach's Note",
-          style: AppTypography.titleMedium.copyWith(color: colors.primaryText),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        const AppAudioNote(audioUrl: 'https://placeholder.invalid/audio.m4a'),
-        if ((detail.notes ?? '').isNotEmpty) ...[
-          const SizedBox(height: AppSpacing.md),
+        // Only render the Coach's Note section if there's something to
+        // show — an audio note, a text note, or both. Skips the visual
+        // altogether for assessments where the coach didn't attach either.
+        if ((detail.voiceNoteUrl ?? '').isNotEmpty ||
+            (detail.notes ?? '').isNotEmpty) ...[
           Text(
-            detail.notes!,
-            style: AppTypography.bodyMedium.copyWith(color: colors.primaryText),
+            "Coach's Note",
+            style: AppTypography.titleMedium.copyWith(color: colors.primaryText),
           ),
+          const SizedBox(height: AppSpacing.md),
+          if ((detail.voiceNoteUrl ?? '').isNotEmpty)
+            AppAudioNote(audioUrl: detail.voiceNoteUrl),
+          if ((detail.notes ?? '').isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              detail.notes!,
+              style: AppTypography.bodyMedium.copyWith(color: colors.primaryText),
+            ),
+          ],
         ],
       ],
     );
@@ -322,6 +333,7 @@ class _FormalComposerState extends ConsumerState<_FormalComposer> {
   late final TextEditingController _noteCtrl;
   bool _saving = false;
   String? _error;
+  String? _voiceNoteFilePath;
 
   @override
   void initState() {
@@ -358,8 +370,10 @@ class _FormalComposerState extends ConsumerState<_FormalComposer> {
     final allScored = widget.skills.every((s) => _scores[s.id] != null);
     if (widget.isCreate) return allScored && !_saving;
     // Edit: still must be fully scored AND have at least one dirty
-    // field (either a score changed or the note changed).
-    return allScored && (_scoresDirty || _noteDirty) && !_saving;
+    // field (a score changed, the note changed, or a new voice note
+    // was recorded).
+    final hasChange = _scoresDirty || _noteDirty || _voiceNoteFilePath != null;
+    return allScored && hasChange && !_saving;
   }
 
   Future<void> _openScoreSheet(_ComposerSkill skill) async {
@@ -388,6 +402,19 @@ class _FormalComposerState extends ConsumerState<_FormalComposer> {
         if (entry.value != null) (skillId: entry.key, score: entry.value!),
     ];
 
+    // Read the local recording (if any) + base64-encode. Small enough
+    // (~500KB for 60s) to do inline without an isolate.
+    String? voiceNoteBase64;
+    if (_voiceNoteFilePath != null) {
+      try {
+        final bytes = await File(_voiceNoteFilePath!).readAsBytes();
+        voiceNoteBase64 = base64Encode(bytes);
+      } catch (_) {
+        // Best-effort: submit without the audio if the file went away.
+        voiceNoteBase64 = null;
+      }
+    }
+
     final actions = ref.read(assessmentActionsProvider);
     final result = widget.isCreate
         ? await actions.create(
@@ -397,6 +424,7 @@ class _FormalComposerState extends ConsumerState<_FormalComposer> {
             status: 'submitted',
             notes: _noteCtrl.text.trim().isEmpty ? null : _noteCtrl.text.trim(),
             scores: scoreList,
+            voiceNoteBase64: voiceNoteBase64,
           )
         : await actions.update(
             assessmentId: widget.existingAssessmentId!,
@@ -404,12 +432,18 @@ class _FormalComposerState extends ConsumerState<_FormalComposer> {
             status: 'submitted',
             notes: _noteDirty ? _noteCtrl.text.trim() : null,
             scores: _scoresDirty ? scoreList : null,
+            voiceNoteBase64: voiceNoteBase64,
           );
 
     if (!mounted) return;
 
     switch (result) {
       case Success():
+        AppSnackBar.show(
+          context,
+          message: widget.isCreate ? 'Feedback submitted.' : 'Feedback updated.',
+          variant: AppSnackBarVariant.success,
+        );
         context.pop();
       case Failure(:final message):
         setState(() {
@@ -458,6 +492,11 @@ class _FormalComposerState extends ConsumerState<_FormalComposer> {
                     placeholder: 'Add notes for the athlete (optional)',
                     minLines: 3,
                     maxLines: 8,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  AppAudioNote(
+                    onRecorded: (path) =>
+                        setState(() => _voiceNoteFilePath = path),
                   ),
                   if (_error != null) ...[
                     const SizedBox(height: AppSpacing.md),

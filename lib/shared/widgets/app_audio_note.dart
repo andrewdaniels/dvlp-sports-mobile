@@ -1,30 +1,39 @@
 import 'dart:async';
-import 'dart:math' as math;
+import 'dart:io';
 
+import 'package:audio_waveforms/audio_waveforms.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:record/record.dart' as record_pkg;
 
 import '../../core/theme/theme.dart';
 import 'app_icon.dart';
 import 'app_icon_button.dart';
+import 'app_snack_bar.dart';
 
 /// Audio note recorder + playback player. Leading control (mic/stop/play)
 /// on the left, elapsed time next to it, waveform filling the remainder.
 ///
-/// Modes:
-/// - **Recording** (default when `audioUrl` is null): starts in idle with a
-///   mic button (`secondaryText` tint). Tap → recording state (red waveform,
-///   red-tinted stop button, timer). Tap stop → complete state (waveform +
-///   play button).
-/// - **Playback-only** (when `audioUrl` provided): shows waveform + play/pause.
+/// Split responsibilities across two packages:
+///   - Recording via `record` (AAC m4a to a temp file). audio_waveforms'
+///     recorder doesn't reliably capture audio on the iOS simulator —
+///     it writes a header-only file with no PCM data — so `record` owns
+///     capture on both platforms for consistency.
+///   - Playback UX via `audio_waveforms.PlayerController` +
+///     AudioFileWaveforms. Extracts amplitudes from the recorded (or
+///     downloaded) file for a real waveform, tints the played portion,
+///     supports drag-to-seek.
 ///
-/// **Audio is not wired yet.** This widget is the visual + state-machine
-/// shell so we can iterate on UX. When we build the assessment/feedback
-/// feature, we plug in:
-///   - `record` (or `flutter_sound`) — captures audio + amplitude stream
-///   - `just_audio` — playback
-///   - `permission_handler` — mic permission (asked inside this widget)
-/// Real waveform bars use amplitude samples; the demo pattern below is
-/// static.
+/// During recording we render a simple animated bar (real amplitude
+/// visualization is a follow-up — `record`'s amplitude stream is
+/// available). Playback is where the pretty waveform lives.
+///
+/// Modes:
+///   - `idleRecording` — no [audioUrl] and no local recording yet.
+///   - `recording` — capturing to a temp .m4a.
+///   - `complete` — a recording exists (local file) OR an [audioUrl]
+///     was provided; playback UI + controls active.
 class AppAudioNote extends StatefulWidget {
   const AppAudioNote({
     super.key,
@@ -33,13 +42,8 @@ class AppAudioNote extends StatefulWidget {
     this.maxDurationSeconds = 60,
   });
 
-  /// If provided, widget starts in playback-only mode showing this audio.
   final String? audioUrl;
-
-  /// Callback with audio file path when a recording is completed.
-  /// (TODO: wire when audio integration lands.)
   final ValueChanged<String>? onRecorded;
-
   final int maxDurationSeconds;
 
   @override
@@ -49,50 +53,193 @@ class AppAudioNote extends StatefulWidget {
 enum _AudioMode { idleRecording, recording, complete }
 
 class _AppAudioNoteState extends State<AppAudioNote> {
-  late _AudioMode _mode;
-  Timer? _tick;
-  int _elapsedSeconds = 0;
+  final record_pkg.AudioRecorder _recorder = record_pkg.AudioRecorder();
+  PlayerController? _playerCtrl;
+  Timer? _recordTick;
+  StreamSubscription<int>? _playerDurationSub;
+  StreamSubscription<PlayerState>? _playerStateSub;
+
+  _AudioMode _mode = _AudioMode.idleRecording;
+  int _elapsedMs = 0;
   bool _isPlaying = false;
+  /// Local file path currently loaded into the player. Kept so that we
+  /// can re-preparePlayer after playback naturally completes —
+  /// audio_waveforms leaves the controller in a "consumed" state where
+  /// startPlayer no-ops until preparePlayer is called again.
+  String? _currentAudioPath;
 
   @override
   void initState() {
     super.initState();
-    _mode = widget.audioUrl != null ? _AudioMode.complete : _AudioMode.idleRecording;
     if (widget.audioUrl != null) {
-      _elapsedSeconds = 63; // demo duration
+      _mode = _AudioMode.complete;
+      _prepareFromUrl(widget.audioUrl!);
     }
   }
 
   @override
   void dispose() {
-    _tick?.cancel();
+    _recordTick?.cancel();
+    _playerDurationSub?.cancel();
+    _playerStateSub?.cancel();
+    _recorder.dispose();
+    _playerCtrl?.dispose();
     super.dispose();
   }
 
-  void _startRecording() {
-    // TODO(audio): request mic permission via permission_handler; if granted,
-    // start recording via `record` package.
+  Future<void> _startRecording() async {
+    final status = await Permission.microphone.request();
+    if (!status.isGranted) {
+      if (mounted) {
+        AppSnackBar.show(
+          context,
+          message: 'Microphone permission is required to record.',
+        );
+      }
+      return;
+    }
+
+    final tmpPath =
+        '${Directory.systemTemp.path}/voice_note_${DateTime.now().microsecondsSinceEpoch}.m4a';
+    try {
+      await _recorder.start(
+        const record_pkg.RecordConfig(
+          encoder: record_pkg.AudioEncoder.aacLc,
+          bitRate: 64000,
+          numChannels: 1,
+        ),
+        path: tmpPath,
+      );
+    } catch (e) {
+      if (mounted) {
+        AppSnackBar.show(context, message: 'Could not start recording.');
+      }
+      return;
+    }
+
     setState(() {
       _mode = _AudioMode.recording;
-      _elapsedSeconds = 0;
+      _elapsedMs = 0;
     });
-    _tick = Timer.periodic(const Duration(seconds: 1), (_) {
+    _recordTick = Timer.periodic(const Duration(milliseconds: 250), (_) {
       if (!mounted) return;
-      setState(() => _elapsedSeconds++);
-      if (_elapsedSeconds >= widget.maxDurationSeconds) _stopRecording();
+      setState(() => _elapsedMs += 250);
+      if (_elapsedMs >= widget.maxDurationSeconds * 1000) _stopRecording();
     });
   }
 
-  void _stopRecording() {
-    _tick?.cancel();
-    _tick = null;
-    // TODO(audio): stop the recorder, invoke widget.onRecorded with the file path.
+  Future<void> _stopRecording() async {
+    _recordTick?.cancel();
+    _recordTick = null;
+    final path = await _recorder.stop();
+    if (!mounted) return;
+    // ignore: avoid_print
+    print('[AppAudioNote] recorder stopped path=$path');
+    if (path == null) {
+      setState(() => _mode = _AudioMode.idleRecording);
+      return;
+    }
+    try {
+      final size = await File(path).length();
+      // ignore: avoid_print
+      print('[AppAudioNote] recorded file size=$size bytes');
+    } catch (_) {}
+    widget.onRecorded?.call(path);
+    await _prepareFromPath(path);
+    if (!mounted) return;
     setState(() => _mode = _AudioMode.complete);
   }
 
-  void _togglePlayback() {
-    // TODO(audio): start/pause playback via just_audio.
-    setState(() => _isPlaying = !_isPlaying);
+  Future<void> _prepareFromPath(String path) async {
+    _playerDurationSub?.cancel();
+    _playerStateSub?.cancel();
+    _playerCtrl?.dispose();
+
+    final controller = PlayerController();
+    try {
+      await controller.preparePlayer(
+        path: path,
+        shouldExtractWaveform: true,
+        // Cap sample count so the extracted waveform fits the pill's
+        // width without clipping. AudioFileWaveforms draws all bars
+        // at fixed width (waveThickness + spacing = 6px), so ~50 bars
+        // fit a typical 300px inner width — 60 samples gives us
+        // headroom without overflow.
+        noOfSamples: 60,
+      );
+      // ignore: avoid_print
+      print('[AppAudioNote] preparePlayer done. maxDuration=${controller.maxDuration}');
+    } catch (e, st) {
+      // ignore: avoid_print
+      print('[AppAudioNote] preparePlayer threw: $e\n$st');
+      controller.dispose();
+      if (mounted) setState(() => _playerCtrl = null);
+      return;
+    }
+
+    _playerDurationSub = controller.onCurrentDurationChanged.listen((durMs) {
+      if (!mounted) return;
+      setState(() => _elapsedMs = durMs);
+    });
+    _playerStateSub = controller.onPlayerStateChanged.listen((state) {
+      if (!mounted) return;
+      setState(() => _isPlaying = state.isPlaying);
+    });
+
+    if (!mounted) {
+      controller.dispose();
+      return;
+    }
+    _currentAudioPath = path;
+    setState(() => _playerCtrl = controller);
+  }
+
+  Future<void> _prepareFromUrl(String url) async {
+    try {
+      final tmp = File(
+        '${Directory.systemTemp.path}/voice_note_dl_${DateTime.now().microsecondsSinceEpoch}.m4a',
+      );
+      final client = HttpClient();
+      final request = await client.getUrl(Uri.parse(url));
+      final response = await request.close();
+      if (response.statusCode != 200) {
+        client.close(force: true);
+        return;
+      }
+      final bytes = await consolidateHttpClientResponseBytes(response);
+      client.close(force: true);
+      await tmp.writeAsBytes(bytes, flush: true);
+      if (!mounted) return;
+      await _prepareFromPath(tmp.path);
+    } catch (_) {
+      // Silent fail — widget stays in "complete" with a disabled play
+      // button. Reopening the sheet re-fetches.
+    }
+  }
+
+  Future<void> _togglePlayback() async {
+    final ctrl = _playerCtrl;
+    if (ctrl == null) return;
+    if (ctrl.playerState.isPlaying) {
+      await ctrl.pausePlayer();
+      return;
+    }
+    // After natural completion audio_waveforms leaves the controller
+    // in PlayerState.stopped and startPlayer no-ops. Re-prepare with
+    // the same file to reset the internal player, then start.
+    final needsReprepare = ctrl.playerState == PlayerState.stopped;
+    if (needsReprepare && _currentAudioPath != null) {
+      try {
+        await ctrl.preparePlayer(
+          path: _currentAudioPath!,
+          shouldExtractWaveform: true,
+        );
+      } catch (_) {
+        return;
+      }
+      if (mounted) setState(() => _elapsedMs = 0);
+    }
+    await ctrl.startPlayer();
   }
 
   @override
@@ -109,9 +256,12 @@ class _AppAudioNoteState extends State<AppAudioNote> {
         children: [
           _leadingControl(context),
           const SizedBox(width: AppSpacing.sm),
-          Text(_formatDuration(_elapsedSeconds), style: AppTypography.bodySmall.copyWith(color: colors.primaryText)),
+          Text(
+            _formatMs(_elapsedMs),
+            style: AppTypography.bodySmall.copyWith(color: colors.primaryText),
+          ),
           const SizedBox(width: AppSpacing.sm),
-          Expanded(child: _Waveform(mode: _mode, isPlaying: _isPlaying)),
+          Expanded(child: _waveform(context)),
         ],
       ),
     );
@@ -139,7 +289,7 @@ class _AppAudioNoteState extends State<AppAudioNote> {
       case _AudioMode.complete:
         return AppIconButton(
           icon: _isPlaying ? AppIcons.pauseFilled : AppIcons.playFilled,
-          onPressed: _togglePlayback,
+          onPressed: _playerCtrl == null ? null : _togglePlayback,
           variant: AppIconButtonVariant.tinted,
           tintColor: colors.secondaryText,
           size: AppIconButtonSize.small,
@@ -147,69 +297,65 @@ class _AppAudioNoteState extends State<AppAudioNote> {
     }
   }
 
-  String _formatDuration(int seconds) {
-    final m = (seconds ~/ 60).toString().padLeft(1, '0');
-    final s = (seconds % 60).toString().padLeft(2, '0');
-    return '$m:$s';
-  }
-}
-
-/// Static waveform visualization. Recording state paints in `error`;
-/// playback paints in `primaryText`.
-/// (TODO: replace with real amplitude data from the recorder / decoded audio.)
-class _Waveform extends StatelessWidget {
-  const _Waveform({required this.mode, required this.isPlaying});
-
-  final _AudioMode mode;
-  final bool isPlaying;
-
-  // Pre-generated deterministic bar heights (0.15..1.0) so the waveform
-  // looks realistic without random per-build churn.
-  static final List<double> _amps = List.generate(52, (i) {
-    final v = 0.3 + 0.7 * (math.sin(i * 0.5) * math.cos(i * 0.31)).abs();
-    return v.clamp(0.15, 1.0);
-  });
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _waveform(BuildContext context) {
     final colors = context.colors;
-    Color barColor;
-    if (mode == _AudioMode.recording) {
-      barColor = colors.error;
-    } else if (mode == _AudioMode.complete && isPlaying) {
-      barColor = colors.primaryText;
-    } else if (mode == _AudioMode.complete) {
-      barColor = colors.primaryText70;
-    } else {
-      barColor = colors.alternate;
-    }
-
-    return SizedBox(
-      height: 28,
-      child: LayoutBuilder(builder: (context, constraints) {
-        const barWidth = 2.0;
-        const barGap = 2.0;
-        final maxBars = (constraints.maxWidth / (barWidth + barGap)).floor();
-        final bars = _amps.take(maxBars).toList();
-
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            for (var i = 0; i < bars.length; i++) ...[
-              Container(
-                width: barWidth,
-                height: 28 * bars[i],
-                decoration: BoxDecoration(
-                  color: barColor,
-                  borderRadius: BorderRadius.circular(barWidth / 2),
-                ),
+    switch (_mode) {
+      case _AudioMode.idleRecording:
+        return SizedBox(
+          height: 28,
+          child: Center(
+            child: Container(
+              height: 2,
+              decoration: BoxDecoration(
+                color: colors.alternate,
+                borderRadius: BorderRadius.circular(1),
               ),
-              if (i < bars.length - 1) const SizedBox(width: barGap),
-            ],
-          ],
+            ),
+          ),
         );
-      }),
-    );
+      case _AudioMode.recording:
+        // Real-amplitude live waveform during recording is a follow-up
+        // (record's amplitude stream drives it). For now, a pulsing
+        // red bar signals "capturing" without misrepresenting content.
+        return SizedBox(
+          height: 28,
+          child: Center(
+            child: Container(
+              height: 3,
+              decoration: BoxDecoration(
+                color: colors.error,
+                borderRadius: BorderRadius.circular(1.5),
+              ),
+            ),
+          ),
+        );
+      case _AudioMode.complete:
+        final ctrl = _playerCtrl;
+        if (ctrl == null) return const SizedBox(height: 28);
+        return AudioFileWaveforms(
+          size: const Size(double.infinity, 28),
+          playerController: ctrl,
+          enableSeekGesture: true,
+          waveformType: WaveformType.fitWidth,
+          playerWaveStyle: PlayerWaveStyle(
+            // Played portion in the yellow accent for high contrast
+            // against the dim unplayed rail. Matches "listen progress"
+            // conventions in chat-app voice notes.
+            fixedWaveColor: colors.primaryText30,
+            liveWaveColor: colors.secondary,
+            spacing: 4,
+            waveThickness: 2,
+            seekLineColor: colors.secondary,
+            showSeekLine: false,
+          ),
+        );
+    }
+  }
+
+  String _formatMs(int ms) {
+    final totalSeconds = (ms / 1000).round();
+    final m = (totalSeconds ~/ 60).toString().padLeft(1, '0');
+    final s = (totalSeconds % 60).toString().padLeft(2, '0');
+    return '$m:$s';
   }
 }

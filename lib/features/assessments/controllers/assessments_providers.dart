@@ -268,6 +268,7 @@ class AssessmentActions {
     String? notes,
     List<({String skillId, num score})> scores = const [],
     String? requestId,
+    String? voiceNoteBase64,
   }) async {
     final result = await _ref.read(assessmentsRepositoryProvider).createAssessment(
           assessmentType: assessmentType,
@@ -277,6 +278,7 @@ class AssessmentActions {
           notes: notes,
           scores: scores,
           requestId: requestId,
+          voiceNoteBase64: voiceNoteBase64,
         );
     if (result case Success(:final data)) {
       // Instant local patch on the coach summary — drops from pending,
@@ -315,12 +317,14 @@ class AssessmentActions {
     String? status,
     String? notes,
     List<({String skillId, num score})>? scores,
+    String? voiceNoteBase64,
   }) async {
     final result = await _ref.read(assessmentsRepositoryProvider).updateAssessment(
           assessmentId: assessmentId,
           status: status,
           notes: notes,
           scores: scores,
+          voiceNoteBase64: voiceNoteBase64,
         );
     if (result case Success(:final data)) {
       // Patch the detail cache in place with what changed. Coach header,

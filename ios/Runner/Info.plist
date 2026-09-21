@@ -30,6 +30,8 @@
 	<string>DVLP Sports needs access to your photo library so you can pick a profile photo.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>DVLP Sports needs camera access so you can take a profile photo.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>DVLP Sports needs microphone access so coaches can record voice notes on athlete assessments.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
