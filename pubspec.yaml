@@ -40,6 +40,18 @@ dependencies:
   image_picker: ^1.1.2
   image: ^4.2.0
 
+  # Voice notes on formal/quick assessments. Hybrid setup because
+  # audio_waveforms' recorder doesn't reliably capture audio on the
+  # iOS simulator (produces a header-only file). Split of concerns:
+  #   - `record` (v7): reliable capture on device + simulator.
+  #   - `audio_waveforms.PlayerController` + AudioFileWaveforms: the
+  #     playback UX (real waveform from the extracted samples, played
+  #     portion highlighted, tap-to-seek).
+  # `permission_handler` asks for mic access on first record.
+  record: ^7.0.0
+  audio_waveforms: ^1.3.0
+  permission_handler: ^11.3.1
+
   cupertino_icons: ^1.0.8
 
 dev_dependencies:

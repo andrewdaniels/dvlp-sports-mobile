@@ -73,14 +73,16 @@ class UpdateAssessmentRequest {
     final String? notes;
     final List<Score>? scores;
     final UpdateAssessmentRequestStatus? status;
-    final String? voiceNoteUrl;
+    final String? voiceNoteBase64;
+    final String? voiceNoteMime;
 
     UpdateAssessmentRequest({
         required this.assessmentId,
         this.notes,
         this.scores,
         this.status,
-        this.voiceNoteUrl,
+        this.voiceNoteBase64,
+        this.voiceNoteMime,
     });
 
     UpdateAssessmentRequest copyWith({
@@ -88,14 +90,16 @@ class UpdateAssessmentRequest {
         String? notes,
         List<Score>? scores,
         UpdateAssessmentRequestStatus? status,
-        String? voiceNoteUrl,
+        String? voiceNoteBase64,
+        String? voiceNoteMime,
     }) => 
         UpdateAssessmentRequest(
             assessmentId: assessmentId ?? this.assessmentId,
             notes: notes ?? this.notes,
             scores: scores ?? this.scores,
             status: status ?? this.status,
-            voiceNoteUrl: voiceNoteUrl ?? this.voiceNoteUrl,
+            voiceNoteBase64: voiceNoteBase64 ?? this.voiceNoteBase64,
+            voiceNoteMime: voiceNoteMime ?? this.voiceNoteMime,
         );
 
     factory UpdateAssessmentRequest.fromJson(Map<String, dynamic> json) => UpdateAssessmentRequest(
@@ -103,7 +107,8 @@ class UpdateAssessmentRequest {
         notes: json["notes"],
         scores: json["scores"] == null ? [] : List<Score>.from(json["scores"]!.map((x) => Score.fromJson(x))),
         status: updateAssessmentRequestStatusValues.map[json["status"]],
-        voiceNoteUrl: json["voice_note_url"],
+        voiceNoteBase64: json["voice_note_base64"],
+        voiceNoteMime: json["voice_note_mime"],
     );
 
     Map<String, dynamic> toJson() => {
@@ -111,7 +116,8 @@ class UpdateAssessmentRequest {
         "notes": notes,
         "scores": scores == null ? [] : List<dynamic>.from(scores!.map((x) => x.toJson())),
         "status": updateAssessmentRequestStatusValues.reverse[status],
-        "voice_note_url": voiceNoteUrl,
+        "voice_note_base64": voiceNoteBase64,
+        "voice_note_mime": voiceNoteMime,
     };
 }
 

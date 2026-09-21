@@ -72,6 +72,7 @@ class AssessmentsRepository {
     String? notes,
     List<({String skillId, num score})> scores = const [],
     String? requestId,
+    String? voiceNoteBase64,
   }) {
     return _invoke<CreateAssessmentData>(
       name: 'create-assessment',
@@ -80,13 +81,12 @@ class AssessmentsRepository {
         'athlete_id': athleteId,
         'team_id': teamId,
         'status': status,
-        // ignore: use_null_aware_elements
-        if (notes != null) 'notes': notes,
+        'notes': ?notes,
         'scores': [
           for (final s in scores) {'skill_id': s.skillId, 'score': s.score},
         ],
-        // ignore: use_null_aware_elements
-        if (requestId != null) 'request_id': requestId,
+        'request_id': ?requestId,
+        'voice_note_base64': ?voiceNoteBase64,
       },
       fromJson: CreateAssessmentData.fromJson,
     );
@@ -100,20 +100,20 @@ class AssessmentsRepository {
     String? status, // only 'submitted' is meaningful
     String? notes,
     List<({String skillId, num score})>? scores,
+    String? voiceNoteBase64,
   }) {
     return _invoke<UpdateAssessmentData>(
       name: 'update-assessment',
       body: {
         'assessment_id': assessmentId,
-        // ignore: use_null_aware_elements
-        if (status != null) 'status': status,
-        // ignore: use_null_aware_elements
-        if (notes != null) 'notes': notes,
+        'status': ?status,
+        'notes': ?notes,
         if (scores != null)
           'scores': [
             for (final s in scores)
               {'skill_id': s.skillId, 'score': s.score},
           ],
+        'voice_note_base64': ?voiceNoteBase64,
       },
       fromJson: UpdateAssessmentData.fromJson,
     );
