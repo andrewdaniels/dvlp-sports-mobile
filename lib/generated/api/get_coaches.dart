@@ -49,20 +49,24 @@ class Coach {
     final CoachAccessScope accessScope;
     final String? avatarUrl;
     final CoachType? coachType;
+    final String email;
     final String firstName;
     final GrantingOrganization? grantingOrganization;
     final String id;
     final String lastName;
+    final String? phone;
     final Team? team;
 
     Coach({
         required this.accessScope,
         required this.avatarUrl,
         required this.coachType,
+        required this.email,
         required this.firstName,
         required this.grantingOrganization,
         required this.id,
         required this.lastName,
+        required this.phone,
         required this.team,
     });
 
@@ -70,20 +74,24 @@ class Coach {
         CoachAccessScope? accessScope,
         String? avatarUrl,
         CoachType? coachType,
+        String? email,
         String? firstName,
         GrantingOrganization? grantingOrganization,
         String? id,
         String? lastName,
+        String? phone,
         Team? team,
     }) => 
         Coach(
             accessScope: accessScope ?? this.accessScope,
             avatarUrl: avatarUrl ?? this.avatarUrl,
             coachType: coachType ?? this.coachType,
+            email: email ?? this.email,
             firstName: firstName ?? this.firstName,
             grantingOrganization: grantingOrganization ?? this.grantingOrganization,
             id: id ?? this.id,
             lastName: lastName ?? this.lastName,
+            phone: phone ?? this.phone,
             team: team ?? this.team,
         );
 
@@ -91,10 +99,12 @@ class Coach {
         accessScope: coachAccessScopeValues.map[json["access_scope"]]!,
         avatarUrl: json["avatar_url"],
         coachType: coachTypeValues.map[json["coach_type"]],
+        email: json["email"],
         firstName: json["first_name"],
         grantingOrganization: json["granting_organization"] == null ? null : GrantingOrganization.fromJson(json["granting_organization"]),
         id: json["id"],
         lastName: json["last_name"],
+        phone: json["phone"],
         team: json["team"] == null ? null : Team.fromJson(json["team"]),
     );
 
@@ -102,10 +112,12 @@ class Coach {
         "access_scope": coachAccessScopeValues.reverse[accessScope],
         "avatar_url": avatarUrl,
         "coach_type": coachTypeValues.reverse[coachType],
+        "email": email,
         "first_name": firstName,
         "granting_organization": grantingOrganization?.toJson(),
         "id": id,
         "last_name": lastName,
+        "phone": phone,
         "team": team?.toJson(),
     };
 }

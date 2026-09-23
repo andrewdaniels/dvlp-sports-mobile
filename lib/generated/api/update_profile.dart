@@ -26,6 +26,7 @@ class UpdateProfileData {
     final String firstName;
     final String id;
     final String lastName;
+    final List<ManagedOrganization> managedOrganizations;
     final String? phone;
     final ProfileStatus profileStatus;
     final RoleTier roleTier;
@@ -41,6 +42,7 @@ class UpdateProfileData {
         required this.firstName,
         required this.id,
         required this.lastName,
+        required this.managedOrganizations,
         required this.phone,
         required this.profileStatus,
         required this.roleTier,
@@ -57,6 +59,7 @@ class UpdateProfileData {
         String? firstName,
         String? id,
         String? lastName,
+        List<ManagedOrganization>? managedOrganizations,
         String? phone,
         ProfileStatus? profileStatus,
         RoleTier? roleTier,
@@ -72,6 +75,7 @@ class UpdateProfileData {
             firstName: firstName ?? this.firstName,
             id: id ?? this.id,
             lastName: lastName ?? this.lastName,
+            managedOrganizations: managedOrganizations ?? this.managedOrganizations,
             phone: phone ?? this.phone,
             profileStatus: profileStatus ?? this.profileStatus,
             roleTier: roleTier ?? this.roleTier,
@@ -88,6 +92,7 @@ class UpdateProfileData {
         firstName: json["first_name"],
         id: json["id"],
         lastName: json["last_name"],
+        managedOrganizations: List<ManagedOrganization>.from(json["managed_organizations"].map((x) => ManagedOrganization.fromJson(x))),
         phone: json["phone"],
         profileStatus: profileStatusValues.map[json["profile_status"]]!,
         roleTier: roleTierValues.map[json["role_tier"]]!,
@@ -104,6 +109,7 @@ class UpdateProfileData {
         "first_name": firstName,
         "id": id,
         "last_name": lastName,
+        "managed_organizations": List<dynamic>.from(managedOrganizations.map((x) => x.toJson())),
         "phone": phone,
         "profile_status": profileStatusValues.reverse[profileStatus],
         "role_tier": roleTierValues.reverse[roleTier],
@@ -193,6 +199,53 @@ class Position {
         "name": name,
     };
 }
+
+class ManagedOrganization {
+    final String id;
+    final String name;
+    final Status status;
+
+    ManagedOrganization({
+        required this.id,
+        required this.name,
+        required this.status,
+    });
+
+    ManagedOrganization copyWith({
+        String? id,
+        String? name,
+        Status? status,
+    }) => 
+        ManagedOrganization(
+            id: id ?? this.id,
+            name: name ?? this.name,
+            status: status ?? this.status,
+        );
+
+    factory ManagedOrganization.fromJson(Map<String, dynamic> json) => ManagedOrganization(
+        id: json["id"],
+        name: json["name"],
+        status: statusValues.map[json["status"]]!,
+    );
+
+    Map<String, dynamic> toJson() => {
+        "id": id,
+        "name": name,
+        "status": statusValues.reverse[status],
+    };
+}
+
+enum Status {
+    ACTIVE,
+    DENIED,
+    PENDING
+}
+
+final statusValues = EnumValues({
+    "active": Status.ACTIVE,
+    "denied": Status.DENIED,
+    "pending": Status.PENDING
+});
 
 enum ProfileStatus {
     ACTIVE,

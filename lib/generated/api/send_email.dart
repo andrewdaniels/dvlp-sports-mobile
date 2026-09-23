@@ -136,12 +136,14 @@ final roleValues = EnumValues({
 
 enum EmailType {
     GUARDIAN_INVITE,
-    INVITE_CODE
+    INVITE_CODE,
+    SIGNUP_VERIFICATION_CODE
 }
 
 final emailTypeValues = EnumValues({
     "guardian_invite": EmailType.GUARDIAN_INVITE,
-    "invite_code": EmailType.INVITE_CODE
+    "invite_code": EmailType.INVITE_CODE,
+    "signup_verification_code": EmailType.SIGNUP_VERIFICATION_CODE
 });
 
 class EnumValues<T> {

@@ -1829,6 +1829,7 @@ class _CoachAthletePassportCardDemo extends StatelessWidget {
       roleTier: profile_api.RoleTier.ATHLETE,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
+      managedOrganizations: const [],
       athleteDetails: profile_api.AthleteDetails(
         heightCm: 175,
         weightKg: 66,
