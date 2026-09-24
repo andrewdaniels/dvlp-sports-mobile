@@ -122,6 +122,11 @@ class _NotificationsPageState extends ConsumerState<NotificationsPage> {
       // title/subtitle so the athlete knows the guardian arrived.
       case gen.Type.GUARDIAN_LINKED:
         return null;
+      // Org-decision types are web-only; mobile shouldn't see them
+      // in practice. No deep-link target — tap is a no-op.
+      case gen.Type.ORGANIZATION_APPROVED:
+      case gen.Type.ORGANIZATION_DENIED:
+        return null;
     }
   }
 

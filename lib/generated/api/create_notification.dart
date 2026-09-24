@@ -150,14 +150,18 @@ enum Type {
     ASSESSMENT_REQUESTED_QUICK,
     ASSESSMENT_SUBMITTED_FORMAL,
     ASSESSMENT_SUBMITTED_QUICK,
-    GUARDIAN_LINKED
+    GUARDIAN_LINKED,
+    ORGANIZATION_APPROVED,
+    ORGANIZATION_DENIED
 }
 
 final typeValues = EnumValues({
     "assessment_requested_quick": Type.ASSESSMENT_REQUESTED_QUICK,
     "assessment_submitted_formal": Type.ASSESSMENT_SUBMITTED_FORMAL,
     "assessment_submitted_quick": Type.ASSESSMENT_SUBMITTED_QUICK,
-    "guardian_linked": Type.GUARDIAN_LINKED
+    "guardian_linked": Type.GUARDIAN_LINKED,
+    "organization_approved": Type.ORGANIZATION_APPROVED,
+    "organization_denied": Type.ORGANIZATION_DENIED
 });
 
 class EnumValues<T> {

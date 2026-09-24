@@ -83,47 +83,65 @@ class ExternalConnection {
 
 class ExternalConnectionAthlete {
     final String? avatarUrl;
+    final String? dateOfBirth;
+    final String email;
     final String firstName;
     final String id;
     final String lastName;
+    final String? phone;
     final PurplePosition? position;
 
     ExternalConnectionAthlete({
         required this.avatarUrl,
+        required this.dateOfBirth,
+        required this.email,
         required this.firstName,
         required this.id,
         required this.lastName,
+        required this.phone,
         required this.position,
     });
 
     ExternalConnectionAthlete copyWith({
         String? avatarUrl,
+        String? dateOfBirth,
+        String? email,
         String? firstName,
         String? id,
         String? lastName,
+        String? phone,
         PurplePosition? position,
     }) => 
         ExternalConnectionAthlete(
             avatarUrl: avatarUrl ?? this.avatarUrl,
+            dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+            email: email ?? this.email,
             firstName: firstName ?? this.firstName,
             id: id ?? this.id,
             lastName: lastName ?? this.lastName,
+            phone: phone ?? this.phone,
             position: position ?? this.position,
         );
 
     factory ExternalConnectionAthlete.fromJson(Map<String, dynamic> json) => ExternalConnectionAthlete(
         avatarUrl: json["avatar_url"],
+        dateOfBirth: json["date_of_birth"],
+        email: json["email"],
         firstName: json["first_name"],
         id: json["id"],
         lastName: json["last_name"],
+        phone: json["phone"],
         position: json["position"] == null ? null : PurplePosition.fromJson(json["position"]),
     );
 
     Map<String, dynamic> toJson() => {
         "avatar_url": avatarUrl,
+        "date_of_birth": dateOfBirth,
+        "email": email,
         "first_name": firstName,
         "id": id,
         "last_name": lastName,
+        "phone": phone,
         "position": position?.toJson(),
     };
 }
@@ -258,75 +276,99 @@ final bandValues = EnumValues({
 class Roster {
     final RosterAthlete athlete;
     final RosterRanking? ranking;
+    final Team team;
 
     Roster({
         required this.athlete,
         required this.ranking,
+        required this.team,
     });
 
     Roster copyWith({
         RosterAthlete? athlete,
         RosterRanking? ranking,
+        Team? team,
     }) => 
         Roster(
             athlete: athlete ?? this.athlete,
             ranking: ranking ?? this.ranking,
+            team: team ?? this.team,
         );
 
     factory Roster.fromJson(Map<String, dynamic> json) => Roster(
         athlete: RosterAthlete.fromJson(json["athlete"]),
         ranking: json["ranking"] == null ? null : RosterRanking.fromJson(json["ranking"]),
+        team: Team.fromJson(json["team"]),
     );
 
     Map<String, dynamic> toJson() => {
         "athlete": athlete.toJson(),
         "ranking": ranking?.toJson(),
+        "team": team.toJson(),
     };
 }
 
 class RosterAthlete {
     final String? avatarUrl;
+    final String? dateOfBirth;
+    final String email;
     final String firstName;
     final String id;
     final String lastName;
+    final String? phone;
     final FluffyPosition? position;
 
     RosterAthlete({
         required this.avatarUrl,
+        required this.dateOfBirth,
+        required this.email,
         required this.firstName,
         required this.id,
         required this.lastName,
+        required this.phone,
         required this.position,
     });
 
     RosterAthlete copyWith({
         String? avatarUrl,
+        String? dateOfBirth,
+        String? email,
         String? firstName,
         String? id,
         String? lastName,
+        String? phone,
         FluffyPosition? position,
     }) => 
         RosterAthlete(
             avatarUrl: avatarUrl ?? this.avatarUrl,
+            dateOfBirth: dateOfBirth ?? this.dateOfBirth,
+            email: email ?? this.email,
             firstName: firstName ?? this.firstName,
             id: id ?? this.id,
             lastName: lastName ?? this.lastName,
+            phone: phone ?? this.phone,
             position: position ?? this.position,
         );
 
     factory RosterAthlete.fromJson(Map<String, dynamic> json) => RosterAthlete(
         avatarUrl: json["avatar_url"],
+        dateOfBirth: json["date_of_birth"],
+        email: json["email"],
         firstName: json["first_name"],
         id: json["id"],
         lastName: json["last_name"],
+        phone: json["phone"],
         position: json["position"] == null ? null : FluffyPosition.fromJson(json["position"]),
     );
 
     Map<String, dynamic> toJson() => {
         "avatar_url": avatarUrl,
+        "date_of_birth": dateOfBirth,
+        "email": email,
         "first_name": firstName,
         "id": id,
         "last_name": lastName,
+        "phone": phone,
         "position": position?.toJson(),
     };
 }
@@ -401,25 +443,72 @@ class RosterRanking {
     };
 }
 
+class Team {
+    final String? ageGroup;
+    final String id;
+    final String? levelName;
+    final String name;
+
+    Team({
+        required this.ageGroup,
+        required this.id,
+        required this.levelName,
+        required this.name,
+    });
+
+    Team copyWith({
+        String? ageGroup,
+        String? id,
+        String? levelName,
+        String? name,
+    }) => 
+        Team(
+            ageGroup: ageGroup ?? this.ageGroup,
+            id: id ?? this.id,
+            levelName: levelName ?? this.levelName,
+            name: name ?? this.name,
+        );
+
+    factory Team.fromJson(Map<String, dynamic> json) => Team(
+        ageGroup: json["age_group"],
+        id: json["id"],
+        levelName: json["level_name"],
+        name: json["name"],
+    );
+
+    Map<String, dynamic> toJson() => {
+        "age_group": ageGroup,
+        "id": id,
+        "level_name": levelName,
+        "name": name,
+    };
+}
+
 class GetTeamRosterRequest {
-    final String teamId;
+    final String? organizationId;
+    final String? teamId;
 
     GetTeamRosterRequest({
-        required this.teamId,
+        this.organizationId,
+        this.teamId,
     });
 
     GetTeamRosterRequest copyWith({
+        String? organizationId,
         String? teamId,
     }) => 
         GetTeamRosterRequest(
+            organizationId: organizationId ?? this.organizationId,
             teamId: teamId ?? this.teamId,
         );
 
     factory GetTeamRosterRequest.fromJson(Map<String, dynamic> json) => GetTeamRosterRequest(
+        organizationId: json["organization_id"],
         teamId: json["team_id"],
     );
 
     Map<String, dynamic> toJson() => {
+        "organization_id": organizationId,
         "team_id": teamId,
     };
 }

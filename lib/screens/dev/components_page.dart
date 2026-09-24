@@ -1682,11 +1682,15 @@ class _RosterRowDemo extends StatelessWidget {
         firstName: first,
         lastName: last,
         avatarUrl: null,
+        email: '${first.toLowerCase()}@dvlpsports.test',
+        phone: null,
+        dateOfBirth: null,
         position: roster.FluffyPosition(
           id: '00000000-0000-0000-0000-000000000000',
           name: position,
         ),
       ),
+      team: _mockTeam,
       ranking: roster.RosterRanking(
         overallScore: score,
         band: band,
@@ -1703,14 +1707,25 @@ class _RosterRowDemo extends StatelessWidget {
         firstName: first,
         lastName: last,
         avatarUrl: null,
+        email: '${first.toLowerCase()}@dvlpsports.test',
+        phone: null,
+        dateOfBirth: null,
         position: roster.FluffyPosition(
           id: '00000000-0000-0000-0000-000000000000',
           name: position,
         ),
       ),
+      team: _mockTeam,
       ranking: null,
     );
   }
+
+  static final roster.Team _mockTeam = roster.Team(
+    id: '00000000-0000-0000-0000-000000000000',
+    name: 'Rampage',
+    ageGroup: 'U13',
+    levelName: 'AAA',
+  );
 }
 
 class _ExternalConnectionRowDemo extends StatelessWidget {
@@ -1774,6 +1789,9 @@ class _ExternalConnectionRowDemo extends StatelessWidget {
         firstName: first,
         lastName: last,
         avatarUrl: null,
+        email: '${first.toLowerCase()}@dvlpsports.test',
+        phone: null,
+        dateOfBirth: null,
         position: roster.PurplePosition(
           id: '00000000-0000-0000-0000-000000000000',
           name: position,
@@ -1801,6 +1819,9 @@ class _ExternalConnectionRowDemo extends StatelessWidget {
         firstName: 'Casey',
         lastName: 'Nguyen',
         avatarUrl: null,
+        email: 'casey@dvlpsports.test',
+        phone: null,
+        dateOfBirth: null,
         position: roster.PurplePosition(
           id: '00000000-0000-0000-0000-000000000000',
           name: 'Defense',

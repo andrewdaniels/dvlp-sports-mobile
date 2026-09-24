@@ -52,5 +52,15 @@ NotificationAppearance appearanceFor(gen.Type type, BuildContext context) {
         icon: AppIcons.navProfile,
         color: colors.link,
       );
+    // Org-decision types fire only to GMs (web-only role today) —
+    // mobile never renders them in practice. Handled here so the
+    // switch stays exhaustive; icon/color chosen so if they ever do
+    // surface they read as neutral status updates.
+    case gen.Type.ORGANIZATION_APPROVED:
+    case gen.Type.ORGANIZATION_DENIED:
+      return NotificationAppearance(
+        icon: AppIcons.checkCircle,
+        color: colors.link,
+      );
   }
 }
