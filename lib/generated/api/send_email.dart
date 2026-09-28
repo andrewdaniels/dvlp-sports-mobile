@@ -62,6 +62,7 @@ class SendEmailRequest {
     final String? athleteName;
     final OrganizationDecision? decision;
     final String? gmFirstName;
+    final List<String>? athleteNames;
 
     SendEmailRequest({
         this.code,
@@ -75,6 +76,7 @@ class SendEmailRequest {
         this.athleteName,
         this.decision,
         this.gmFirstName,
+        this.athleteNames,
     });
 
     SendEmailRequest copyWith({
@@ -89,6 +91,7 @@ class SendEmailRequest {
         String? athleteName,
         OrganizationDecision? decision,
         String? gmFirstName,
+        List<String>? athleteNames,
     }) => 
         SendEmailRequest(
             code: code ?? this.code,
@@ -102,6 +105,7 @@ class SendEmailRequest {
             athleteName: athleteName ?? this.athleteName,
             decision: decision ?? this.decision,
             gmFirstName: gmFirstName ?? this.gmFirstName,
+            athleteNames: athleteNames ?? this.athleteNames,
         );
 
     factory SendEmailRequest.fromJson(Map<String, dynamic> json) => SendEmailRequest(
@@ -116,6 +120,7 @@ class SendEmailRequest {
         athleteName: json["athlete_name"],
         decision: organizationDecisionValues.map[json["decision"]],
         gmFirstName: json["gm_first_name"],
+        athleteNames: json["athlete_names"] == null ? [] : List<String>.from(json["athlete_names"]!.map((x) => x)),
     );
 
     Map<String, dynamic> toJson() => {
@@ -130,6 +135,7 @@ class SendEmailRequest {
         "athlete_name": athleteName,
         "decision": organizationDecisionValues.reverse[decision],
         "gm_first_name": gmFirstName,
+        "athlete_names": athleteNames == null ? [] : List<dynamic>.from(athleteNames!.map((x) => x)),
     };
 }
 
@@ -162,6 +168,7 @@ final roleValues = EnumValues({
 });
 
 enum EmailType {
+    EXTERNAL_GRANT_INVITE,
     GUARDIAN_INVITE,
     INVITE_CODE,
     ORGANIZATION_STATUS_DECISION,
@@ -169,6 +176,7 @@ enum EmailType {
 }
 
 final emailTypeValues = EnumValues({
+    "external_grant_invite": EmailType.EXTERNAL_GRANT_INVITE,
     "guardian_invite": EmailType.GUARDIAN_INVITE,
     "invite_code": EmailType.INVITE_CODE,
     "organization_status_decision": EmailType.ORGANIZATION_STATUS_DECISION,

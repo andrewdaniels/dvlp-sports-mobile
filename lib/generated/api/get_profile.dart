@@ -23,7 +23,9 @@ class GetProfileData {
     final DateTime createdAt;
     final String? dateOfBirth;
     final String email;
+    final List<ExternalConnection> externalConnections;
     final String firstName;
+    final Guardian? guardian;
     final String id;
     final String lastName;
     final List<ManagedOrganization> managedOrganizations;
@@ -39,7 +41,9 @@ class GetProfileData {
         required this.createdAt,
         required this.dateOfBirth,
         required this.email,
+        required this.externalConnections,
         required this.firstName,
+        required this.guardian,
         required this.id,
         required this.lastName,
         required this.managedOrganizations,
@@ -56,7 +60,9 @@ class GetProfileData {
         DateTime? createdAt,
         String? dateOfBirth,
         String? email,
+        List<ExternalConnection>? externalConnections,
         String? firstName,
+        Guardian? guardian,
         String? id,
         String? lastName,
         List<ManagedOrganization>? managedOrganizations,
@@ -72,7 +78,9 @@ class GetProfileData {
             createdAt: createdAt ?? this.createdAt,
             dateOfBirth: dateOfBirth ?? this.dateOfBirth,
             email: email ?? this.email,
+            externalConnections: externalConnections ?? this.externalConnections,
             firstName: firstName ?? this.firstName,
+            guardian: guardian ?? this.guardian,
             id: id ?? this.id,
             lastName: lastName ?? this.lastName,
             managedOrganizations: managedOrganizations ?? this.managedOrganizations,
@@ -89,7 +97,9 @@ class GetProfileData {
         createdAt: DateTime.parse(json["created_at"]),
         dateOfBirth: json["date_of_birth"],
         email: json["email"],
+        externalConnections: List<ExternalConnection>.from(json["external_connections"].map((x) => ExternalConnection.fromJson(x))),
         firstName: json["first_name"],
+        guardian: json["guardian"] == null ? null : Guardian.fromJson(json["guardian"]),
         id: json["id"],
         lastName: json["last_name"],
         managedOrganizations: List<ManagedOrganization>.from(json["managed_organizations"].map((x) => ManagedOrganization.fromJson(x))),
@@ -106,7 +116,9 @@ class GetProfileData {
         "created_at": createdAt.toIso8601String(),
         "date_of_birth": dateOfBirth,
         "email": email,
+        "external_connections": List<dynamic>.from(externalConnections.map((x) => x.toJson())),
         "first_name": firstName,
+        "guardian": guardian?.toJson(),
         "id": id,
         "last_name": lastName,
         "managed_organizations": List<dynamic>.from(managedOrganizations.map((x) => x.toJson())),
@@ -200,6 +212,160 @@ class Position {
     };
 }
 
+class ExternalConnection {
+    final Coach coach;
+    final ExternalConnectionOrganization organization;
+    final WeightedRole weightedRole;
+
+    ExternalConnection({
+        required this.coach,
+        required this.organization,
+        required this.weightedRole,
+    });
+
+    ExternalConnection copyWith({
+        Coach? coach,
+        ExternalConnectionOrganization? organization,
+        WeightedRole? weightedRole,
+    }) => 
+        ExternalConnection(
+            coach: coach ?? this.coach,
+            organization: organization ?? this.organization,
+            weightedRole: weightedRole ?? this.weightedRole,
+        );
+
+    factory ExternalConnection.fromJson(Map<String, dynamic> json) => ExternalConnection(
+        coach: Coach.fromJson(json["coach"]),
+        organization: ExternalConnectionOrganization.fromJson(json["organization"]),
+        weightedRole: weightedRoleValues.map[json["weighted_role"]]!,
+    );
+
+    Map<String, dynamic> toJson() => {
+        "coach": coach.toJson(),
+        "organization": organization.toJson(),
+        "weighted_role": weightedRoleValues.reverse[weightedRole],
+    };
+}
+
+class Coach {
+    final String? avatarUrl;
+    final String firstName;
+    final String id;
+    final String lastName;
+
+    Coach({
+        required this.avatarUrl,
+        required this.firstName,
+        required this.id,
+        required this.lastName,
+    });
+
+    Coach copyWith({
+        String? avatarUrl,
+        String? firstName,
+        String? id,
+        String? lastName,
+    }) => 
+        Coach(
+            avatarUrl: avatarUrl ?? this.avatarUrl,
+            firstName: firstName ?? this.firstName,
+            id: id ?? this.id,
+            lastName: lastName ?? this.lastName,
+        );
+
+    factory Coach.fromJson(Map<String, dynamic> json) => Coach(
+        avatarUrl: json["avatar_url"],
+        firstName: json["first_name"],
+        id: json["id"],
+        lastName: json["last_name"],
+    );
+
+    Map<String, dynamic> toJson() => {
+        "avatar_url": avatarUrl,
+        "first_name": firstName,
+        "id": id,
+        "last_name": lastName,
+    };
+}
+
+class ExternalConnectionOrganization {
+    final String id;
+    final String name;
+
+    ExternalConnectionOrganization({
+        required this.id,
+        required this.name,
+    });
+
+    ExternalConnectionOrganization copyWith({
+        String? id,
+        String? name,
+    }) => 
+        ExternalConnectionOrganization(
+            id: id ?? this.id,
+            name: name ?? this.name,
+        );
+
+    factory ExternalConnectionOrganization.fromJson(Map<String, dynamic> json) => ExternalConnectionOrganization(
+        id: json["id"],
+        name: json["name"],
+    );
+
+    Map<String, dynamic> toJson() => {
+        "id": id,
+        "name": name,
+    };
+}
+
+enum WeightedRole {
+    ASSISTANT_COACH,
+    HEAD_COACH,
+    OFFSEASON_COACH,
+    SKILLS_COACH
+}
+
+final weightedRoleValues = EnumValues({
+    "assistant_coach": WeightedRole.ASSISTANT_COACH,
+    "head_coach": WeightedRole.HEAD_COACH,
+    "offseason_coach": WeightedRole.OFFSEASON_COACH,
+    "skills_coach": WeightedRole.SKILLS_COACH
+});
+
+class Guardian {
+    final String firstName;
+    final String id;
+    final String lastName;
+
+    Guardian({
+        required this.firstName,
+        required this.id,
+        required this.lastName,
+    });
+
+    Guardian copyWith({
+        String? firstName,
+        String? id,
+        String? lastName,
+    }) => 
+        Guardian(
+            firstName: firstName ?? this.firstName,
+            id: id ?? this.id,
+            lastName: lastName ?? this.lastName,
+        );
+
+    factory Guardian.fromJson(Map<String, dynamic> json) => Guardian(
+        firstName: json["first_name"],
+        id: json["id"],
+        lastName: json["last_name"],
+    );
+
+    Map<String, dynamic> toJson() => {
+        "first_name": firstName,
+        "id": id,
+        "last_name": lastName,
+    };
+}
+
 class ManagedOrganization {
     final String id;
     final String name;
@@ -278,9 +444,9 @@ final roleTierValues = EnumValues({
 });
 
 class TeamMembership {
-    final CoachType? coachType;
+    final WeightedRole? coachType;
     final DateTime joinedAt;
-    final Organization organization;
+    final TeamMembershipOrganization organization;
     final Team team;
 
     TeamMembership({
@@ -291,9 +457,9 @@ class TeamMembership {
     });
 
     TeamMembership copyWith({
-        CoachType? coachType,
+        WeightedRole? coachType,
         DateTime? joinedAt,
-        Organization? organization,
+        TeamMembershipOrganization? organization,
         Team? team,
     }) => 
         TeamMembership(
@@ -304,53 +470,39 @@ class TeamMembership {
         );
 
     factory TeamMembership.fromJson(Map<String, dynamic> json) => TeamMembership(
-        coachType: coachTypeValues.map[json["coach_type"]],
+        coachType: weightedRoleValues.map[json["coach_type"]],
         joinedAt: DateTime.parse(json["joined_at"]),
-        organization: Organization.fromJson(json["organization"]),
+        organization: TeamMembershipOrganization.fromJson(json["organization"]),
         team: Team.fromJson(json["team"]),
     );
 
     Map<String, dynamic> toJson() => {
-        "coach_type": coachTypeValues.reverse[coachType],
+        "coach_type": weightedRoleValues.reverse[coachType],
         "joined_at": joinedAt.toIso8601String(),
         "organization": organization.toJson(),
         "team": team.toJson(),
     };
 }
 
-enum CoachType {
-    ASSISTANT_COACH,
-    HEAD_COACH,
-    OFFSEASON_COACH,
-    SKILLS_COACH
-}
-
-final coachTypeValues = EnumValues({
-    "assistant_coach": CoachType.ASSISTANT_COACH,
-    "head_coach": CoachType.HEAD_COACH,
-    "offseason_coach": CoachType.OFFSEASON_COACH,
-    "skills_coach": CoachType.SKILLS_COACH
-});
-
-class Organization {
+class TeamMembershipOrganization {
     final String id;
     final String name;
 
-    Organization({
+    TeamMembershipOrganization({
         required this.id,
         required this.name,
     });
 
-    Organization copyWith({
+    TeamMembershipOrganization copyWith({
         String? id,
         String? name,
     }) => 
-        Organization(
+        TeamMembershipOrganization(
             id: id ?? this.id,
             name: name ?? this.name,
         );
 
-    factory Organization.fromJson(Map<String, dynamic> json) => Organization(
+    factory TeamMembershipOrganization.fromJson(Map<String, dynamic> json) => TeamMembershipOrganization(
         id: json["id"],
         name: json["name"],
     );

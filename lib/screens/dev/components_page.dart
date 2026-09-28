@@ -1851,6 +1851,8 @@ class _CoachAthletePassportCardDemo extends StatelessWidget {
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
       managedOrganizations: const [],
+      guardian: null,
+      externalConnections: const [],
       athleteDetails: profile_api.AthleteDetails(
         heightCm: 175,
         weightKg: 66,
@@ -1864,7 +1866,7 @@ class _CoachAthletePassportCardDemo extends StatelessWidget {
         profile_api.TeamMembership(
           coachType: null,
           joinedAt: DateTime.now(),
-          organization: profile_api.Organization(
+          organization: profile_api.TeamMembershipOrganization(
             id: '00000000-0000-0000-0000-000000000000',
             name: 'Test Hockey Club',
           ),

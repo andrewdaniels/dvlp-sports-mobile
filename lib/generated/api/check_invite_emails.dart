@@ -6,7 +6,6 @@
 //
 //     final checkInviteEmailsData = checkInviteEmailsDataFromJson(jsonString);
 //     final checkInviteEmailsRequest = checkInviteEmailsRequestFromJson(jsonString);
-//     final inviteEmailResult = inviteEmailResultFromJson(jsonString);
 //     final inviteEmailStatus = inviteEmailStatusFromJson(jsonString);
 
 import 'dart:convert';
@@ -18,10 +17,6 @@ String checkInviteEmailsDataToJson(CheckInviteEmailsData data) => json.encode(da
 CheckInviteEmailsRequest checkInviteEmailsRequestFromJson(String str) => CheckInviteEmailsRequest.fromJson(json.decode(str));
 
 String checkInviteEmailsRequestToJson(CheckInviteEmailsRequest data) => json.encode(data.toJson());
-
-InviteEmailResult inviteEmailResultFromJson(String str) => InviteEmailResult.fromJson(json.decode(str));
-
-String inviteEmailResultToJson(InviteEmailResult data) => json.encode(data.toJson());
 
 InviteEmailStatus inviteEmailStatusFromJson(String str) => inviteEmailStatusValues.map[json.decode(str)]!;
 
@@ -52,32 +47,56 @@ class CheckInviteEmailsData {
 
 class Result {
     final String email;
+    final RoleTier? roleTier;
     final InviteEmailStatus status;
 
     Result({
         required this.email,
+        required this.roleTier,
         required this.status,
     });
 
     Result copyWith({
         String? email,
+        RoleTier? roleTier,
         InviteEmailStatus? status,
     }) => 
         Result(
             email: email ?? this.email,
+            roleTier: roleTier ?? this.roleTier,
             status: status ?? this.status,
         );
 
     factory Result.fromJson(Map<String, dynamic> json) => Result(
         email: json["email"],
+        roleTier: roleTierValues.map[json["role_tier"]],
         status: inviteEmailStatusValues.map[json["status"]]!,
     );
 
     Map<String, dynamic> toJson() => {
         "email": email,
+        "role_tier": roleTierValues.reverse[roleTier],
         "status": inviteEmailStatusValues.reverse[status],
     };
 }
+
+enum RoleTier {
+    ADMIN,
+    ATHLETE,
+    COACH,
+    GUARDIAN,
+    ORGANIZATION_MANAGER,
+    TEAM_MANAGER
+}
+
+final roleTierValues = EnumValues({
+    "admin": RoleTier.ADMIN,
+    "athlete": RoleTier.ATHLETE,
+    "coach": RoleTier.COACH,
+    "guardian": RoleTier.GUARDIAN,
+    "organization_manager": RoleTier.ORGANIZATION_MANAGER,
+    "team_manager": RoleTier.TEAM_MANAGER
+});
 
 enum InviteEmailStatus {
     AVAILABLE,
@@ -139,35 +158,6 @@ final targetRoleValues = EnumValues({
     "organization_manager": TargetRole.ORGANIZATION_MANAGER,
     "team_manager": TargetRole.TEAM_MANAGER
 });
-
-class InviteEmailResult {
-    final String email;
-    final InviteEmailStatus status;
-
-    InviteEmailResult({
-        required this.email,
-        required this.status,
-    });
-
-    InviteEmailResult copyWith({
-        String? email,
-        InviteEmailStatus? status,
-    }) => 
-        InviteEmailResult(
-            email: email ?? this.email,
-            status: status ?? this.status,
-        );
-
-    factory InviteEmailResult.fromJson(Map<String, dynamic> json) => InviteEmailResult(
-        email: json["email"],
-        status: inviteEmailStatusValues.map[json["status"]]!,
-    );
-
-    Map<String, dynamic> toJson() => {
-        "email": email,
-        "status": inviteEmailStatusValues.reverse[status],
-    };
-}
 
 class EnumValues<T> {
     Map<String, T> map;

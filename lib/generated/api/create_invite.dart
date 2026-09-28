@@ -69,6 +69,7 @@ class CreateInviteData {
 }
 
 class CreateInviteRequest {
+    final List<String>? athleteIds;
     final CoachType? coachType;
     final String email;
     final String? firstName;
@@ -79,6 +80,7 @@ class CreateInviteRequest {
     final String? teamId;
 
     CreateInviteRequest({
+        this.athleteIds,
         this.coachType,
         required this.email,
         this.firstName,
@@ -90,6 +92,7 @@ class CreateInviteRequest {
     });
 
     CreateInviteRequest copyWith({
+        List<String>? athleteIds,
         CoachType? coachType,
         String? email,
         String? firstName,
@@ -100,6 +103,7 @@ class CreateInviteRequest {
         String? teamId,
     }) => 
         CreateInviteRequest(
+            athleteIds: athleteIds ?? this.athleteIds,
             coachType: coachType ?? this.coachType,
             email: email ?? this.email,
             firstName: firstName ?? this.firstName,
@@ -111,6 +115,7 @@ class CreateInviteRequest {
         );
 
     factory CreateInviteRequest.fromJson(Map<String, dynamic> json) => CreateInviteRequest(
+        athleteIds: json["athlete_ids"] == null ? [] : List<String>.from(json["athlete_ids"]!.map((x) => x)),
         coachType: coachTypeValues.map[json["coach_type"]],
         email: json["email"],
         firstName: json["first_name"],
@@ -122,6 +127,7 @@ class CreateInviteRequest {
     );
 
     Map<String, dynamic> toJson() => {
+        "athlete_ids": athleteIds == null ? [] : List<dynamic>.from(athleteIds!.map((x) => x)),
         "coach_type": coachTypeValues.reverse[coachType],
         "email": email,
         "first_name": firstName,

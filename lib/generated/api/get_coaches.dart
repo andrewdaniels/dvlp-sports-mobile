@@ -50,6 +50,7 @@ class Coach {
     final String? avatarUrl;
     final CoachType? coachType;
     final String email;
+    final int externalConnectionsCount;
     final String firstName;
     final GrantingOrganization? grantingOrganization;
     final String id;
@@ -62,6 +63,7 @@ class Coach {
         required this.avatarUrl,
         required this.coachType,
         required this.email,
+        required this.externalConnectionsCount,
         required this.firstName,
         required this.grantingOrganization,
         required this.id,
@@ -75,6 +77,7 @@ class Coach {
         String? avatarUrl,
         CoachType? coachType,
         String? email,
+        int? externalConnectionsCount,
         String? firstName,
         GrantingOrganization? grantingOrganization,
         String? id,
@@ -87,6 +90,7 @@ class Coach {
             avatarUrl: avatarUrl ?? this.avatarUrl,
             coachType: coachType ?? this.coachType,
             email: email ?? this.email,
+            externalConnectionsCount: externalConnectionsCount ?? this.externalConnectionsCount,
             firstName: firstName ?? this.firstName,
             grantingOrganization: grantingOrganization ?? this.grantingOrganization,
             id: id ?? this.id,
@@ -100,6 +104,7 @@ class Coach {
         avatarUrl: json["avatar_url"],
         coachType: coachTypeValues.map[json["coach_type"]],
         email: json["email"],
+        externalConnectionsCount: json["external_connections_count"],
         firstName: json["first_name"],
         grantingOrganization: json["granting_organization"] == null ? null : GrantingOrganization.fromJson(json["granting_organization"]),
         id: json["id"],
@@ -113,6 +118,7 @@ class Coach {
         "avatar_url": avatarUrl,
         "coach_type": coachTypeValues.reverse[coachType],
         "email": email,
+        "external_connections_count": externalConnectionsCount,
         "first_name": firstName,
         "granting_organization": grantingOrganization?.toJson(),
         "id": id,

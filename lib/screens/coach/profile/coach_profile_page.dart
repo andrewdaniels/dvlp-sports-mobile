@@ -130,11 +130,11 @@ class _CoachProfileBody extends ConsumerWidget {
     );
   }
 
-  static String _coachRoleLabel(CoachType type) => switch (type) {
-        CoachType.HEAD_COACH => 'Head Coach',
-        CoachType.ASSISTANT_COACH => 'Assistant Coach',
-        CoachType.SKILLS_COACH => 'Skills Coach',
-        CoachType.OFFSEASON_COACH => 'Offseason Coach',
+  static String _coachRoleLabel(WeightedRole type) => switch (type) {
+        WeightedRole.HEAD_COACH => 'Head Coach',
+        WeightedRole.ASSISTANT_COACH => 'Assistant Coach',
+        WeightedRole.SKILLS_COACH => 'Skills Coach',
+        WeightedRole.OFFSEASON_COACH => 'Offseason Coach',
       };
 }
 
