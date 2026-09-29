@@ -1,24 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 /// DVLP brand mark.
 ///
-/// Three sizes — pick from the enum to keep usage consistent (no
-/// `height: 87` sprinkled across screens):
+/// Two variants:
+///   - [AppLogoVariant.mark]     — arrow only.
+///   - [AppLogoVariant.wordmark] — mark + "DVLP SPORTS" text.
 ///
-/// - [AppLogoSize.hero]   — 96px, large centered mark on the entry
-///                          screen + cold-boot splash.
-/// - [AppLogoSize.medium] — 64px, in-between mark for surfaces that
-///                          want brand presence without dominating
-///                          (splash alternative, empty states).
-/// - [AppLogoSize.header] — 32px, small mark for top-left of
-///                          onboarding pages.
+/// Three sizes — pick from the enum to keep usage consistent:
+///   - [AppLogoSize.hero]   — 96px tall, entry / splash.
+///   - [AppLogoSize.medium] — 64px tall, secondary brand moments.
+///   - [AppLogoSize.header] — 32px tall, top-left of onboarding pages.
 ///
-/// The asset is a fixed gradient PNG — no color tint prop, because
-/// tinting would flatten the gradient. Extend with a `variant` enum
-/// if a mono/wordmark asset is delivered later.
+/// Sizes are keyed on HEIGHT; the underlying SVG's viewBox preserves
+/// aspect ratio so the wordmark variant renders wider than the mark
+/// automatically. Assets are gradient SVGs — no color tint prop.
 class AppLogo extends StatelessWidget {
-  const AppLogo({super.key, this.size = AppLogoSize.header});
+  const AppLogo({
+    super.key,
+    this.variant = AppLogoVariant.mark,
+    this.size = AppLogoSize.header,
+  });
 
+  final AppLogoVariant variant;
   final AppLogoSize size;
 
   double get _height {
@@ -32,14 +36,25 @@ class AppLogo extends StatelessWidget {
     }
   }
 
+  String get _asset {
+    switch (variant) {
+      case AppLogoVariant.mark:
+        return 'assets/brand/logo_mark.svg';
+      case AppLogoVariant.wordmark:
+        return 'assets/brand/logo_wordmark.svg';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      'assets/brand/logo.png',
+    return SvgPicture.asset(
+      _asset,
       height: _height,
       fit: BoxFit.contain,
     );
   }
 }
+
+enum AppLogoVariant { mark, wordmark }
 
 enum AppLogoSize { hero, medium, header }
