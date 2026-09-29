@@ -120,7 +120,7 @@ class _ExistingBody extends ConsumerWidget {
               ),
             );
           }
-          final canEdit = callerId != null && detail.coach.id == callerId;
+          final canEdit = callerId != null && detail.coach?.id == callerId;
           if (!canEdit) return _ReadonlyBody(detail: detail);
           return _FormalComposer(
             existingAssessmentId: assessmentId,
@@ -545,13 +545,15 @@ class _CoachHeader extends StatelessWidget {
       teamSuffix,
     ].where((s) => s.isNotEmpty).join(' · ');
 
+    // Coach null = hard-deleted account. Render placeholder header —
+    // the assessment content below still reflects their work.
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         AppAvatar(
-          imageUrl: coach.avatarUrl,
-          firstName: coach.firstName,
-          lastName: coach.lastName,
+          imageUrl: coach?.avatarUrl,
+          firstName: coach?.firstName ?? '',
+          lastName: coach?.lastName ?? '',
           size: AppAvatarSize.medium,
         ),
         const SizedBox(width: AppSpacing.md),
@@ -561,7 +563,7 @@ class _CoachHeader extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Coach ${coach.firstName}',
+                coach == null ? 'Deleted coach' : 'Coach ${coach.firstName}',
                 style: AppTypography.titleMedium.copyWith(color: colors.primaryText),
               ),
               const SizedBox(height: AppSpacing.xxs),

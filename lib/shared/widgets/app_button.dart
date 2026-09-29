@@ -112,6 +112,7 @@ class AppButton extends StatelessWidget {
     if (disabled) {
       switch (variant) {
         case AppButtonVariant.primary:
+        case AppButtonVariant.destructive:
           return BoxDecoration(color: colors.alternate, borderRadius: radius);
         case AppButtonVariant.secondary:
           return BoxDecoration(color: colors.accent2Tint, borderRadius: radius);
@@ -159,6 +160,14 @@ class AppButton extends StatelessWidget {
         );
       case AppButtonVariant.text:
         return BoxDecoration(borderRadius: radius);
+      case AppButtonVariant.destructive:
+        // iOS-style tint button: low-opacity error fill via the
+        // `errorTint` theme token + full `error` text (see
+        // `_contentColor`). Reads clearly destructive without competing
+        // visually with the primary gold gradient CTA — appropriate
+        // when the destructive action lives next to a cancel/secondary
+        // button in a confirmation dialog.
+        return BoxDecoration(color: colors.errorTint, borderRadius: radius);
     }
   }
 
@@ -177,6 +186,10 @@ class AppButton extends StatelessWidget {
         // Text buttons act as inline links (See All / Learn more /
         // How it works) — colored to match the app's link token.
         return colors.link;
+      case AppButtonVariant.destructive:
+        // Full `error` on the low-opacity `errorTint` fill — reads
+        // unambiguously destructive at both light and dark themes.
+        return colors.error;
     }
   }
 
@@ -184,6 +197,7 @@ class AppButton extends StatelessWidget {
     switch (variant) {
       case AppButtonVariant.primary:
       case AppButtonVariant.secondary:
+      case AppButtonVariant.destructive:
         HapticFeedback.mediumImpact();
         break;
       case AppButtonVariant.outline:
@@ -240,7 +254,7 @@ class AppButton extends StatelessWidget {
   }
 }
 
-enum AppButtonVariant { primary, secondary, outline, alternate, text }
+enum AppButtonVariant { primary, secondary, outline, alternate, text, destructive }
 
 enum AppButtonSize { xs, small, medium, large }
 

@@ -43,7 +43,7 @@ class GetCoachAssessmentsData {
 class Assessment {
     final AccessScope accessScope;
     final AssessmentType assessmentType;
-    final Athlete athlete;
+    final Athlete? athlete;
     final bool athleteRead;
     final String id;
     final String submittedAt;
@@ -85,7 +85,7 @@ class Assessment {
     factory Assessment.fromJson(Map<String, dynamic> json) => Assessment(
         accessScope: accessScopeValues.map[json["access_scope"]]!,
         assessmentType: assessmentTypeValues.map[json["assessment_type"]]!,
-        athlete: Athlete.fromJson(json["athlete"]),
+        athlete: json["athlete"] == null ? null : Athlete.fromJson(json["athlete"]),
         athleteRead: json["athlete_read"],
         id: json["id"],
         submittedAt: json["submitted_at"],
@@ -96,7 +96,7 @@ class Assessment {
     Map<String, dynamic> toJson() => {
         "access_scope": accessScopeValues.reverse[accessScope],
         "assessment_type": assessmentTypeValues.reverse[assessmentType],
-        "athlete": athlete.toJson(),
+        "athlete": athlete?.toJson(),
         "athlete_read": athleteRead,
         "id": id,
         "submitted_at": submittedAt,

@@ -168,6 +168,7 @@ final roleValues = EnumValues({
 });
 
 enum EmailType {
+    DELETION_RECOVERY_CODE,
     EXTERNAL_GRANT_INVITE,
     GUARDIAN_INVITE,
     INVITE_CODE,
@@ -176,6 +177,7 @@ enum EmailType {
 }
 
 final emailTypeValues = EnumValues({
+    "deletion_recovery_code": EmailType.DELETION_RECOVERY_CODE,
     "external_grant_invite": EmailType.EXTERNAL_GRANT_INVITE,
     "guardian_invite": EmailType.GUARDIAN_INVITE,
     "invite_code": EmailType.INVITE_CODE,

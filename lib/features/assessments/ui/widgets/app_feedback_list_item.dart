@@ -42,7 +42,12 @@ class AppFeedbackListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
-    final coachName = 'Coach ${assessment.coach.firstName}';
+    // Coach can be null when the coach has hard-deleted their account.
+    // Assessment row is preserved via SET NULL + snapshot column on the
+    // backend; we render a placeholder here so the athlete still sees
+    // their historical feedback.
+    final coach = assessment.coach;
+    final coachName = coach == null ? 'Deleted coach' : 'Coach ${coach.firstName}';
     final coachRole = _coachRoleLine(assessment);
     final timeAgo = formatTimeAgo(assessment.submittedAt);
     final isQuick = assessment.assessmentType == AssessmentType.QUICK;
@@ -70,9 +75,9 @@ class AppFeedbackListItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 AppAvatar(
-                  imageUrl: assessment.coach.avatarUrl,
-                  firstName: assessment.coach.firstName,
-                  lastName: assessment.coach.lastName,
+                  imageUrl: coach?.avatarUrl,
+                  firstName: coach?.firstName ?? '',
+                  lastName: coach?.lastName ?? '',
                   size: AppAvatarSize.small,
                 ),
                 const SizedBox(width: AppSpacing.sm),

@@ -34,6 +34,7 @@ class AppLinkRow extends StatelessWidget {
     required this.onTap,
     this.description,
     this.leadingIcon,
+    this.destructive = false,
   });
 
   /// Primary text — `bodyLarge` in `primaryText`.
@@ -52,10 +53,18 @@ class AppLinkRow extends StatelessWidget {
   /// display row primitive instead).
   final VoidCallback onTap;
 
+  /// When true, label + leading icon both render in `colors.error`
+  /// instead of the default primaryText / link tint. For irreversible
+  /// / dangerous actions (delete account, remove team, etc.). Chevron
+  /// stays neutral — the icon + text carry the warning.
+  final bool destructive;
+
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
     final hasDescription = (description ?? '').trim().isNotEmpty;
+    final iconColor = destructive ? colors.error : colors.link;
+    final labelColor = destructive ? colors.error : colors.primaryText;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -76,7 +85,7 @@ class AppLinkRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 if (leadingIcon != null) ...[
-                  AppIcon(leadingIcon!, size: 24, color: colors.link),
+                  AppIcon(leadingIcon!, size: 24, color: iconColor),
                   const SizedBox(width: AppSpacing.md),
                 ],
                 Expanded(
@@ -86,7 +95,7 @@ class AppLinkRow extends StatelessWidget {
                     children: [
                       Text(
                         label,
-                        style: AppTypography.bodyLarge.copyWith(color: colors.primaryText),
+                        style: AppTypography.bodyLarge.copyWith(color: labelColor),
                       ),
                       if (hasDescription) ...[
                         const SizedBox(height: AppSpacing.xxs),

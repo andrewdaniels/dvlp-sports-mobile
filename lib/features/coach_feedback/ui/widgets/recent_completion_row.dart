@@ -37,8 +37,11 @@ class RecentCompletionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colors;
+    // Athlete is null when they've hard-deleted their account. The
+    // coach's authored assessment still surfaces here (backend preserves
+    // the row via SET NULL + snapshot); we render a placeholder.
     final a = entry.athlete;
-    final name = _formatName(a.firstName, a.lastName);
+    final name = a == null ? 'Deleted athlete' : _formatName(a.firstName, a.lastName);
     final subtitle = 'Completed ${formatTimeAgo(entry.submittedAt)}';
 
     return GestureDetector(
@@ -58,9 +61,9 @@ class RecentCompletionRow extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             AppAvatar(
-              imageUrl: a.avatarUrl,
-              firstName: a.firstName,
-              lastName: a.lastName,
+              imageUrl: a?.avatarUrl,
+              firstName: a?.firstName ?? '',
+              lastName: a?.lastName ?? '',
               size: AppAvatarSize.small,
             ),
             const SizedBox(width: AppSpacing.md),

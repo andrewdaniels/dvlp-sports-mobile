@@ -44,7 +44,7 @@ class Assessment {
     final AccessScope accessScope;
     final AssessmentType assessmentType;
     final bool athleteRead;
-    final Coach coach;
+    final Coach? coach;
     final String id;
     final String? notes;
     final ScoreScale scoreScale;
@@ -106,7 +106,7 @@ class Assessment {
         accessScope: accessScopeValues.map[json["access_scope"]]!,
         assessmentType: assessmentTypeValues.map[json["assessment_type"]]!,
         athleteRead: json["athlete_read"],
-        coach: Coach.fromJson(json["coach"]),
+        coach: json["coach"] == null ? null : Coach.fromJson(json["coach"]),
         id: json["id"],
         notes: json["notes"],
         scoreScale: ScoreScale.fromJson(json["score_scale"]),
@@ -122,7 +122,7 @@ class Assessment {
         "access_scope": accessScopeValues.reverse[accessScope],
         "assessment_type": assessmentTypeValues.reverse[assessmentType],
         "athlete_read": athleteRead,
-        "coach": coach.toJson(),
+        "coach": coach?.toJson(),
         "id": id,
         "notes": notes,
         "score_scale": scoreScale.toJson(),

@@ -51,7 +51,7 @@ class AppSelectTrigger extends StatelessWidget {
       children: [
         if (label != null) ...[
           Text(label!, style: AppTypography.labelSmall.copyWith(color: labelColor)),
-          const SizedBox(height: AppSpacing.xxs),
+          const SizedBox(height: AppSpacing.xs),
         ],
         GestureDetector(
           behavior: HitTestBehavior.opaque,

@@ -160,12 +160,19 @@ Future<void> showVerifiedCoachesSheet(
 List<VerifiedCoachRow> deriveVerifiedCoaches(List<Assessment> assessments) {
   final seen = <String, VerifiedCoachRow>{};
   for (final a in assessments) {
-    if (seen.containsKey(a.coach.id)) continue;
-    seen[a.coach.id] = VerifiedCoachRow(
-      coachId: a.coach.id,
-      firstName: a.coach.firstName,
-      lastName: a.coach.lastName,
-      avatarUrl: a.coach.avatarUrl,
+    // Skip assessments whose coach has hard-deleted their account.
+    // The assessment row itself survives elsewhere in the athlete's
+    // feedback history (rendered as "Deleted coach" there); this list
+    // is specifically "coaches you can reach out to" so a gone coach
+    // has no meaningful entry here.
+    final coach = a.coach;
+    if (coach == null) continue;
+    if (seen.containsKey(coach.id)) continue;
+    seen[coach.id] = VerifiedCoachRow(
+      coachId: coach.id,
+      firstName: coach.firstName,
+      lastName: coach.lastName,
+      avatarUrl: coach.avatarUrl,
       roleLabel: _roleLabel(a.weightedRole),
       contextLabel: a.accessScope == AccessScope.EXTERNAL
           ? 'External'

@@ -380,7 +380,7 @@ class QuickFeedbackRequestAthlete {
 class RecentCompleted {
     final String assessmentId;
     final AssessmentType assessmentType;
-    final RecentCompletedAthlete athlete;
+    final RecentCompletedAthlete? athlete;
     final String submittedAt;
 
     RecentCompleted({
@@ -406,14 +406,14 @@ class RecentCompleted {
     factory RecentCompleted.fromJson(Map<String, dynamic> json) => RecentCompleted(
         assessmentId: json["assessment_id"],
         assessmentType: assessmentTypeValues.map[json["assessment_type"]]!,
-        athlete: RecentCompletedAthlete.fromJson(json["athlete"]),
+        athlete: json["athlete"] == null ? null : RecentCompletedAthlete.fromJson(json["athlete"]),
         submittedAt: json["submitted_at"],
     );
 
     Map<String, dynamic> toJson() => {
         "assessment_id": assessmentId,
         "assessment_type": assessmentTypeValues.reverse[assessmentType],
-        "athlete": athlete.toJson(),
+        "athlete": athlete?.toJson(),
         "submitted_at": submittedAt,
     };
 }

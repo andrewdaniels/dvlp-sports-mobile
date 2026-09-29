@@ -26,6 +26,7 @@ class AppTextField extends StatefulWidget {
     this.keyboardType,
     this.obscureText = false,
     this.inputFormatters,
+    this.destructive = false,
   });
 
   final String? label;
@@ -38,6 +39,14 @@ class AppTextField extends StatefulWidget {
   final TextInputType? keyboardType;
   final bool obscureText;
   final List<TextInputFormatter>? inputFormatters;
+
+  /// When true, the focused border uses `colors.error` instead of the
+  /// default `link`. Text, cursor, placeholder, and label stay neutral
+  /// — only the border shifts so the field signals "this input drives
+  /// a destructive action" once engaged, without visually shouting
+  /// while the user is typing. Reserved for irreversible-action
+  /// inputs (typed-confirmation gates on destructive dialogs).
+  final bool destructive;
 
   @override
   State<AppTextField> createState() => _AppTextFieldState();
@@ -111,7 +120,7 @@ class _AppTextFieldState extends State<AppTextField> {
       children: [
         if (widget.label != null) ...[
           Text(widget.label!, style: AppTypography.labelSmall.copyWith(color: labelColor)),
-          const SizedBox(height: AppSpacing.xxs),
+          const SizedBox(height: AppSpacing.xs),
         ],
         Container(
           height: 56,
@@ -180,7 +189,7 @@ class _AppTextFieldState extends State<AppTextField> {
   Color _resolveBorderColor(AppColors colors, {required bool hasError}) {
     if (hasError) return colors.error;
     if (!widget.enabled) return colors.alternate.withValues(alpha: 0.5);
-    if (_isFocused) return colors.link;
+    if (_isFocused) return widget.destructive ? colors.error : colors.link;
     return colors.alternate;
   }
 
