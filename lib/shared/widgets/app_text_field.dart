@@ -25,6 +25,7 @@ class AppTextField extends StatefulWidget {
     this.onChanged,
     this.keyboardType,
     this.obscureText = false,
+    this.inputFormatters,
   });
 
   final String? label;
@@ -36,6 +37,7 @@ class AppTextField extends StatefulWidget {
   final ValueChanged<String>? onChanged;
   final TextInputType? keyboardType;
   final bool obscureText;
+  final List<TextInputFormatter>? inputFormatters;
 
   @override
   State<AppTextField> createState() => _AppTextFieldState();
@@ -133,6 +135,7 @@ class _AppTextFieldState extends State<AppTextField> {
                   keyboardType: widget.keyboardType,
                   obscureText: _obscured,
                   onChanged: widget.onChanged,
+                  inputFormatters: widget.inputFormatters,
                   style: AppTypography.bodyMedium.copyWith(color: colors.primaryText),
                   cursorColor: colors.link,
                   decoration: InputDecoration.collapsed(

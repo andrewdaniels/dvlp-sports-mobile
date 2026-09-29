@@ -12,6 +12,7 @@ import '../../features/auth/controllers/profile_providers.dart';
 import '../../features/auth/controllers/signup_flow_provider.dart';
 import '../../features/auth/data/api_result.dart';
 import '../../shared/util/avatar_picker.dart';
+import '../../shared/util/phone.dart';
 import '../../shared/widgets/app_avatar.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_onboarding_header.dart';
@@ -55,6 +56,20 @@ class _CoachAccountPageState extends ConsumerState<CoachAccountPage> {
     } else {
       _seedFromSignupContext();
     }
+    _first.addListener(_onFieldChanged);
+    _last.addListener(_onFieldChanged);
+    _phone.addListener(_onFieldChanged);
+  }
+
+  void _onFieldChanged() {
+    if (mounted) setState(() {});
+  }
+
+  bool get _canSubmit {
+    if (_first.text.trim().isEmpty) return false;
+    if (_last.text.trim().isEmpty) return false;
+    if (toE164(_phone.text) == null) return false;
+    return true;
   }
 
   void _seedFromSignupContext() {
@@ -69,7 +84,7 @@ class _CoachAccountPageState extends ConsumerState<CoachAccountPage> {
     if (profile == null) return;
     _first.text = profile.firstName;
     _last.text = profile.lastName;
-    _phone.text = profile.phone ?? '';
+    _phone.text = profile.phone == null ? '' : formatFromE164(profile.phone!);
     _existingAvatarUrl = profile.avatarUrl;
   }
 
@@ -100,9 +115,13 @@ class _CoachAccountPageState extends ConsumerState<CoachAccountPage> {
     }
     final firstName = _first.text.trim();
     final lastName = _last.text.trim();
-    final phone = _phone.text.trim();
+    final phoneE164 = toE164(_phone.text);
     if (firstName.isEmpty || lastName.isEmpty) {
       setState(() => _errorText = 'Please enter your first and last name.');
+      return;
+    }
+    if (phoneE164 == null) {
+      setState(() => _errorText = 'Please enter a 10-digit phone number.');
       return;
     }
     if (ctx.email == null || ctx.password == null || ctx.inviteId == null) {
@@ -122,7 +141,7 @@ class _CoachAccountPageState extends ConsumerState<CoachAccountPage> {
           firstName: firstName,
           lastName: lastName,
           inviteId: ctx.inviteId!,
-          phone: phone.isEmpty ? null : phone,
+          phone: phoneE164,
           avatarBase64: _avatarBase64,
         );
 
@@ -167,9 +186,13 @@ class _CoachAccountPageState extends ConsumerState<CoachAccountPage> {
     if (_submitting) return;
     final firstName = _first.text.trim();
     final lastName = _last.text.trim();
-    final phone = _phone.text.trim();
+    final phoneE164 = toE164(_phone.text);
     if (firstName.isEmpty) {
       setState(() => _errorText = 'Please enter your first name.');
+      return;
+    }
+    if (phoneE164 == null) {
+      setState(() => _errorText = 'Please enter a 10-digit phone number.');
       return;
     }
 
@@ -182,7 +205,7 @@ class _CoachAccountPageState extends ConsumerState<CoachAccountPage> {
     final result = await ref.read(profileRepositoryProvider).updateProfile(
           firstName: firstName,
           lastName: lastName.isEmpty ? null : lastName,
-          phone: phone.isEmpty ? null : phone,
+          phone: phoneE164,
           avatarBase64: _avatarBase64,
         );
 
@@ -221,7 +244,7 @@ class _CoachAccountPageState extends ConsumerState<CoachAccountPage> {
           children: [
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -269,10 +292,11 @@ class _CoachAccountPageState extends ConsumerState<CoachAccountPage> {
                     ),
                     const SizedBox(height: AppSpacing.md),
                     AppTextField(
-                      label: widget.isEdit ? 'Phone Number' : 'Phone Number (optional)',
-                      placeholder: 'Enter phone number',
+                      label: 'Phone Number',
+                      placeholder: '(555) 123-4567',
                       controller: _phone,
                       keyboardType: TextInputType.phone,
+                      inputFormatters: const [PhoneInputFormatter()],
                     ),
                     if (_errorText != null) ...[
                       const SizedBox(height: AppSpacing.md),
@@ -288,7 +312,7 @@ class _CoachAccountPageState extends ConsumerState<CoachAccountPage> {
               ),
             ),
             AppScreenFooter.row(
-              horizontalPadding: AppSpacing.xl,
+              horizontalPadding: AppSpacing.md,
               secondary: AppButton(
                 label: secondaryLabel,
                 variant: AppButtonVariant.outline,
@@ -298,7 +322,9 @@ class _CoachAccountPageState extends ConsumerState<CoachAccountPage> {
                 label: primaryLabel,
                 variant: AppButtonVariant.primary,
                 loading: _submitting,
-                onPressed: widget.isEdit ? _submitEdit : _submitSignup,
+                onPressed: _canSubmit
+                    ? (widget.isEdit ? _submitEdit : _submitSignup)
+                    : null,
               ),
             ),
           ],

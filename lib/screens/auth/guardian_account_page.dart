@@ -14,6 +14,7 @@ import '../../features/auth/controllers/signup_flow_provider.dart';
 import '../../features/auth/data/api_result.dart';
 import '../../generated/api/get_profile.dart';
 import '../../shared/util/avatar_picker.dart';
+import '../../shared/util/phone.dart';
 import '../../shared/widgets/app_avatar.dart';
 import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_icon.dart';
@@ -65,6 +66,21 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
     } else {
       _seedFromSignupContext();
     }
+    _first.addListener(_onFieldChanged);
+    _last.addListener(_onFieldChanged);
+    _phone.addListener(_onFieldChanged);
+  }
+
+  void _onFieldChanged() {
+    if (mounted) setState(() {});
+  }
+
+  bool get _canSubmit {
+    if (_first.text.trim().isEmpty) return false;
+    if (_last.text.trim().isEmpty) return false;
+    if (toE164(_phone.text) == null) return false;
+    if (_dob == null) return false;
+    return true;
   }
 
   void _seedFromSignupContext() {
@@ -79,7 +95,7 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
     if (profile == null) return;
     _first.text = profile.firstName;
     _last.text = profile.lastName;
-    _phone.text = profile.phone ?? '';
+    _phone.text = profile.phone == null ? '' : formatFromE164(profile.phone!);
     if (profile.dateOfBirth != null) {
       _dob = DateTime.tryParse(profile.dateOfBirth!);
     }
@@ -128,9 +144,13 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
 
     final firstName = _first.text.trim();
     final lastName = _last.text.trim();
-    final phone = _phone.text.trim();
-    if (firstName.isEmpty || lastName.isEmpty || phone.isEmpty) {
+    if (firstName.isEmpty || lastName.isEmpty) {
       setState(() => _errorText = 'Please fill in all fields.');
+      return;
+    }
+    final phoneE164 = toE164(_phone.text);
+    if (phoneE164 == null) {
+      setState(() => _errorText = 'Please enter a 10-digit phone number.');
       return;
     }
     if (_dob == null) {
@@ -139,9 +159,9 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
     }
 
     if (widget.isEdit) {
-      await _submitEdit(firstName, lastName, phone);
+      await _submitEdit(firstName, lastName, phoneE164);
     } else {
-      await _submitSignup(firstName, lastName, phone);
+      await _submitSignup(firstName, lastName, phoneE164);
     }
   }
 
@@ -277,7 +297,7 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
           children: [
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -314,9 +334,10 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
                             const SizedBox(height: AppSpacing.md),
                             AppTextField(
                               label: 'Phone',
-                              placeholder: 'Enter phone number',
+                              placeholder: '(555) 123-4567',
                               controller: _phone,
                               keyboardType: TextInputType.phone,
+                              inputFormatters: const [PhoneInputFormatter()],
                             ),
                             const SizedBox(height: AppSpacing.md),
                             AppSelectTrigger(
@@ -351,7 +372,7 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
               ),
             ),
             AppScreenFooter.row(
-              horizontalPadding: AppSpacing.xl,
+              horizontalPadding: AppSpacing.md,
               secondary: AppButton(
                 label: secondaryLabel,
                 variant: AppButtonVariant.outline,
@@ -361,10 +382,9 @@ class _GuardianAccountPageState extends ConsumerState<GuardianAccountPage> {
                 label: primaryLabel,
                 variant: AppButtonVariant.primary,
                 loading: _submitting,
-                // Signup: gated by ToS consent. Edit: always enabled —
-                // per-field required checks fire in _submit with useful
-                // error messages rather than a silent-disabled button.
-                onPressed: (widget.isEdit || _agreed) ? _submit : null,
+                onPressed: (_canSubmit && (widget.isEdit || _agreed))
+                    ? _submit
+                    : null,
               ),
             ),
           ],

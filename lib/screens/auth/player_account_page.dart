@@ -89,6 +89,19 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
     } else {
       _seedFromSignupContext();
     }
+    _first.addListener(_onFieldChanged);
+    _last.addListener(_onFieldChanged);
+  }
+
+  void _onFieldChanged() {
+    if (mounted) setState(() {});
+  }
+
+  bool get _canSubmit {
+    if (_first.text.trim().isEmpty) return false;
+    if (_last.text.trim().isEmpty) return false;
+    if (_dob == null) return false;
+    return true;
   }
 
   void _seedFromSignupContext() {
@@ -452,8 +465,9 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
           children: [
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: AppSpacing.lg),
                     AppOnboardingHeader(
@@ -562,7 +576,7 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
               ),
             ),
             AppScreenFooter.row(
-              horizontalPadding: AppSpacing.xl,
+              horizontalPadding: AppSpacing.md,
               secondary: AppButton(
                 label: secondaryLabel,
                 variant: AppButtonVariant.outline,
@@ -572,7 +586,7 @@ class _PlayerAccountPageState extends ConsumerState<PlayerAccountPage> {
                 label: primaryLabel,
                 variant: AppButtonVariant.primary,
                 loading: _submitting,
-                onPressed: _submit,
+                onPressed: _canSubmit ? _submit : null,
               ),
             ),
           ],
